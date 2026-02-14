@@ -21,7 +21,7 @@
 
 ### Role Selection Landing
 - 3 entry paths: Agency Owner, Caregiver, Elder/Family
-- **INCOMPLETE:** Privacy Policy and Terms & Conditions buttons have empty `onPress` handlers (`app/src/app/(auth)/index.tsx:55,64`)
+- Privacy Policy and Terms & Conditions links navigate to dedicated legal screens
 
 ### Agency Owner Auth (Email/Password)
 - Login via `supabase.auth.signInWithPassword`
@@ -73,7 +73,7 @@ Home, Caregivers, Schedule, Elders, Settings
 
 ### Scheduling
 - Week calendar view with daily assignment slots
-- **INCOMPLETE:** "Add assignment" navigation not implemented (`app/src/app/(protected)/agency/(tabs)/schedule.tsx:251`)
+- **DONE:** Add assignment screen with elder/caregiver/time/task selection, wired from schedule with date param
 
 ### Caregiver Directory (Marketplace)
 - Search with filters: zip code, availability (3 time slots), verified only, max hourly rate
@@ -88,7 +88,8 @@ Home, Caregivers, Schedule, Elders, Settings
 - Profile card, subscription info, navigation rows, sign out
 - Settings menu: Task Library, Agency Profile, Notification Settings
 - Billing: Stripe subscription info, payment method via billing portal, elder count updates (prorated), subscription cancellation
-- **INCOMPLETE:** Help Center, Contact Support, Privacy Policy links have empty handlers
+- Help Center opens external URL, Contact Support opens `mailto:`, Privacy Policy navigates to shared legal screen
+- SettingsRow component uses `Pressable` for proper touch handling
 
 ### Task Library
 - SectionList grouped by 8 categories
@@ -121,7 +122,7 @@ Gesture-disabled stack: Visit Detail -> Check-In -> QR Check-In -> Tasks -> Note
 1. **Visit Detail:** Elder info card, time range, task preview grid, special instructions, "Start Visit" button
 2. **GPS Check-In:** Location permission request, GPS capture, 150-meter radius validation via Haversine formula, records to Supabase with `check_in_method: 'gps'`
 3. **QR Check-In:** Camera-based QR scanner as fallback to GPS
-   - **INCOMPLETE:** QR scan recording to Supabase not implemented (`app/src/app/(protected)/caregiver/visit/[id]/qr-checkin.tsx:58`)
+   - **DONE:** Records check-in to Supabase with `check_in_method: 'qr_code'`
 4. **Task Completion:** Task list with complete/skip actions, skip requires reason via modal, optimistic UI updates, haptic feedback
 5. **Observations:** Icon-based observation recording by category
 6. **GPS Check-Out:** GPS capture, records check-out, triggers `notify-check-out` edge function for family notifications
@@ -138,12 +139,11 @@ Gesture-disabled stack: Visit Detail -> Check-In -> QR Check-In -> Tasks -> Note
 
 ### Community & Support
 - Support section with wellness check, groups, resources, crisis line, journal
-- **INCOMPLETE -- all 5 quick-action buttons have empty handlers:**
-  - Wellness logging (`community.tsx:73`)
-  - Chat (`community.tsx:123`)
-  - Resources (`community.tsx:132`)
-  - Crisis line (`community.tsx:141`)
-  - Journal (`community.tsx:150`)
+- Wellness logging navigates to daily check-in screen (mood/energy/stress with history)
+- Chat navigates to existing support groups screen
+- Resources navigates to curated resource links (Training, Wellness, Legal, Benefits)
+- Crisis line calls 988 Suicide & Crisis Lifeline via `Linking.openURL('tel:988')`
+- Journal navigates to AsyncStorage-backed journaling screen with mood tracking
 
 ### Support Groups
 - Search + category filter (All/Wellness/Specialty/Local/Skills)
@@ -151,9 +151,15 @@ Gesture-disabled stack: Visit Detail -> Check-In -> QR Check-In -> Tasks -> Note
 - Falls back to 5 mock groups if `support_groups` table doesn't exist -- **suggests table may not be migrated yet**
 - Group detail: chat messaging interface with likes
 
+### Visit History
+- Paginated list of completed/missed visits grouped by date
+- Shows elder name, time range, duration, task summary, status badge
+- Supabase query with mock data fallback
+
 ### Profile Tab
 - Profile overview with avatar and stats
-- **INCOMPLETE:** "View Schedule" and "Visit History" buttons have empty handlers (`profile.tsx:133,146`)
+- "My Schedule" navigates to schedule tab
+- "Visit History" navigates to visit history screen
 
 ---
 
@@ -180,7 +186,9 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 - If mood <= 2: triggers `notify-family-elder-mood` edge function to alert family
 
 ### Calls
-- **NOT IMPLEMENTED:** Video calling (`calls.tsx:20`) and emergency call (`calls.tsx:62`) are both TODO
+- **DONE:** Video calling via `family_video_contacts` table with `Linking.openURL()`, call stats tracking
+- **DONE:** Emergency call fetches from `emergency_contacts` table (fallback to `elders.emergency_phone`), dials via `Linking.openURL('tel:...')`
+- **DONE:** Agency-side video contact management screen linked from elder detail
 
 ---
 
@@ -199,7 +207,8 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 ### Settings
 - Menu: Notification Settings, Profile, Help & Support, Log Out
 - Logout removes device push token before sign out
-- **INCOMPLETE:** Profile and Help & Support have empty handlers
+- Profile navigates to edit screen (name, phone, relationship picker)
+- Help & Support opens `mailto:support@healthguide.app`
 
 ### Notification Preferences
 - Toggles: Caregiver Arrival, Visit Completed, Daily Care Summary
@@ -242,7 +251,7 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 - GPS capture via `expo-location`
 - Haversine distance calculation for 150-meter radius check-in/check-out validation
 - Elder addresses geocoded for lat/long storage
-- Check-in methods: GPS (fully implemented), QR code (scanner exists, **recording is TODO**)
+- Check-in methods: GPS (fully implemented), QR code (fully implemented)
 
 ---
 
@@ -350,36 +359,38 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 | 011 | Care groups, invites, members |
 | 012 | Caregiver profiles for marketplace |
 | 013 | Ratings system with triggers |
+| 014 | Family video contacts |
+| 015 | Caregiver wellness logs (mood/energy/stress 1-5, daily unique) |
 
 ---
 
-## Incomplete / TODO Summary
+## Completion Status
 
-### Not Implemented (core features)
+### Implemented (core features)
 | Feature | Location | Status |
 |---|---|---|
-| QR code check-in recording | `caregiver/visit/[id]/qr-checkin.tsx:58` | Scanner UI exists, Supabase write is TODO |
-| Video calling | `careseeker/(tabs)/calls.tsx:20` | Entire feature TODO |
-| Emergency call | `careseeker/(tabs)/calls.tsx:62` | Entire feature TODO |
-| Add assignment (agency schedule) | `agency/(tabs)/schedule.tsx:251` | Navigation not wired |
+| QR code check-in recording | `caregiver/visit/[id]/qr-checkin.tsx` | DONE - Records to Supabase with `check_in_method: 'qr_code'` |
+| Video calling | `careseeker/(tabs)/calls.tsx` | DONE - `family_video_contacts` table + agency management screen |
+| Emergency call | `careseeker/(tabs)/calls.tsx` | DONE - Fetches contact, dials via `Linking.openURL` |
+| Add assignment (agency schedule) | `agency/assignment/new.tsx` | DONE - Multi-step form with validation |
 
-### Stubbed UI (buttons with empty handlers)
-| Feature | Location |
-|---|---|
-| Privacy Policy screen | `(auth)/index.tsx:55` |
-| Terms & Conditions screen | `(auth)/index.tsx:64` |
-| Caregiver wellness logging | `caregiver/(tabs)/community.tsx:73` |
-| Caregiver chat | `caregiver/(tabs)/community.tsx:123` |
-| Caregiver resources | `caregiver/(tabs)/community.tsx:132` |
-| Crisis line | `caregiver/(tabs)/community.tsx:141` |
-| Journal | `caregiver/(tabs)/community.tsx:150` |
-| View schedule (caregiver profile) | `caregiver/(tabs)/profile.tsx:133` |
-| Visit history (caregiver profile) | `caregiver/(tabs)/profile.tsx:146` |
-| Agency Help Center | `agency/(tabs)/settings.tsx` |
-| Agency Contact Support | `agency/(tabs)/settings.tsx` |
-| Agency Privacy Policy | `agency/(tabs)/settings.tsx` |
-| Family Profile settings | `family/settings/index.tsx` |
-| Family Help & Support | `family/settings/index.tsx` |
+### Recently Implemented
+| Feature | Location | Status |
+|---|---|---|
+| Privacy Policy screen | `(auth)/privacy-policy.tsx` | DONE - ScrollView with 8-section legal text |
+| Terms & Conditions screen | `(auth)/terms.tsx` | DONE - ScrollView with 10-section legal text |
+| Caregiver wellness logging | `caregiver/community/wellness.tsx` | DONE - Daily check-in with mood/energy/stress scales + history |
+| Caregiver chat | `caregiver/(tabs)/community.tsx` | DONE - Navigates to existing support groups |
+| Caregiver resources | `caregiver/community/resources.tsx` | DONE - 4-category curated resource links |
+| Crisis line | `caregiver/(tabs)/community.tsx` | DONE - Calls 988 via `Linking.openURL('tel:988')` |
+| Journal | `caregiver/community/journal.tsx` | DONE - AsyncStorage-backed entries with mood + text |
+| View schedule (caregiver profile) | `caregiver/(tabs)/profile.tsx` | DONE - Navigates to schedule tab |
+| Visit history | `caregiver/visit-history.tsx` | DONE - Paginated list grouped by date with Supabase query |
+| Agency Help Center | `agency/(tabs)/settings.tsx` | DONE - Opens external URL |
+| Agency Contact Support | `agency/(tabs)/settings.tsx` | DONE - Opens mailto: link |
+| Agency Privacy Policy | `agency/(tabs)/settings.tsx` | DONE - Navigates to shared privacy-policy screen |
+| Family Profile settings | `family/settings/profile.tsx` | DONE - Edit name, phone, relationship |
+| Family Help & Support | `family/settings/index.tsx` | DONE - Opens mailto: link |
 
 ### Possibly Missing Backend
 | Feature | Location | Note |
