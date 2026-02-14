@@ -1,6 +1,6 @@
 # HealthGuide -- Feature Inventory
 
-> Generated from codebase analysis. Not based on any existing documentation.
+> Generated from codebase analysis. Last updated: Feb 13, 2026.
 
 ## Tech Stack
 
@@ -9,7 +9,7 @@
 - **Offline DB:** WatermelonDB 0.28 (local SQLite)
 - **Billing:** Stripe ($15/elder/month, 14-day free trial)
 - **Web:** Next.js (public caregiver directory)
-- **Language:** TypeScript throughout
+- **Language:** TypeScript throughout (strict mode, zero compilation errors)
 
 ## Roles
 
@@ -53,7 +53,7 @@
 
 ### Dashboard
 - Real-time stats via `get-dashboard-stats` edge function: active elders, caregivers, today's visits, completion rate
-- Today's schedule preview and recent alerts
+- Today's schedule preview and recent alerts (missed visits, late check-ins, unassigned visits)
 
 ### Tab Navigation (5 Tabs)
 Home, Caregivers, Schedule, Elders, Settings
@@ -74,7 +74,7 @@ Home, Caregivers, Schedule, Elders, Settings
 
 ### Scheduling
 - Week calendar view with daily assignment slots
-- **DONE:** Add assignment screen with elder/caregiver/time/task selection, wired from schedule with date param
+- Add assignment screen with elder/caregiver/time/task selection, wired from schedule with date param
 
 ### Caregiver Directory (Marketplace)
 - Search with filters: zip code, availability (3 time slots), verified only, max hourly rate
@@ -122,10 +122,9 @@ Gesture-disabled stack: Visit Detail -> Check-In -> QR Check-In -> Tasks -> Note
 
 1. **Visit Detail:** Elder info card, time range, task preview grid, special instructions, "Start Visit" button
 2. **GPS Check-In:** Location permission request, GPS capture, 150-meter radius validation via Haversine formula, records to Supabase with `check_in_method: 'gps'`
-3. **QR Check-In:** Camera-based QR scanner as fallback to GPS
-   - **DONE:** Records check-in to Supabase with `check_in_method: 'qr_code'`
+3. **QR Check-In:** Camera-based QR scanner as fallback to GPS, records check-in to Supabase with `check_in_method: 'qr_code'`
 4. **Task Completion:** Task list with complete/skip actions, skip requires reason via modal, optimistic UI updates, haptic feedback
-5. **Observations:** Icon-based observation recording by category
+5. **Observations:** Icon-based observation recording by category (mood, appetite, mobility, activity)
 6. **GPS Check-Out:** GPS capture, records check-out, triggers `notify-check-out` edge function for family notifications
 
 ### Marketplace Profile
@@ -149,7 +148,7 @@ Gesture-disabled stack: Visit Detail -> Check-In -> QR Check-In -> Tasks -> Note
 ### Support Groups
 - Search + category filter (All/Wellness/Specialty/Local/Skills)
 - Join groups
-- Falls back to 5 mock groups if `support_groups` table doesn't exist -- **suggests table may not be migrated yet**
+- Falls back to 5 mock groups if `support_groups` table is empty
 - Group detail: chat messaging interface with likes
 
 ### Visit History
@@ -159,6 +158,8 @@ Gesture-disabled stack: Visit Detail -> Check-In -> QR Check-In -> Tasks -> Note
 
 ### Profile Tab
 - Profile overview with avatar and stats
+- Marketplace status badge (active/inactive, NPI verified)
+- "Edit Marketplace Profile" navigates to profile editor
 - "My Schedule" navigates to schedule tab
 - "Visit History" navigates to visit history screen
 
@@ -171,6 +172,7 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 
 ### Home
 - Large buttons for daily actions with oversized text and touch targets
+- Greeting by time of day, next caregiver visit card
 
 ### Activities
 - Grid of 4 large activity buttons with 64px emojis: Memory Game, Trivia, Music, Photos
@@ -187,16 +189,17 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 - If mood <= 2: triggers `notify-family-elder-mood` edge function to alert family
 
 ### Calls
-- **DONE:** Video calling via `family_video_contacts` table with `Linking.openURL()`, call stats tracking
-- **DONE:** Emergency call fetches from `emergency_contacts` table (fallback to `elders.emergency_phone`), dials via `Linking.openURL('tel:...')`
-- **DONE:** Agency-side video contact management screen linked from elder detail
+- Video calling via `family_video_contacts` table with `Linking.openURL()`, call stats tracking
+- Emergency call fetches from `emergency_contacts` table (fallback to `elders.emergency_phone`), dials via `Linking.openURL('tel:...')`
+- Agency-side video contact management screen linked from elder detail
 
 ---
 
 ## 5. Family Member Features
 
 ### Dashboard
-- Care overview for the elder
+- Care overview for the elder with recent visits and today's visit status
+- Push notification integration with clearBadge() on focus
 
 ### Reports
 - Daily reports list: date, visit count, task completion percentage, observation count, missed visit warnings, progress bars
@@ -223,11 +226,11 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 ### WatermelonDB Schema (7 Local Tables)
 `assignments`, `assignment_tasks`, `observations`, `elders_cache`, `emergency_contacts_cache`, `sync_queue`, `app_settings`
 
-> Local table names differ from Supabase: `assignments` → `visits`, `assignment_tasks` → `visit_tasks`. The SyncQueueManager handles this mapping.
+> Local table names differ from Supabase: `assignments` -> `visits`, `assignment_tasks` -> `visit_tasks`. The SyncQueueManager handles this mapping.
 
 ### Sync Queue Manager
 - Singleton managing offline change queue with CRUD against Supabase
-- Maps local table names to Supabase table names (`assignments` → `visits`, `assignment_tasks` → `visit_tasks`)
+- Maps local table names to Supabase table names (`assignments` -> `visits`, `assignment_tasks` -> `visit_tasks`)
 - Exponential backoff retries: 1s, 5s, 15s, 1m, 5m (max 5 retries)
 - Status notifications via listener pattern
 - Graceful degradation in Expo Go (WatermelonDB requires dev build)
@@ -346,57 +349,117 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 ## 14. Theme & Design System
 
 - **Role-based colors:** Deep Teal `#0D6E6E` (agency), Emerald `#059669` (caregiver), Warm Amber `#D97706` (elder), Soft Purple `#7C3AED` (family)
-- **Typography:** Fraunces (display), Plus Jakarta Sans (body), JetBrains Mono (mono)
-- **Spacing:** Defined scale with border radius constants
-- **UI Components:** Button, Input, LargeInput, Card, Badge, ProgressBar, TapButton, QRCode, TimePicker
-- **Icon sets:** Navigation icons, task icons with mapper, observation icons
+- **Typography:** Role-specific sizing -- `typography.styles.{h1-h4, body, bodyLarge, bodySmall, label, caption, button}`, `typography.caregiver.{heading, body, label}`, `typography.elder.{heading, body, button}`
+- **Spacing:** Numeric scale -- `spacing[0]` through `spacing[40]`, `borderRadius` constants
+- **Colors:** Object-based -- `colors.primary[50-900]`, `colors.text.{primary, secondary}`, `colors.neutral[50-900]`, `colors.success/error/warning/info[50-900]`, `roleColors.{agency_owner, caregiver, careseeker, family}`
+- **UI Components:** Button (`title` prop), Input, LargeInput, OTPInput (`onChange` prop), Card, Badge (variants: success/error/warning/info/neutral), ProgressBar, TapButton, QRCode, QRInviteCard, TimePicker, CountBadge
+- **Icon sets:** 40+ SVG icons -- navigation, task type, observation, role-specific (CaregiverIcon, FamilyIcon, ElderIcon)
 
 ---
 
-## 15. Database Migrations
+## 15. Database (15 Migrations)
 
 | # | Purpose |
 |---|---|
-| 001 | Core tables: user_profiles, agencies, elders, caregivers, family_members |
+| 001 | Core tables: user_profiles, agencies, elders, emergency_contacts, PostGIS setup |
 | 002 | Task library, visits, visit_tasks |
+| 003 | Observations, notifications |
+| 004 | Functions & triggers (location geo-update, contact limit enforcement) |
+| 005 | Seed 19 default tasks |
+| 006 | Row-Level Security (RLS) policies for multi-tenant isolation |
+| 007 | Family members table |
+| 008 | Device tokens for push notifications |
 | 009 | Stripe subscriptions, invoices |
-| 011 | Care groups, invites, members |
-| 012 | Caregiver profiles for marketplace |
-| 013 | Ratings system with triggers |
+| 010 | Elder task preferences |
+| 011 | Care groups, invite codes, members, support groups |
+| 012 | Caregiver profiles for marketplace (NPI, capabilities, availability) |
+| 013 | Ratings system with triggers (denormalized counts, top tags RPC) |
 | 014 | Family video contacts |
-| 015 | Caregiver wellness logs (mood/energy/stress 1-5, daily unique) |
+| 015 | Caregiver wellness logs, elder daily checkins |
 
 ---
 
-## Completion Status
+## Screen Count by Role
 
-### Implemented (core features)
-| Feature | Location | Status |
-|---|---|---|
-| QR code check-in recording | `caregiver/visit/[id]/qr-checkin.tsx` | DONE - Records to Supabase with `check_in_method: 'qr_code'` |
-| Video calling | `careseeker/(tabs)/calls.tsx` | DONE - `family_video_contacts` table + agency management screen |
-| Emergency call | `careseeker/(tabs)/calls.tsx` | DONE - Fetches contact, dials via `Linking.openURL` |
-| Add assignment (agency schedule) | `agency/assignment/new.tsx` | DONE - Multi-step form with validation |
+| Role | Tab Screens | Stack Screens | Total |
+|---|---|---|---|
+| Auth (shared) | -- | 10 | 10 |
+| Agency Owner | 5 | 12 | 17 |
+| Caregiver | 4 | 12 | 16 |
+| Careseeker (Elder) | 3 | 2 | 5 |
+| Family Member | 3 | 5 | 8 |
+| **Total** | **15** | **41** | **56** |
 
-### Recently Implemented
-| Feature | Location | Status |
-|---|---|---|
-| Privacy Policy screen | `(auth)/privacy-policy.tsx` | DONE - ScrollView with 8-section legal text |
-| Terms & Conditions screen | `(auth)/terms.tsx` | DONE - ScrollView with 10-section legal text |
-| Caregiver wellness logging | `caregiver/community/wellness.tsx` | DONE - Daily check-in with mood/energy/stress scales + history |
-| Caregiver chat | `caregiver/(tabs)/community.tsx` | DONE - Navigates to existing support groups |
-| Caregiver resources | `caregiver/community/resources.tsx` | DONE - 4-category curated resource links |
-| Crisis line | `caregiver/(tabs)/community.tsx` | DONE - Calls 988 via `Linking.openURL('tel:988')` |
-| Journal | `caregiver/community/journal.tsx` | DONE - AsyncStorage-backed entries with mood + text |
-| View schedule (caregiver profile) | `caregiver/(tabs)/profile.tsx` | DONE - Navigates to schedule tab |
-| Visit history | `caregiver/visit-history.tsx` | DONE - Paginated list grouped by date with Supabase query |
-| Agency Help Center | `agency/(tabs)/settings.tsx` | DONE - Opens external URL |
-| Agency Contact Support | `agency/(tabs)/settings.tsx` | DONE - Opens mailto: link |
-| Agency Privacy Policy | `agency/(tabs)/settings.tsx` | DONE - Navigates to shared privacy-policy screen |
-| Family Profile settings | `family/settings/profile.tsx` | DONE - Edit name, phone, relationship |
-| Family Help & Support | `family/settings/index.tsx` | DONE - Opens mailto: link |
+---
 
-### Possibly Missing Backend
-| Feature | Location | Note |
-|---|---|---|
-| `support_groups` table | `caregiver/community/groups/index.tsx` | Table created in consolidated migration; code still falls back to mock data if empty |
+## Implementation Status
+
+### Fully Implemented (backend-integrated)
+
+**Authentication & Onboarding**
+- Email login/signup for agency owners
+- Phone OTP login/signup for caregivers and elders
+- Multi-step caregiver profile setup (4 steps)
+- Care group join flow with invite code + OTP
+- Auth context with role-based routing
+- Privacy Policy and Terms screens
+
+**Agency Owner**
+- Dashboard with real-time stats (edge function)
+- Caregiver list with search, status badges, visit stats
+- Elder list with search, care needs, family count
+- Elder detail with address geocoding, care needs, emergency contacts
+- Care group creation with QR invite
+- Care group detail with member management
+- Week schedule view with assignment creation
+- Caregiver directory with marketplace search
+- Caregiver profile view (read-only)
+- Rating interface
+- Task library with 19 defaults + custom creation
+- Billing screens (Stripe portal)
+- Settings with Help Center, Contact Support, Privacy Policy
+
+**Caregiver**
+- Today dashboard with assignments
+- Week schedule with offline indicator
+- Full visit flow: GPS check-in, QR check-in, task completion, observations, GPS check-out
+- Marketplace profile editor (photo, NPI, capabilities, availability)
+- Pending invitations (accept/decline)
+- Visit history (paginated, grouped by date)
+- Community: wellness logging, support groups, resources, journal, crisis line
+- Profile with marketplace status
+
+**Careseeker (Elder)**
+- Large-button home screen
+- Daily mood check-in with family alert
+- Memory game with scoring
+- Video calling via contacts table
+- Emergency call with fallback
+
+**Family Member**
+- Care overview dashboard with push notifications
+- Daily reports list and detail
+- Visit detail with task/observation review
+- Settings: profile edit, notification preferences, help & support
+
+**Infrastructure**
+- Offline sync with WatermelonDB (7 local tables)
+- Sync queue with exponential backoff
+- Data prefetching (7-day lookahead)
+- EVV: GPS + QR code verification
+- Push notifications with categories
+- Invite system with deep links + QR codes
+- 18 Supabase Edge Functions
+- 15 database migrations with RLS
+- Public web app (Next.js) with caregiver search
+
+### Partial (UI built, some data mocked)
+
+| Feature | Note |
+|---|---|
+| Caregiver profile stats | Total visits, rating displayed but use mock values |
+| Support groups | Falls back to mock data if `support_groups` table is empty |
+| Visit history | Has mock data fallback alongside real Supabase query |
+| Family report detail | Layout exists, data fetching may be incomplete |
+| Elder activities (Trivia, Music, Photos) | Navigation exists, game screens are stubs |
+| Elder calls | UI exists, video integration depends on `family_video_contacts` data |
