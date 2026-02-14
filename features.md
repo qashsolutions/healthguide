@@ -42,6 +42,7 @@
 
 ### Auth Context
 - Global `AuthProvider` wrapping the app with `user`, `profile`, `signIn`, `signUp`, `signOut`
+- Profile data read/written via `user_profiles` table
 
 ### Deprecated
 - `family-signup.tsx` is deprecated and redirects to `join-group`
@@ -222,8 +223,11 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 ### WatermelonDB Schema (7 Local Tables)
 `assignments`, `assignment_tasks`, `observations`, `elders_cache`, `emergency_contacts_cache`, `sync_queue`, `app_settings`
 
+> Local table names differ from Supabase: `assignments` → `visits`, `assignment_tasks` → `visit_tasks`. The SyncQueueManager handles this mapping.
+
 ### Sync Queue Manager
 - Singleton managing offline change queue with CRUD against Supabase
+- Maps local table names to Supabase table names (`assignments` → `visits`, `assignment_tasks` → `visit_tasks`)
 - Exponential backoff retries: 1s, 5s, 15s, 1m, 5m (max 5 retries)
 - Status notifications via listener pattern
 - Graceful degradation in Expo Go (WatermelonDB requires dev build)
@@ -235,7 +239,7 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 - Queries: get assignments with tasks, today's assignments, cached elder, unsynced count
 
 ### Data Prefetching
-- Downloads 7 days of upcoming assignments with elder details, tasks, and emergency contacts
+- Downloads 7 days of upcoming visits (from `visits` table) with elder details, tasks, and emergency contacts
 - Clears data older than 30 days
 - Cache stats reporting
 
@@ -353,8 +357,8 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 
 | # | Purpose |
 |---|---|
-| 001 | Core tables: users, agencies, elders, caregivers, family_members |
-| 002 | Task library, assignments, assignment_tasks |
+| 001 | Core tables: user_profiles, agencies, elders, caregivers, family_members |
+| 002 | Task library, visits, visit_tasks |
 | 009 | Stripe subscriptions, invoices |
 | 011 | Care groups, invites, members |
 | 012 | Caregiver profiles for marketplace |
@@ -395,4 +399,4 @@ Home, Activities, Calls -- large touch targets, elder-friendly UI
 ### Possibly Missing Backend
 | Feature | Location | Note |
 |---|---|---|
-| `support_groups` table | `caregiver/community/groups/index.tsx` | Falls back to mock data when table doesn't exist |
+| `support_groups` table | `caregiver/community/groups/index.tsx` | Table created in consolidated migration; code still falls back to mock data if empty |
