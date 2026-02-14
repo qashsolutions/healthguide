@@ -1,0 +1,98 @@
+// HealthGuide Offline Indicator
+// Small badge or icon to indicate offline mode
+
+import { View, Text, StyleSheet } from 'react-native';
+import { useConnectivity } from '@/lib/connectivity';
+
+interface OfflineIndicatorProps {
+  size?: 'small' | 'medium' | 'large';
+  showText?: boolean;
+}
+
+export function OfflineIndicator({
+  size = 'medium',
+  showText = true,
+}: OfflineIndicatorProps) {
+  const { isConnected, isInternetReachable } = useConnectivity();
+  const isOnline = isConnected && isInternetReachable;
+
+  if (isOnline) return null;
+
+  const getSizeStyles = () => {
+    switch (size) {
+      case 'small':
+        return {
+          container: styles.containerSmall,
+          icon: styles.iconSmall,
+          text: styles.textSmall,
+        };
+      case 'large':
+        return {
+          container: styles.containerLarge,
+          icon: styles.iconLarge,
+          text: styles.textLarge,
+        };
+      default:
+        return {
+          container: styles.containerMedium,
+          icon: styles.iconMedium,
+          text: styles.textMedium,
+        };
+    }
+  };
+
+  const sizeStyles = getSizeStyles();
+
+  return (
+    <View style={[styles.container, sizeStyles.container]}>
+      <Text style={sizeStyles.icon}>📴</Text>
+      {showText && <Text style={[styles.text, sizeStyles.text]}>Offline</Text>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+  },
+  containerSmall: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    gap: 4,
+  },
+  containerMedium: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 6,
+  },
+  containerLarge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    gap: 8,
+  },
+  iconSmall: {
+    fontSize: 12,
+  },
+  iconMedium: {
+    fontSize: 14,
+  },
+  iconLarge: {
+    fontSize: 18,
+  },
+  text: {
+    color: '#DC2626',
+    fontWeight: '500',
+  },
+  textSmall: {
+    fontSize: 10,
+  },
+  textMedium: {
+    fontSize: 12,
+  },
+  textLarge: {
+    fontSize: 14,
+  },
+});
