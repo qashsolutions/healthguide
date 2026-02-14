@@ -2,7 +2,7 @@
 // Per healthguide-agency/payments skill
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, Pressable, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, Badge, Button } from '@/components/ui';
@@ -116,15 +116,15 @@ export default function SettingsScreen() {
           <Card variant="outlined" padding="none">
             <SettingsRow
               title="Help Center"
-              onPress={() => {}}
+              onPress={() => Linking.openURL('https://healthguide.app/help')}
             />
             <SettingsRow
               title="Contact Support"
-              onPress={() => {}}
+              onPress={() => Linking.openURL('mailto:support@healthguide.app')}
             />
             <SettingsRow
               title="Privacy Policy"
-              onPress={() => {}}
+              onPress={() => router.push('/(auth)/privacy-policy')}
               isLast
             />
           </Card>
@@ -159,7 +159,8 @@ function SettingsRow({
   isLast?: boolean;
 }) {
   return (
-    <View
+    <Pressable
+      onPress={onPress}
       style={[
         styles.settingsRow,
         !isLast && styles.settingsRowBorder,
@@ -170,7 +171,7 @@ function SettingsRow({
         {value && <Text style={styles.settingsRowValue}>{value}</Text>}
         <ArrowLeftIcon size={20} color={colors.neutral[400]} />
       </View>
-    </View>
+    </Pressable>
   );
 }
 

@@ -1,7 +1,7 @@
 // HealthGuide Family Settings Screen
 // Settings menu for family members
 
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Linking } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
@@ -160,12 +160,12 @@ export default function FamilySettingsScreen() {
             <SettingsItem
               icon={<UserIcon />}
               label="Profile"
-              onPress={() => {/* Profile screen */}}
+              onPress={() => router.push('/family/settings/profile')}
             />
             <SettingsItem
               icon={<HelpIcon />}
               label="Help & Support"
-              onPress={() => {/* Help screen */}}
+              onPress={() => Linking.openURL('mailto:support@healthguide.app')}
             />
           </View>
         </View>

@@ -3,7 +3,7 @@
 // Per frontend-design skill - professional SVG icons, not emojis
 
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
@@ -50,23 +50,12 @@ function RoleCard({
 export default function WelcomeScreen() {
   const router = useRouter();
 
-  // Privacy & Terms - show alert until real URLs are provided
   const openPrivacyPolicy = () => {
-    // TODO: Replace with router.push('/(auth)/privacy') when screen exists
-    Alert.alert(
-      'Privacy Policy',
-      'Privacy Policy URL will be configured. Please provide the URL.',
-      [{ text: 'OK' }]
-    );
+    router.push('/(auth)/privacy-policy');
   };
 
   const openTermsConditions = () => {
-    // TODO: Replace with router.push('/(auth)/terms') when screen exists
-    Alert.alert(
-      'Terms & Conditions',
-      'Terms & Conditions URL will be configured. Please provide the URL.',
-      [{ text: 'OK' }]
-    );
+    router.push('/(auth)/terms');
   };
 
   return (

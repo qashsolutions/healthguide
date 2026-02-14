@@ -130,7 +130,7 @@ export default function CaregiverProfileScreen() {
           <Card
             variant="outlined"
             padding="lg"
-            onPress={() => {/* TODO: View schedule */}}
+            onPress={() => router.push('/(protected)/caregiver/(tabs)/schedule')}
             style={styles.actionCard}
           >
             <CalendarIcon size={32} color={roleColors.caregiver} />
@@ -143,7 +143,7 @@ export default function CaregiverProfileScreen() {
           <Card
             variant="outlined"
             padding="lg"
-            onPress={() => {/* TODO: Visit history */}}
+            onPress={() => router.push('/(protected)/caregiver/visit-history')}
             style={styles.actionCard}
           >
             <CheckIcon size={32} color={colors.success[500]} />

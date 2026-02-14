@@ -2,7 +2,7 @@
 // Per healthguide-community/caregiver-support skill
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
@@ -70,7 +70,7 @@ export default function CaregiverCommunityScreen() {
                 title={option}
                 variant="secondary"
                 size="lg"
-                onPress={() => {/* TODO: Log wellness */}}
+                onPress={() => router.push('/(protected)/caregiver/community/wellness')}
                 style={styles.moodButton}
               />
             ))}
@@ -120,7 +120,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => {/* TODO: Open chat */}}
+              onPress={() => router.push('/(protected)/caregiver/community/groups')}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>💬</Text>
@@ -129,7 +129,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => {/* TODO: Resources */}}
+              onPress={() => router.push('/(protected)/caregiver/community/resources')}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>📚</Text>
@@ -138,7 +138,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => {/* TODO: Crisis line */}}
+              onPress={() => Linking.openURL('tel:988')}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>🆘</Text>
@@ -147,7 +147,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => {/* TODO: Journal */}}
+              onPress={() => router.push('/(protected)/caregiver/community/journal')}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>📝</Text>
