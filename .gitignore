@@ -1,0 +1,19 @@
+# Environment files
+.env
+.env.local
+.env*.local
+supabase/.env*
+!supabase/.env.example.template
+
+# macOS
+.DS_Store
+
+# IDE / tool state
+.claude/
+
+# Lock files
+.~lock.*
+*.~lock*
+
+# Node
+node_modules/
