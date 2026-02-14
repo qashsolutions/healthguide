@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
+  Text,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,11 +17,7 @@ import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
 
-import Text from '@/components/ui/Text';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import OTPInput from '@/components/ui/OTPInput';
-import Card from '@/components/ui/Card';
+import { Button, Input, OTPInput, Card } from '@/components/ui';
 import {
   CaregiverIcon,
   FamilyIcon,
@@ -40,15 +36,6 @@ interface GroupInfo {
   elder_name: string;
   role: Role;
   phone_masked?: string;
-}
-
-interface JoinResponse {
-  success: boolean;
-  group_id: string;
-  user_id: string;
-  role: Role;
-  message?: string;
-  error?: string;
 }
 
 const INVITE_CODE_LENGTH = 8;
@@ -96,9 +83,9 @@ export default function JoinGroupScreen() {
       case 'caregiver':
         return <CaregiverIcon size={32} color={roleColors.caregiver} />;
       case 'family_member':
-        return <FamilyIcon size={32} color={roleColors.family_member} />;
+        return <FamilyIcon size={32} color={roleColors.family} />;
       case 'elder':
-        return <ElderIcon size={32} color={roleColors.elder} />;
+        return <ElderIcon size={32} color={roleColors.careseeker} />;
     }
   };
 
@@ -195,7 +182,6 @@ export default function JoinGroupScreen() {
     setError('');
 
     try {
-      // Request OTP via Supabase Auth
       const { error: authError } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
       });
@@ -226,7 +212,6 @@ export default function JoinGroupScreen() {
     setError('');
 
     try {
-      // Verify OTP with Supabase Auth
       const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
         token: otp,
@@ -243,7 +228,6 @@ export default function JoinGroupScreen() {
         return;
       }
 
-      // Call join-care-group edge function to complete registration
       const { data: joinData, error: joinError } = await supabase.functions.invoke(
         'join-care-group',
         {
@@ -268,7 +252,8 @@ export default function JoinGroupScreen() {
 
       // Register for push notifications
       try {
-        await registerForPushNotifications(authData.user.id, groupInfo?.role || 'family_member');
+        const notifRole = groupInfo?.role === 'family_member' ? 'family' : groupInfo?.role === 'caregiver' ? 'caregiver' : 'family';
+        await registerForPushNotifications(authData.user.id, notifRole);
       } catch (notifError) {
         console.warn('Failed to register for push notifications:', notifError);
       }
@@ -320,8 +305,8 @@ export default function JoinGroupScreen() {
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.lg,
+            paddingHorizontal: spacing[5],
+            paddingVertical: spacing[5],
           }}
           showsVerticalScrollIndicator={false}
         >
@@ -331,17 +316,17 @@ export default function JoinGroupScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginBottom: spacing.xl,
+                marginBottom: spacing[8],
               }}
             >
-              <TouchableOpacity onPress={handleGoBack} style={{ padding: spacing.sm }}>
+              <TouchableOpacity onPress={handleGoBack} style={{ padding: spacing[2] }}>
                 <ArrowLeftIcon size={24} color={colors.neutral[700]} />
               </TouchableOpacity>
               <Text
                 style={{
-                  ...typography.heading2,
+                  ...typography.styles.h2,
                   color: colors.neutral[900],
-                  marginLeft: spacing.md,
+                  marginLeft: spacing[3],
                   flex: 1,
                 }}
               >
@@ -355,8 +340,8 @@ export default function JoinGroupScreen() {
             <View
               style={{
                 flexDirection: 'row',
-                marginBottom: spacing.xl,
-                gap: spacing.sm,
+                marginBottom: spacing[8],
+                gap: spacing[2],
               }}
             >
               {(['enter-code', 'group-info', 'verify-otp'] as const).map((step, index) => (
@@ -371,7 +356,7 @@ export default function JoinGroupScreen() {
                         : ['enter-code', 'group-info', 'verify-otp'].indexOf(currentStep) > index
                         ? accentColor
                         : colors.neutral[200],
-                    borderRadius: spacing.xs / 2,
+                    borderRadius: 2,
                   }}
                 />
               ))}
@@ -381,58 +366,55 @@ export default function JoinGroupScreen() {
           {/* Step 1: Enter Code */}
           {currentStep === 'enter-code' && (
             <View style={{ flex: 1 }}>
-              <Text style={{ ...typography.body, color: colors.neutral[600], marginBottom: spacing.md }}>
+              <Text style={{ ...typography.styles.body, color: colors.neutral[600], marginBottom: spacing[3] }}>
                 Enter the 8-character invite code provided by your care group
               </Text>
 
               <Input
                 placeholder="XXXXXXXX"
                 value={inviteCode}
-                onChangeText={(text) => {
+                onChangeText={(text: string) => {
                   setInviteCode(text.toUpperCase());
                   setError('');
                 }}
                 maxLength={INVITE_CODE_LENGTH}
                 style={{
-                  marginBottom: spacing.lg,
                   textAlign: 'center',
                   fontSize: 18,
                   letterSpacing: 2,
-                  fontFamily: 'monospace',
                 }}
                 editable={!loading}
               />
 
-              {error && (
+              {error ? (
                 <View
                   style={{
                     backgroundColor: colors.error[50],
                     borderLeftColor: colors.error[600],
                     borderLeftWidth: 4,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm,
-                    borderRadius: spacing.sm,
-                    marginBottom: spacing.lg,
+                    paddingHorizontal: spacing[3],
+                    paddingVertical: spacing[2],
+                    borderRadius: spacing[2],
+                    marginTop: spacing[4],
                   }}
                 >
-                  <Text style={{ ...typography.caption, color: colors.error[700] }}>
+                  <Text style={{ ...typography.styles.caption, color: colors.error[700] }}>
                     {error}
                   </Text>
                 </View>
-              )}
+              ) : null}
 
               <View style={{ flex: 1 }} />
 
               <Button
+                title={loading ? 'Validating...' : 'Continue'}
                 onPress={handleValidateCode}
                 disabled={inviteCode.length !== INVITE_CODE_LENGTH || loading}
                 loading={loading}
                 style={{
                   backgroundColor: accentColor,
                 }}
-              >
-                {loading ? 'Validating...' : 'Continue'}
-              </Button>
+              />
             </View>
           )}
 
@@ -440,8 +422,8 @@ export default function JoinGroupScreen() {
           {currentStep === 'group-info' && groupInfo && (
             <View style={{ flex: 1 }}>
               {/* Group Info Card */}
-              <Card style={{ marginBottom: spacing.lg }}>
-                <View style={{ flexDirection: 'row', gap: spacing.md }}>
+              <Card style={{ marginBottom: spacing[5] }}>
+                <View style={{ flexDirection: 'row', gap: spacing[3] }}>
                   <View
                     style={{
                       width: 56,
@@ -455,10 +437,10 @@ export default function JoinGroupScreen() {
                     {getRoleIcon(groupInfo.role)}
                   </View>
                   <View style={{ flex: 1, justifyContent: 'center' }}>
-                    <Text style={{ ...typography.body_medium, color: colors.neutral[900] }}>
+                    <Text style={{ ...typography.styles.label, color: colors.neutral[900] }}>
                       {groupInfo.group_name}
                     </Text>
-                    <Text style={{ ...typography.caption, color: colors.neutral[600], marginTop: spacing.xs }}>
+                    <Text style={{ ...typography.styles.caption, color: colors.neutral[600], marginTop: spacing[1] }}>
                       {groupInfo.elder_name}
                     </Text>
                   </View>
@@ -468,18 +450,18 @@ export default function JoinGroupScreen() {
                   style={{
                     borderTopColor: colors.neutral[200],
                     borderTopWidth: 1,
-                    marginTop: spacing.md,
-                    paddingTop: spacing.md,
+                    marginTop: spacing[3],
+                    paddingTop: spacing[3],
                   }}
                 >
                   <View
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: spacing.sm,
+                      paddingHorizontal: spacing[2],
+                      paddingVertical: spacing[2],
                       backgroundColor: `${accentColor}10`,
-                      borderRadius: spacing.sm,
+                      borderRadius: spacing[2],
                     }}
                   >
                     <View
@@ -490,14 +472,14 @@ export default function JoinGroupScreen() {
                         backgroundColor: accentColor,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginRight: spacing.sm,
+                        marginRight: spacing[2],
                       }}
                     >
-                      <Text style={{ ...typography.caption, color: colors.neutral[50], fontWeight: '600' }}>
+                      <Text style={{ ...typography.styles.caption, color: colors.neutral[50], fontWeight: '600' }}>
                         {getRoleLabel(groupInfo.role)[0]}
                       </Text>
                     </View>
-                    <Text style={{ ...typography.body_small, color: colors.neutral[800], flex: 1 }}>
+                    <Text style={{ ...typography.styles.bodySmall, color: colors.neutral[800], flex: 1 }}>
                       {getRoleLabel(groupInfo.role)}
                     </Text>
                   </View>
@@ -505,102 +487,98 @@ export default function JoinGroupScreen() {
               </Card>
 
               {/* Phone Number Input */}
-              <Text style={{ ...typography.body_medium, color: colors.neutral[900], marginBottom: spacing.sm }}>
+              <Text style={{ ...typography.styles.label, color: colors.neutral[900], marginBottom: spacing[2] }}>
                 Phone Number
               </Text>
               <Input
                 placeholder="+1 (555) 123-4567"
                 value={phone}
-                onChangeText={(text) => {
+                onChangeText={(text: string) => {
                   setPhone(text);
                   setError('');
                 }}
                 keyboardType="phone-pad"
                 editable={!loading}
                 leftIcon={<PhoneIcon size={20} color={colors.neutral[400]} />}
-                style={{ marginBottom: spacing.lg }}
               />
 
-              {error && (
+              {error ? (
                 <View
                   style={{
                     backgroundColor: colors.error[50],
                     borderLeftColor: colors.error[600],
                     borderLeftWidth: 4,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm,
-                    borderRadius: spacing.sm,
-                    marginBottom: spacing.lg,
+                    paddingHorizontal: spacing[3],
+                    paddingVertical: spacing[2],
+                    borderRadius: spacing[2],
+                    marginTop: spacing[4],
                   }}
                 >
-                  <Text style={{ ...typography.caption, color: colors.error[700] }}>
+                  <Text style={{ ...typography.styles.caption, color: colors.error[700] }}>
                     {error}
                   </Text>
                 </View>
-              )}
+              ) : null}
 
-              <Text style={{ ...typography.caption, color: colors.neutral[500], marginBottom: spacing.lg }}>
+              <Text style={{ ...typography.styles.caption, color: colors.neutral[500], marginTop: spacing[4] }}>
                 We'll send a verification code to this number
               </Text>
 
               <View style={{ flex: 1 }} />
 
               <Button
+                title={loading ? 'Sending Code...' : 'Send Verification Code'}
                 onPress={handleRequestOTP}
                 disabled={!phone || loading}
                 loading={loading}
                 style={{
                   backgroundColor: accentColor,
                 }}
-              >
-                {loading ? 'Sending Code...' : 'Send Verification Code'}
-              </Button>
+              />
             </View>
           )}
 
           {/* Step 3: Verify OTP */}
           {currentStep === 'verify-otp' && groupInfo && (
             <View style={{ flex: 1 }}>
-              <Text style={{ ...typography.body, color: colors.neutral[600], marginBottom: spacing.md }}>
+              <Text style={{ ...typography.styles.body, color: colors.neutral[600], marginBottom: spacing[3] }}>
                 Enter the 6-digit code sent to {phone}
               </Text>
 
               <OTPInput
                 value={otp}
-                onChangeText={(text) => {
+                onChange={(text: string) => {
                   setOtp(text);
                   setError('');
                 }}
                 length={OTP_LENGTH}
-                editable={!loading}
-                style={{ marginBottom: spacing.lg }}
               />
 
-              {error && (
+              {error ? (
                 <View
                   style={{
                     backgroundColor: colors.error[50],
                     borderLeftColor: colors.error[600],
                     borderLeftWidth: 4,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm,
-                    borderRadius: spacing.sm,
-                    marginBottom: spacing.lg,
+                    paddingHorizontal: spacing[3],
+                    paddingVertical: spacing[2],
+                    borderRadius: spacing[2],
+                    marginTop: spacing[4],
                   }}
                 >
-                  <Text style={{ ...typography.caption, color: colors.error[700] }}>
+                  <Text style={{ ...typography.styles.caption, color: colors.error[700] }}>
                     {error}
                   </Text>
                 </View>
-              )}
+              ) : null}
 
               <TouchableOpacity onPress={handleRequestOTP} disabled={loading}>
                 <Text
                   style={{
-                    ...typography.body_small,
+                    ...typography.styles.bodySmall,
                     color: accentColor,
                     textDecorationLine: 'underline',
-                    marginBottom: spacing.lg,
+                    marginTop: spacing[4],
                   }}
                 >
                   Didn't receive a code? Send again
@@ -610,15 +588,14 @@ export default function JoinGroupScreen() {
               <View style={{ flex: 1 }} />
 
               <Button
+                title={loading ? 'Verifying...' : 'Verify & Join Group'}
                 onPress={handleVerifyOTP}
                 disabled={otp.length !== OTP_LENGTH || loading}
                 loading={loading}
                 style={{
                   backgroundColor: accentColor,
                 }}
-              >
-                {loading ? 'Verifying...' : 'Verify & Join Group'}
-              </Button>
+              />
             </View>
           )}
 
@@ -639,7 +616,7 @@ export default function JoinGroupScreen() {
                   backgroundColor: `${accentColor}20`,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: spacing.xl,
+                  marginBottom: spacing[8],
                 }}
               >
                 <CheckIcon size={48} color={accentColor} />
@@ -647,9 +624,9 @@ export default function JoinGroupScreen() {
 
               <Text
                 style={{
-                  ...typography.heading2,
+                  ...typography.styles.h2,
                   color: colors.neutral[900],
-                  marginBottom: spacing.md,
+                  marginBottom: spacing[3],
                   textAlign: 'center',
                 }}
               >
@@ -658,10 +635,10 @@ export default function JoinGroupScreen() {
 
               <Text
                 style={{
-                  ...typography.body,
+                  ...typography.styles.body,
                   color: colors.neutral[600],
                   textAlign: 'center',
-                  marginBottom: spacing.xl,
+                  marginBottom: spacing[8],
                 }}
               >
                 You've successfully joined as a {getRoleLabel(groupInfo.role).toLowerCase()}. Let's get you set up.
@@ -669,13 +646,13 @@ export default function JoinGroupScreen() {
 
               <Card
                 style={{
-                  marginBottom: spacing.xl,
+                  marginBottom: spacing[8],
                   backgroundColor: `${accentColor}10`,
                   borderLeftColor: accentColor,
                   borderLeftWidth: 4,
                 }}
               >
-                <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                <View style={{ flexDirection: 'row', gap: spacing[3] }}>
                   <View
                     style={{
                       width: 44,
@@ -689,10 +666,10 @@ export default function JoinGroupScreen() {
                     {getRoleIcon(groupInfo.role)}
                   </View>
                   <View style={{ flex: 1, justifyContent: 'center' }}>
-                    <Text style={{ ...typography.body_medium, color: colors.neutral[900] }}>
+                    <Text style={{ ...typography.styles.label, color: colors.neutral[900] }}>
                       {groupInfo.group_name}
                     </Text>
-                    <Text style={{ ...typography.caption, color: colors.neutral[600], marginTop: spacing.xs }}>
+                    <Text style={{ ...typography.styles.caption, color: colors.neutral[600], marginTop: spacing[1] }}>
                       {groupInfo.elder_name}
                     </Text>
                   </View>
@@ -702,14 +679,13 @@ export default function JoinGroupScreen() {
               <View style={{ flex: 1 }} />
 
               <Button
+                title="Go to Dashboard"
                 onPress={handleNavigateToDashboard}
+                fullWidth
                 style={{
                   backgroundColor: accentColor,
-                  width: '100%',
                 }}
-              >
-                Go to Dashboard
-              </Button>
+              />
             </View>
           )}
         </ScrollView>

@@ -91,6 +91,6 @@ export default class Assignment extends Model {
 
   // Check if check-out is available
   get canCheckOut(): boolean {
-    return this.status === 'in_progress' && this.actualCheckIn && !this.actualCheckOut;
+    return this.status === 'in_progress' && !!this.actualCheckIn && !this.actualCheckOut;
   }
 }

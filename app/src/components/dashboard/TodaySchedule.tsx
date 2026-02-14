@@ -111,7 +111,7 @@ export function TodaySchedule({ visits }: Props) {
           return (
             <Pressable
               style={styles.visitCard}
-              onPress={() => router.push(`/agency/visit/${item.id}`)}
+              onPress={() => router.push(`/agency/visit/${item.id}` as any)}
             >
               <View style={styles.timeRow}>
                 <ClockIcon size={14} color="#6B7280" />

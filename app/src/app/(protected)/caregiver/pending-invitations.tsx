@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[4],
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.neutral[200],
   },
   title: {
     ...typography.caregiver.heading,

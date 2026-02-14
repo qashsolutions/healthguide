@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Q } from '@nozbe/watermelondb';
-import { collections, database } from '@/lib/database';
+import { getCollections } from '@/lib/database';
 import {
   offlineCheckIn,
   offlineCheckOut,
@@ -52,29 +52,36 @@ export function useOfflineAssignment(
 
   // Load assignment data
   const loadData = useCallback(async () => {
+    const cols = getCollections();
+    if (!cols) {
+      setLoading(false);
+      setError('Offline database not available');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
       // Get assignment
-      const assignmentRecord = await collections.assignments.find(assignmentId);
+      const assignmentRecord = await cols.assignments.find(assignmentId);
       setAssignment(assignmentRecord);
 
       // Get tasks for this assignment
-      const taskRecords = await collections.assignmentTasks
+      const taskRecords = await cols.assignmentTasks
         .query(Q.where('assignment_id', assignmentId))
         .fetch();
       setTasks(taskRecords);
 
       // Get observations for this assignment
-      const observationRecords = await collections.observations
+      const observationRecords = await cols.observations
         .query(Q.where('assignment_id', assignmentId))
         .fetch();
       setObservations(observationRecords);
 
       // Get cached elder
       if (assignmentRecord.elderId) {
-        const elderRecords = await collections.eldersCache
+        const elderRecords = await cols.eldersCache
           .query(Q.where('server_id', assignmentRecord.elderId))
           .fetch();
         setElder(elderRecords.length > 0 ? elderRecords[0] : null);
@@ -94,10 +101,13 @@ export function useOfflineAssignment(
 
   // Subscribe to changes
   useEffect(() => {
-    const subscription = collections.assignments
+    const cols = getCollections();
+    if (!cols) return;
+
+    const subscription = cols.assignments
       .query(Q.where('id', assignmentId))
       .observe()
-      .subscribe((records) => {
+      .subscribe((records: Assignment[]) => {
         if (records.length > 0) {
           setAssignment(records[0]);
         }
@@ -108,10 +118,13 @@ export function useOfflineAssignment(
 
   // Subscribe to task changes
   useEffect(() => {
-    const subscription = collections.assignmentTasks
+    const cols = getCollections();
+    if (!cols) return;
+
+    const subscription = cols.assignmentTasks
       .query(Q.where('assignment_id', assignmentId))
       .observe()
-      .subscribe((records) => {
+      .subscribe((records: AssignmentTask[]) => {
         setTasks(records);
       });
 
@@ -185,7 +198,9 @@ export function useOfflineAssignment(
         data
       );
       // Refresh observations
-      const observationRecords = await collections.observations
+      const cols = getCollections();
+      if (!cols) return;
+      const observationRecords = await cols.observations
         .query(Q.where('assignment_id', assignmentId))
         .fetch();
       setObservations(observationRecords);
@@ -219,9 +234,12 @@ export function useOfflineTodayAssignments(caregiverId: string, dateStr: string)
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
+    const cols = getCollections();
+    if (!cols) { setLoading(false); return; }
+
     try {
       setLoading(true);
-      const records = await collections.assignments
+      const records = await cols.assignments
         .query(
           Q.and(
             Q.where('caregiver_id', caregiverId),
@@ -244,7 +262,10 @@ export function useOfflineTodayAssignments(caregiverId: string, dateStr: string)
 
   // Subscribe to changes
   useEffect(() => {
-    const subscription = collections.assignments
+    const cols = getCollections();
+    if (!cols) return;
+
+    const subscription = cols.assignments
       .query(
         Q.and(
           Q.where('caregiver_id', caregiverId),
@@ -252,7 +273,7 @@ export function useOfflineTodayAssignments(caregiverId: string, dateStr: string)
         )
       )
       .observe()
-      .subscribe((records) => {
+      .subscribe((records: Assignment[]) => {
         setAssignments(records);
       });
 

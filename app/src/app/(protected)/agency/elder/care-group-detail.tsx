@@ -12,10 +12,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '@/lib/supabase';
-import { CareGroupCard } from '@/components/agency/CareGroupCard';
 import { QRInviteCard } from '@/components/ui/QRCode';
-import { shareInvite, refreshInviteCode } from '@/lib/invite';
+import { shareInvite, refreshInviteCode, buildDeepLink } from '@/lib/invite';
 import { Badge, Button } from '@/components/ui';
+import { TrashIcon, PersonIcon } from '@/components/icons';
 
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -115,8 +115,15 @@ export default function CareGroupDetailScreen() {
   const handleShareInvite = useCallback(async () => {
     if (!careGroup) return;
 
+    const name = careGroup.elder
+      ? `${careGroup.elder.first_name} ${careGroup.elder.last_name}`
+      : 'Unknown';
+
     try {
-      await shareInvite(careGroup.invite_code, careGroup.name);
+      await shareInvite({
+        inviteCode: careGroup.invite_code,
+        elderName: name,
+      });
     } catch (err) {
       Alert.alert('Error', 'Failed to share invite code');
       console.error('Error sharing invite:', err);
@@ -137,10 +144,10 @@ export default function CareGroupDetailScreen() {
           onPress: async () => {
             try {
               setRefreshing(true);
-              const newCode = await refreshInviteCode(careGroup.id);
+              const result = await refreshInviteCode(careGroup.id);
               setCareGroup({
                 ...careGroup,
-                invite_code: newCode,
+                invite_code: result.invite_code,
               });
               Alert.alert('Success', 'Invite code refreshed');
             } catch (err) {
@@ -202,7 +209,7 @@ export default function CareGroupDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
         </View>
       </SafeAreaView>
     );
@@ -259,30 +266,11 @@ export default function CareGroupDetailScreen() {
           <Text style={styles.sectionTitle}>Invite Team Members</Text>
           <QRInviteCard
             inviteCode={careGroup.invite_code}
-            groupName={careGroup.name}
+            elderName={elderName}
+            deepLink={buildDeepLink(careGroup.invite_code)}
+            onShare={handleShareInvite}
+            onRefresh={handleRefreshCode}
           />
-
-          <View style={styles.actionButtonsContainer}>
-            <Pressable
-              style={[styles.actionButton, styles.primaryButton]}
-              onPress={handleShareInvite}
-              disabled={refreshing}
-            >
-              <Text style={styles.actionButtonText}>Share Invite</Text>
-            </Pressable>
-
-            <Pressable
-              style={[styles.actionButton, styles.secondaryButton]}
-              onPress={handleRefreshCode}
-              disabled={refreshing}
-            >
-              {refreshing ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Text style={styles.secondaryButtonText}>Refresh Code</Text>
-              )}
-            </Pressable>
-          </View>
         </View>
 
         {/* Members Section */}
@@ -295,13 +283,22 @@ export default function CareGroupDetailScreen() {
             <View style={styles.memberSubsection}>
               <Text style={styles.memberSubtitle}>Active Members</Text>
               {acceptedMembers.map((member) => (
-                <CareGroupCard
-                  key={member.id}
-                  member={member}
-                  onRemove={() =>
-                    handleRemoveMember(member.id, member.caregiver?.email)
-                  }
-                />
+                <View key={member.id} style={styles.memberCard}>
+                  <View style={styles.memberCardRow}>
+                    <View style={styles.memberAvatar}>
+                      <PersonIcon size={20} color={colors.primary[500]} />
+                    </View>
+                    <View style={styles.memberInfo}>
+                      <Text style={styles.memberName}>
+                        {member.caregiver?.full_name || member.caregiver?.email || 'Unknown'}
+                      </Text>
+                      <Text style={styles.memberRole}>{member.role}</Text>
+                    </View>
+                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.email)}>
+                      <TrashIcon size={20} color={colors.error[500]} />
+                    </Pressable>
+                  </View>
+                </View>
               ))}
             </View>
           )}
@@ -310,13 +307,21 @@ export default function CareGroupDetailScreen() {
             <View style={styles.memberSubsection}>
               <Text style={styles.memberSubtitle}>Awaiting Acceptance</Text>
               {pendingMembers.map((member) => (
-                <View key={member.id}>
-                  <CareGroupCard
-                    member={member}
-                    onRemove={() =>
-                      handleRemoveMember(member.id, member.caregiver?.email)
-                    }
-                  />
+                <View key={member.id} style={styles.memberCard}>
+                  <View style={styles.memberCardRow}>
+                    <View style={styles.memberAvatar}>
+                      <PersonIcon size={20} color={colors.primary[500]} />
+                    </View>
+                    <View style={styles.memberInfo}>
+                      <Text style={styles.memberName}>
+                        {member.caregiver?.full_name || member.caregiver?.email || 'Unknown'}
+                      </Text>
+                      <Text style={styles.memberRole}>{member.role}</Text>
+                    </View>
+                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.email)}>
+                      <TrashIcon size={20} color={colors.error[500]} />
+                    </Pressable>
+                  </View>
                   <View style={styles.badgeRow}>
                     <Badge label="Awaiting acceptance" variant="warning" size="sm" />
                   </View>
@@ -329,22 +334,30 @@ export default function CareGroupDetailScreen() {
             <View style={styles.memberSubsection}>
               <Text style={styles.memberSubtitle}>Declined</Text>
               {declinedMembers.map((member) => (
-                <View key={member.id}>
-                  <CareGroupCard
-                    member={member}
-                    onRemove={() =>
-                      handleRemoveMember(member.id, member.caregiver?.email)
-                    }
-                  />
+                <View key={member.id} style={styles.memberCard}>
+                  <View style={styles.memberCardRow}>
+                    <View style={styles.memberAvatar}>
+                      <PersonIcon size={20} color={colors.neutral[400]} />
+                    </View>
+                    <View style={styles.memberInfo}>
+                      <Text style={styles.memberName}>
+                        {member.caregiver?.full_name || member.caregiver?.email || 'Unknown'}
+                      </Text>
+                      <Text style={styles.memberRole}>{member.role}</Text>
+                    </View>
+                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.email)}>
+                      <TrashIcon size={20} color={colors.error[500]} />
+                    </Pressable>
+                  </View>
                   <View style={styles.declinedContainer}>
                     <Badge label="Declined" variant="error" size="sm" />
                     <Button
-                      label="Invite Another Caregiver"
+                      title="Invite Another Caregiver"
                       onPress={() =>
                         router.push({
-                          pathname: '/(protected)/agency/elder/care-group-edit',
+                          pathname: '/(protected)/agency/elder/care-group-edit' as any,
                           params: { groupId: careGroup.id },
-                        })
+                        } as any)
                       }
                       variant="secondary"
                       size="sm"
@@ -404,163 +417,163 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing[8],
   },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing[5],
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingHorizontal: spacing[5],
+    paddingTop: spacing[5],
+    paddingBottom: spacing[3],
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.neutral[200],
   },
   elderName: {
-    fontSize: typography.sizes.sm,
+    ...typography.styles.bodySmall,
     fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    color: colors.text.secondary,
+    marginBottom: spacing[1],
   },
   groupName: {
-    fontSize: typography.sizes.xxl,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.xs,
+    ...typography.styles.h1,
+    color: colors.text.primary,
+    marginBottom: spacing[1],
   },
   description: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    marginTop: spacing[1],
   },
   section: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[5],
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.neutral[200],
   },
   sectionTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.md,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-  },
-  secondaryButton: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  actionButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: '600',
-    color: colors.white,
-  },
-  secondaryButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: '600',
-    color: colors.primary,
+    ...typography.styles.h4,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
   },
   memberSubsection: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing[5],
   },
   memberSubtitle: {
-    fontSize: typography.sizes.sm,
+    ...typography.styles.bodySmall,
     fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    color: colors.text.secondary,
+    marginBottom: spacing[3],
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  memberCard: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: spacing[3],
+    marginBottom: spacing[2],
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  memberCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  memberAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary[50],
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing[3],
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberName: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    fontWeight: '500',
+  },
+  memberRole: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
   emptyState: {
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing[5],
     alignItems: 'center',
   },
   emptyStateText: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   infoCard: {
     backgroundColor: colors.surface,
     borderRadius: 8,
-    padding: spacing.md,
+    padding: spacing[3],
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.neutral[200],
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing[2],
   },
   infoLabel: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
     fontWeight: '500',
   },
   infoValue: {
-    fontSize: typography.sizes.sm,
-    color: colors.text,
+    ...typography.styles.bodySmall,
+    color: colors.text.primary,
     fontWeight: '600',
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.sm,
+    backgroundColor: colors.neutral[200],
+    marginVertical: spacing[2],
   },
   button: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primary[500],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[5],
     borderRadius: 8,
-    marginTop: spacing.md,
+    marginTop: spacing[3],
   },
   buttonText: {
+    ...typography.styles.bodySmall,
     color: colors.white,
-    fontSize: typography.sizes.sm,
     fontWeight: '600',
     textAlign: 'center',
   },
   errorText: {
-    fontSize: typography.sizes.sm,
-    color: colors.error,
-    marginBottom: spacing.md,
+    ...typography.styles.bodySmall,
+    color: colors.error[500],
+    marginBottom: spacing[3],
     textAlign: 'center',
   },
   bottomSpacing: {
-    height: spacing.lg,
+    height: spacing[5],
   },
   badgeRow: {
     flexDirection: 'row',
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
+    marginTop: spacing[2],
+    marginLeft: spacing[14],
   },
   declinedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
+    gap: spacing[3],
+    marginTop: spacing[2],
+    marginLeft: spacing[14],
   },
   inviteButton: {
     flex: 1,

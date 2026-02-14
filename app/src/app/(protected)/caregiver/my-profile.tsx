@@ -186,7 +186,7 @@ export default function CaregiverMyProfileScreen() {
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets && result.assets[0]) {
         setFormData({ ...formData, photoUri: result.assets[0].uri });
       }
     } catch (err) {

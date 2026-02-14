@@ -35,7 +35,7 @@ export default function ElderActivitiesScreen() {
                 { backgroundColor: activity.color },
                 pressed && styles.buttonPressed,
               ]}
-              onPress={() => router.push(`/(protected)/careseeker/games/${activity.id}`)}
+              onPress={() => router.push(`/(protected)/careseeker/games/${activity.id}` as any)}
             >
               <Text style={styles.emoji}>{activity.emoji}</Text>
               <Text style={styles.activityTitle}>{activity.title}</Text>

@@ -7,13 +7,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   Pressable,
   ActivityIndicator,
   Linking,
   Image,
   FlatList,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors, roleColors } from '@/theme/colors';
@@ -523,9 +523,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[200],
-  },
-  availabilityRow: {
-    flexDirection: 'row',
   },
   dayCell: {
     width: 60,

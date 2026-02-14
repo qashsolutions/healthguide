@@ -2,7 +2,7 @@
 // Functions for performing data operations that work offline
 
 import { Q } from '@nozbe/watermelondb';
-import { database, collections } from '../database';
+import { getDatabase, getCollections } from '../database';
 import { syncQueueManager } from './SyncQueueManager';
 import Assignment from '../database/models/Assignment';
 import AssignmentTask from '../database/models/AssignmentTask';
@@ -18,6 +18,8 @@ export async function offlineCheckIn(
   latitude: number,
   longitude: number
 ): Promise<Assignment> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const assignment = await collections.assignments.find(assignmentId);
   await assignment.markCheckIn(latitude, longitude);
 
@@ -46,6 +48,8 @@ export async function offlineCheckOut(
   latitude: number,
   longitude: number
 ): Promise<Assignment> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const assignment = await collections.assignments.find(assignmentId);
   await assignment.markCheckOut(latitude, longitude);
 
@@ -73,6 +77,8 @@ export async function offlineAddAssignmentNotes(
   assignmentId: string,
   notes: string
 ): Promise<Assignment> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const assignment = await collections.assignments.find(assignmentId);
   await assignment.addNotes(notes);
 
@@ -100,6 +106,8 @@ export async function offlineCompleteTask(
   taskId: string,
   notes?: string
 ): Promise<AssignmentTask> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const task = await collections.assignmentTasks.find(taskId);
   await task.markCompleted(notes);
 
@@ -125,6 +133,8 @@ export async function offlineSkipTask(
   taskId: string,
   reason: string
 ): Promise<AssignmentTask> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const task = await collections.assignmentTasks.find(taskId);
   await task.markSkipped(reason);
 
@@ -146,6 +156,8 @@ export async function offlineSkipTask(
 
 // Undo task completion
 export async function offlineUndoTask(taskId: string): Promise<AssignmentTask> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const task = await collections.assignmentTasks.find(taskId);
   await task.undoCompletion();
 
@@ -186,6 +198,10 @@ export async function offlineCreateObservation(
   data: CreateObservationData
 ): Promise<Observation> {
   const localId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  const database = getDatabase();
+  const collections = getCollections();
+  if (!database || !collections) throw new Error('Offline database not available');
 
   let observation: Observation;
 
@@ -230,6 +246,8 @@ export async function offlineUpdateObservation(
   observationId: string,
   data: Partial<CreateObservationData>
 ): Promise<Observation> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const observation = await collections.observations.find(observationId);
   await observation.updateDetails({
     value: data.value,
@@ -265,6 +283,8 @@ export async function offlineUpdateObservation(
 export async function offlineFlagObservation(
   observationId: string
 ): Promise<Observation> {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const observation = await collections.observations.find(observationId);
   await observation.flag();
 
@@ -291,6 +311,8 @@ export async function offlineFlagObservation(
 
 // Get assignment by ID with tasks
 export async function getAssignmentWithTasks(assignmentId: string) {
+  const collections = getCollections();
+  if (!collections) throw new Error('Offline database not available');
   const assignment = await collections.assignments.find(assignmentId);
   const tasks = await collections.assignmentTasks
     .query(Q.where('assignment_id', assignmentId))
@@ -301,6 +323,8 @@ export async function getAssignmentWithTasks(assignmentId: string) {
 
 // Get today's assignments for a caregiver
 export async function getTodaysAssignments(caregiverId: string, dateStr: string) {
+  const collections = getCollections();
+  if (!collections) return [];
   return await collections.assignments
     .query(
       Q.and(
@@ -313,6 +337,8 @@ export async function getTodaysAssignments(caregiverId: string, dateStr: string)
 
 // Get elder from cache
 export async function getCachedElder(elderId: string) {
+  const collections = getCollections();
+  if (!collections) return null;
   const results = await collections.eldersCache
     .query(Q.where('server_id', elderId))
     .fetch();
@@ -322,6 +348,8 @@ export async function getCachedElder(elderId: string) {
 
 // Get unsynced items count by table
 export async function getUnsyncedCount(tableName: string): Promise<number> {
+  const database = getDatabase();
+  if (!database) return 0;
   const collection = database.get(tableName);
   return await collection
     .query(Q.where('synced', false))

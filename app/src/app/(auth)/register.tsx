@@ -62,18 +62,19 @@ export default function RegisterScreen() {
 
     try {
       setError('');
-      // Sign up and get the new user
-      const user = await signUpWithEmail(email, password, {
+      // Sign up
+      await signUpWithEmail(email, password, {
         full_name: fullName,
         role: 'agency_owner',
       });
 
-      // Create agency record linked to this user
-      if (user?.id) {
+      // Get the newly created user to create agency record
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser?.id) {
         const { error: agencyError } = await supabase
           .from('agencies')
           .insert({
-            owner_id: user.id,
+            owner_id: currentUser.id,
             name: agencyName,
             subscription_status: 'trial',
             elder_count: 0,

@@ -206,7 +206,7 @@ class SyncQueueManager {
         if (this.retryTimeoutId) {
           clearTimeout(this.retryTimeoutId);
         }
-        this.retryTimeoutId = setTimeout(() => this.processQueue(), delay);
+        this.retryTimeoutId = setTimeout(() => this.processQueue(), delay) as unknown as NodeJS.Timeout;
       }
     }
   }

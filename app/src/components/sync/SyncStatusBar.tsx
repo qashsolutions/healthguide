@@ -19,6 +19,7 @@ export function SyncStatusBar({ onPress }: SyncStatusBarProps) {
     failedCount: 0,
     lastSyncAt: null,
     lastError: null,
+    isAvailable: false,
   });
 
   const spinAnim = useRef(new Animated.Value(0)).current;

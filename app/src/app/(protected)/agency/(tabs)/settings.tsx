@@ -89,7 +89,7 @@ export default function SettingsScreen() {
             <SettingsRow
               title="Agency Name"
               value={agency?.name || 'Your Agency'}
-              onPress={() => router.push('/(protected)/agency/settings/')}
+              onPress={() => router.push('/(protected)/agency/settings/' as any)}
             />
             <SettingsRow
               title="Task Library"
@@ -124,7 +124,7 @@ export default function SettingsScreen() {
             />
             <SettingsRow
               title="Privacy Policy"
-              onPress={() => router.push('/(auth)/privacy-policy')}
+              onPress={() => router.push('/(auth)/privacy-policy' as any)}
               isLast
             />
           </Card>

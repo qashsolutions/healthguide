@@ -70,7 +70,7 @@ export default function CaregiverCommunityScreen() {
                 title={option}
                 variant="secondary"
                 size="lg"
-                onPress={() => router.push('/(protected)/caregiver/community/wellness')}
+                onPress={() => router.push('/(protected)/caregiver/community/wellness' as any)}
                 style={styles.moodButton}
               />
             ))}
@@ -85,7 +85,7 @@ export default function CaregiverCommunityScreen() {
               title="Browse All"
               variant="ghost"
               size="sm"
-              onPress={() => router.push('/(protected)/caregiver/community/groups')}
+              onPress={() => router.push('/(protected)/caregiver/community/groups' as any)}
             />
           </View>
 
@@ -94,7 +94,7 @@ export default function CaregiverCommunityScreen() {
               key={group.id}
               variant="default"
               padding="md"
-              onPress={() => router.push(`/(protected)/caregiver/community/groups/${group.id}`)}
+              onPress={() => router.push(`/(protected)/caregiver/community/groups/${group.id}` as any)}
               style={styles.groupCard}
             >
               <View style={styles.groupHeader}>
@@ -120,7 +120,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => router.push('/(protected)/caregiver/community/groups')}
+              onPress={() => router.push('/(protected)/caregiver/community/groups' as any)}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>💬</Text>
@@ -129,7 +129,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => router.push('/(protected)/caregiver/community/resources')}
+              onPress={() => router.push('/(protected)/caregiver/community/resources' as any)}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>📚</Text>
@@ -147,7 +147,7 @@ export default function CaregiverCommunityScreen() {
             <Card
               variant="outlined"
               padding="md"
-              onPress={() => router.push('/(protected)/caregiver/community/journal')}
+              onPress={() => router.push('/(protected)/caregiver/community/journal' as any)}
               style={styles.actionCard}
             >
               <Text style={styles.actionEmoji}>📝</Text>

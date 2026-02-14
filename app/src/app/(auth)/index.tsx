@@ -51,11 +51,11 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const openPrivacyPolicy = () => {
-    router.push('/(auth)/privacy-policy');
+    router.push('/(auth)/privacy-policy' as any);
   };
 
   const openTermsConditions = () => {
-    router.push('/(auth)/terms');
+    router.push('/(auth)/terms' as any);
   };
 
   return (
@@ -100,7 +100,7 @@ export default function WelcomeScreen() {
             description="Sign up to offer care services"
             icon={<CaregiverIcon size={28} color={colors.white} />}
             color={colors.success[600]}
-            onPress={() => router.push('/(auth)/caregiver-signup')}
+            onPress={() => router.push('/(auth)/caregiver-signup' as any)}
           />
 
           {/* Link below Caregiver */}
@@ -120,7 +120,7 @@ export default function WelcomeScreen() {
               styles.inviteButton,
               pressed && styles.inviteButtonPressed
             ]}
-            onPress={() => router.push('/(auth)/join-group')}
+            onPress={() => router.push('/(auth)/join-group' as any)}
           >
             <Text style={styles.inviteButtonText}>I have an invite code</Text>
           </Pressable>

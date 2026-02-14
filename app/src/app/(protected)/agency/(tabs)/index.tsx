@@ -386,7 +386,7 @@ export default function AgencyDashboard() {
         {/* Find Caregivers */}
         <Pressable
           style={styles.findCaregiversCard}
-          onPress={() => router.push('/(protected)/agency/caregiver-directory')}
+          onPress={() => router.push('/(protected)/agency/caregiver-directory' as any)}
         >
           <View style={styles.findCaregiversIcon}>
             <UsersIcon size={28} color={colors.success[600]} />
@@ -420,7 +420,7 @@ export default function AgencyDashboard() {
                 <Pressable
                   key={visit.id}
                   style={styles.visitCard}
-                  onPress={() => router.push(`/(protected)/agency/visit/${visit.id}`)}
+                  onPress={() => router.push(`/(protected)/agency/visit/${visit.id}` as any)}
                 >
                   <View style={styles.visitTime}>
                     <ClockIcon size={14} color={colors.text.secondary} />

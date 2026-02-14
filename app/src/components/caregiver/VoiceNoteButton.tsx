@@ -18,7 +18,7 @@ export function VoiceNoteButton({ onTranscript }: VoiceNoteButtonProps) {
   const [transcribing, setTranscribing] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Pulse animation while recording
   useEffect(() => {

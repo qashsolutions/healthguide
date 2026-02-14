@@ -123,7 +123,7 @@ export default function CaregiverDirectoryScreen() {
       <Pressable
         style={styles.caregiverCard}
         onPress={() =>
-          router.push(`/(protected)/agency/caregiver-profile-view?id=${item.profile_id}`)
+          router.push(`/(protected)/agency/caregiver-profile-view?id=${item.profile_id}` as any)
         }
       >
         {/* Avatar */}

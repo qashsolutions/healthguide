@@ -248,7 +248,7 @@ export default function ScheduleScreen() {
           variant="primary"
           size="sm"
           onPress={() => {
-            router.push(`/(protected)/agency/assignment/new?date=${format(selectedDate, 'yyyy-MM-dd')}`);
+            router.push(`/(protected)/agency/assignment/new?date=${format(selectedDate, 'yyyy-MM-dd')}` as any);
           }}
         />
       </View>
@@ -285,7 +285,7 @@ export default function ScheduleScreen() {
                 variant="default"
                 padding="md"
                 style={styles.visitCard}
-                onPress={() => router.push(`/(protected)/agency/assignment/${visit.id}`)}
+                onPress={() => router.push(`/(protected)/agency/assignment/${visit.id}` as any)}
               >
                 <View style={styles.visitHeader}>
                   <View style={styles.timeContainer}>

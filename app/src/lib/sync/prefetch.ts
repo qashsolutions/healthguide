@@ -3,7 +3,7 @@
 
 import { Q } from '@nozbe/watermelondb';
 import { format, addDays } from 'date-fns';
-import { database, collections } from '../database';
+import { getDatabase, getCollections } from '../database';
 import { supabase } from '../supabase';
 
 interface PrefetchOptions {
@@ -73,6 +73,12 @@ export async function prefetchCaregiverData(
   console.log(`[Prefetch] Found ${assignments.length} assignments`);
 
   const elderIds = new Set<string>();
+  const database = getDatabase();
+  const collections = getCollections();
+  if (!database || !collections) {
+    console.warn('[Prefetch] Database not available, skipping prefetch');
+    return { assignmentCount: 0, elderCount: 0 };
+  }
 
   await database.write(async () => {
     for (const assignment of assignments) {
@@ -109,6 +115,8 @@ export async function prefetchCaregiverData(
 
 // Cache a single elder's data
 async function cacheElder(elder: any) {
+  const collections = getCollections();
+  if (!collections) return;
   const existingElder = await collections.eldersCache
     .query(Q.where('server_id', elder.id))
     .fetch();
@@ -154,6 +162,8 @@ async function cacheElder(elder: any) {
 
 // Cache a single assignment
 async function cacheAssignment(assignment: any, caregiverId: string): Promise<string> {
+  const collections = getCollections();
+  if (!collections) return '';
   const existingAssignment = await collections.assignments
     .query(Q.where('server_id', assignment.id))
     .fetch();
@@ -204,6 +214,8 @@ async function cacheAssignment(assignment: any, caregiverId: string): Promise<st
 
 // Cache a single assignment task
 async function cacheAssignmentTask(task: any, localAssignmentId: string) {
+  const collections = getCollections();
+  if (!collections) return;
   const existingTask = await collections.assignmentTasks
     .query(Q.where('server_id', task.id))
     .fetch();
@@ -250,6 +262,9 @@ async function prefetchEmergencyContacts(elderIds: string[]) {
 
   if (!contacts) return;
 
+  const database = getDatabase();
+  if (!database) return;
+
   const emergencyContactsCache = database.get('emergency_contacts_cache');
 
   await database.write(async () => {
@@ -277,6 +292,10 @@ async function prefetchEmergencyContacts(elderIds: string[]) {
 
 // Clear old cached data (older than 30 days)
 export async function clearOldCache(daysOld: number = 30) {
+  const database = getDatabase();
+  const collections = getCollections();
+  if (!database || !collections) return;
+
   const cutoffTime = Date.now() - (daysOld * 24 * 60 * 60 * 1000);
 
   await database.write(async () => {
@@ -304,6 +323,9 @@ export async function clearOldCache(daysOld: number = 30) {
 
 // Get cache statistics
 export async function getCacheStats() {
+  const collections = getCollections();
+  if (!collections) return { elders: 0, assignments: 0, tasks: 0, observations: 0, pendingSync: 0 };
+
   const elderCount = await collections.eldersCache.query().fetchCount();
   const assignmentCount = await collections.assignments.query().fetchCount();
   const taskCount = await collections.assignmentTasks.query().fetchCount();

@@ -236,20 +236,14 @@ export default function CareGroupScreen() {
 
   // Handle share invite
   const handleShareInvite = async () => {
-    if (!careGroup?.invite_code || !elderId) {
+    if (!careGroup?.invite_code) {
       Alert.alert('Error', 'Missing invite code');
       return;
     }
 
     try {
-      const deepLink = buildDeepLink('care-group-invite', {
-        code: careGroup.invite_code,
-        elderId,
-      });
-
       await shareInvite({
         inviteCode: careGroup.invite_code,
-        deepLink,
         elderName: elder?.full_name || 'the elder',
       });
     } catch (error) {
@@ -262,7 +256,7 @@ export default function CareGroupScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
         </View>
       </SafeAreaView>
     );
@@ -285,12 +279,10 @@ export default function CareGroupScreen() {
             {/* QR Code Card */}
             <View style={styles.qrSection}>
               <QRInviteCard
-                code={careGroup.invite_code}
+                inviteCode={careGroup.invite_code}
                 elderName={elder?.full_name || 'Elder'}
-                deepLink={buildDeepLink('care-group-invite', {
-                  code: careGroup.invite_code,
-                  elderId,
-                })}
+                deepLink={buildDeepLink(careGroup.invite_code)}
+                onShare={handleShareInvite}
               />
             </View>
 
@@ -302,18 +294,10 @@ export default function CareGroupScreen() {
               </View>
             </View>
 
-            {/* Share Button */}
-            <Button
-              label="Share Invite"
-              onPress={handleShareInvite}
-              style={styles.shareButton}
-              icon={<Text style={styles.shareIcon}>↗</Text>}
-            />
-
             {/* Back Button */}
             <Button
-              label="Back to Dashboard"
-              onPress={() => router.push('/agency/dashboard')}
+              title="Back to Dashboard"
+              onPress={() => router.back()}
               variant="secondary"
               style={styles.backButton}
             />
@@ -341,7 +325,7 @@ export default function CareGroupScreen() {
         {/* Caregiver Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <CaregiverIcon size={20} color={colors.primary} />
+            <CaregiverIcon size={20} color={colors.primary[500]} />
             <Text style={styles.sectionTitle}>Primary Caregiver</Text>
           </View>
           <Text style={styles.sectionDescription}>Required</Text>
@@ -378,7 +362,7 @@ export default function CareGroupScreen() {
         {/* Family Members Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <FamilyIcon size={20} color={colors.primary} />
+            <FamilyIcon size={20} color={colors.primary[500]} />
             <Text style={styles.sectionTitle}>Family Members</Text>
           </View>
           <Text style={styles.sectionDescription}>
@@ -394,7 +378,7 @@ export default function CareGroupScreen() {
                     onPress={() => handleRemoveFamilyMember(member.id)}
                     disabled={submitting}
                   >
-                    <TrashIcon size={20} color={colors.danger} />
+                    <TrashIcon size={20} color={colors.error[500]} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -470,7 +454,7 @@ export default function CareGroupScreen() {
             <PlusIcon
               size={20}
               color={
-                familyMembers.length >= 3 ? colors.textSecondary : colors.primary
+                familyMembers.length >= 3 ? colors.text.secondary : colors.primary[500]
               }
             />
             <Text
@@ -487,7 +471,7 @@ export default function CareGroupScreen() {
         {/* Elder Section (Optional) */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ElderIcon size={20} color={colors.primary} />
+            <ElderIcon size={20} color={colors.primary[500]} />
             <Text style={styles.sectionTitle}>Elder Details (Optional)</Text>
           </View>
           <Text style={styles.sectionDescription}>
@@ -519,7 +503,7 @@ export default function CareGroupScreen() {
         {/* Submit Button */}
         <View style={styles.buttonGroup}>
           <Button
-            label={submitting ? 'Creating Care Group...' : 'Create Care Group'}
+            title={submitting ? 'Creating Care Group...' : 'Create Care Group'}
             onPress={handleCreateCareGroup}
             disabled={submitting || !isFormValid()}
             loading={submitting}
@@ -527,7 +511,7 @@ export default function CareGroupScreen() {
           />
 
           <Button
-            label="Cancel"
+            title="Cancel"
             onPress={() => router.back()}
             variant="secondary"
             disabled={submitting}
@@ -546,8 +530,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[8],
   },
   centerContent: {
     flex: 1,
@@ -560,156 +544,151 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   successTitle: {
-    fontSize: typography.sizes.heading1,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginBottom: spacing.sm,
+    ...typography.styles.h1,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
   },
   successSubtitle: {
-    fontSize: typography.sizes.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    marginBottom: spacing[8],
   },
   qrSection: {
-    marginVertical: spacing.xl,
+    marginVertical: spacing[8],
     alignItems: 'center',
   },
   codeContainer: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.neutral[50],
     borderRadius: 8,
-    padding: spacing.lg,
-    marginVertical: spacing.lg,
+    padding: spacing[5],
+    marginVertical: spacing[5],
   },
   codeLabel: {
-    fontSize: typography.sizes.caption,
-    fontWeight: typography.weights.semibold,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
+    ...typography.styles.caption,
+    fontWeight: '600',
+    color: colors.text.secondary,
+    marginBottom: spacing[2],
     textTransform: 'uppercase',
   },
   codeDisplay: {
     backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.neutral[200],
     borderRadius: 6,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3],
   },
   codeText: {
-    fontSize: typography.sizes.heading2,
-    fontWeight: typography.weights.bold,
-    color: colors.primary,
+    ...typography.styles.h2,
+    color: colors.primary[500],
     textAlign: 'center',
     letterSpacing: 2,
   },
   shareButton: {
-    marginVertical: spacing.md,
+    marginVertical: spacing[3],
   },
   shareIcon: {
     fontSize: 18,
-    marginRight: spacing.sm,
+    marginRight: spacing[2],
   },
   backButton: {
-    marginTop: spacing.md,
+    marginTop: spacing[3],
   },
 
   // Form State Styles
   header: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing[8],
   },
   title: {
-    fontSize: typography.sizes.heading1,
-    fontWeight: typography.weights.bold,
-    color: colors.text,
-    marginBottom: spacing.sm,
+    ...typography.styles.h1,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
   },
   subtitle: {
-    fontSize: typography.sizes.body,
-    color: colors.textSecondary,
+    ...typography.styles.body,
+    color: colors.text.secondary,
   },
 
   // Section Styles
   section: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing[8],
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing[2],
   },
   sectionTitle: {
-    fontSize: typography.sizes.subheading,
-    fontWeight: typography.weights.semibold,
-    color: colors.text,
-    marginLeft: spacing.sm,
+    ...typography.styles.h4,
+    color: colors.text.primary,
+    marginLeft: spacing[2],
   },
   sectionDescription: {
-    fontSize: typography.sizes.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[3],
   },
 
   // Input Styles
   input: {
-    marginBottom: spacing.md,
+    marginBottom: spacing[3],
   },
 
   // Member Card Styles
   memberCard: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.neutral[50],
     borderRadius: 8,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+    padding: spacing[5],
+    marginBottom: spacing[3],
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.neutral[200],
   },
   memberHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing[3],
   },
   memberIndex: {
-    fontSize: typography.sizes.subheading,
-    fontWeight: typography.weights.semibold,
-    color: colors.text,
+    ...typography.styles.h4,
+    color: colors.text.primary,
   },
 
   // Dropdown/Relationship Styles
   dropdownContainer: {
-    marginBottom: spacing.md,
+    marginBottom: spacing[3],
   },
   dropdownLabel: {
-    fontSize: typography.sizes.caption,
-    fontWeight: typography.weights.semibold,
-    color: colors.text,
-    marginBottom: spacing.sm,
+    ...typography.styles.caption,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: spacing[2],
     textTransform: 'uppercase',
   },
   relationshipScroll: {
-    marginHorizontal: -spacing.lg,
-    paddingHorizontal: spacing.lg,
+    marginHorizontal: -spacing[5],
+    paddingHorizontal: spacing[5],
   },
   relationshipChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
     borderRadius: 20,
     backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: spacing.sm,
+    borderColor: colors.neutral[200],
+    marginRight: spacing[2],
   },
   relationshipChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.primary[500],
+    borderColor: colors.primary[500],
   },
   relationshipChipText: {
-    fontSize: typography.sizes.caption,
-    color: colors.text,
-    fontWeight: typography.weights.medium,
+    ...typography.styles.caption,
+    color: colors.text.primary,
+    fontWeight: '500',
   },
   relationshipChipTextActive: {
-    color: colors.textOnPrimary,
+    color: colors.white,
   },
 
   // Add Button Styles
@@ -717,49 +696,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing[3],
     borderRadius: 8,
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: colors.neutral[50],
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.primary[500],
     borderStyle: 'dashed',
   },
   addButtonDisabled: {
-    borderColor: colors.border,
+    borderColor: colors.neutral[200],
     backgroundColor: colors.background,
   },
   addButtonText: {
-    fontSize: typography.sizes.body,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary,
-    marginLeft: spacing.sm,
+    ...typography.styles.body,
+    fontWeight: '600',
+    color: colors.primary[500],
+    marginLeft: spacing[2],
   },
   addButtonTextDisabled: {
-    color: colors.textSecondary,
+    color: colors.text.secondary,
   },
 
   // Button Group Styles
   buttonGroup: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.lg,
+    marginTop: spacing[8],
+    marginBottom: spacing[5],
   },
   submitButton: {
-    marginBottom: spacing.md,
+    marginBottom: spacing[3],
   },
   cancelButton: {
-    marginBottom: spacing.md,
+    marginBottom: spacing[3],
   },
   consentNote: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.md,
+    gap: spacing[3],
     backgroundColor: colors.info[50],
-    padding: spacing.md,
+    padding: spacing[3],
     borderRadius: 8,
-    marginTop: spacing.md,
+    marginTop: spacing[3],
   },
   consentNoteText: {
-    fontSize: typography.sizes.sm,
+    ...typography.styles.bodySmall,
     color: colors.info[700],
     flex: 1,
   },

@@ -45,6 +45,7 @@ export function SyncProvider({
     failedCount: 0,
     lastSyncAt: null,
     lastError: null,
+    isAvailable: false,
   });
 
   const [cacheStats, setCacheStats] = useState<SyncContextValue['cacheStats']>(null);

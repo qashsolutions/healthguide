@@ -86,7 +86,7 @@ export default function CaregiverProfileScreen() {
           {profileStatus && (
             <Badge
               label={profileStatus.active ? 'Active on Marketplace' : 'Profile Inactive'}
-              variant={profileStatus.active ? 'success' : 'default'}
+              variant={profileStatus.active ? 'success' : 'neutral'}
               size="lg"
               style={styles.marketplaceStatusBadge}
             />
@@ -117,7 +117,7 @@ export default function CaregiverProfileScreen() {
           <Card
             variant="outlined"
             padding="lg"
-            onPress={() => router.push('/(protected)/caregiver/my-profile')}
+            onPress={() => router.push('/(protected)/caregiver/my-profile' as any)}
             style={styles.actionCard}
           >
             <PersonIcon size={32} color={roleColors.caregiver} />
@@ -143,7 +143,7 @@ export default function CaregiverProfileScreen() {
           <Card
             variant="outlined"
             padding="lg"
-            onPress={() => router.push('/(protected)/caregiver/visit-history')}
+            onPress={() => router.push('/(protected)/caregiver/visit-history' as any)}
             style={styles.actionCard}
           >
             <CheckIcon size={32} color={colors.success[500]} />

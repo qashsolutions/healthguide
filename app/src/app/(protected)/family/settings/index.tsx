@@ -160,7 +160,7 @@ export default function FamilySettingsScreen() {
             <SettingsItem
               icon={<UserIcon />}
               label="Profile"
-              onPress={() => router.push('/family/settings/profile')}
+              onPress={() => router.push('/family/settings/profile' as any)}
             />
             <SettingsItem
               icon={<HelpIcon />}

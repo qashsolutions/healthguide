@@ -2,8 +2,8 @@
 // Per healthguide-caregiver/schedule-view skill - Icon-based, large touch targets
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, Pressable, useFocusEffect } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, RefreshControl, ActivityIndicator, Pressable } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
@@ -201,7 +201,7 @@ export default function CaregiverTodayScreen() {
         {pendingCount > 0 && (
           <Pressable
             style={styles.invitationBanner}
-            onPress={() => router.push('/(protected)/caregiver/pending-invitations')}
+            onPress={() => router.push('/(protected)/caregiver/pending-invitations' as any)}
           >
             <AlertIcon size={20} color={colors.warning[600]} />
             <Text style={styles.invitationBannerText}>
