@@ -48,7 +48,7 @@ export default function TasksScreen() {
     if (!id) return;
 
     const { data, error } = await supabase
-      .from('assignment_tasks')
+      .from('visit_tasks')
       .select(`
         id,
         assignment_id,
@@ -105,7 +105,7 @@ export default function TasksScreen() {
     if (!id) return;
 
     const { data } = await supabase
-      .from('assignments')
+      .from('visits')
       .select(`
         elder:elders (
           first_name,
@@ -149,7 +149,7 @@ export default function TasksScreen() {
 
     // Update in Supabase
     const { error } = await supabase
-      .from('assignment_tasks')
+      .from('visit_tasks')
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
@@ -178,7 +178,7 @@ export default function TasksScreen() {
 
     // Update in Supabase
     const { error } = await supabase
-      .from('assignment_tasks')
+      .from('visit_tasks')
       .update({
         status: 'skipped',
         skipped_reason: reason,
@@ -208,7 +208,7 @@ export default function TasksScreen() {
 
     // Update in Supabase
     const { error } = await supabase
-      .from('assignment_tasks')
+      .from('visit_tasks')
       .update({
         status: 'pending',
         completed_at: null,

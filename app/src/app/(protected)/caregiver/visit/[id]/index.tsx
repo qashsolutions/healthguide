@@ -68,7 +68,7 @@ export default function VisitDetailScreen() {
     try {
       // Fetch assignment with elder and tasks
       const { data: assignmentData, error: assignmentError } = await supabase
-        .from('assignments')
+        .from('visits')
         .select(`
           id,
           status,
@@ -92,7 +92,7 @@ export default function VisitDetailScreen() {
 
       // Fetch tasks for this assignment
       const { data: tasksData, error: tasksError } = await supabase
-        .from('assignment_tasks')
+        .from('visit_tasks')
         .select(`
           id,
           status,

@@ -69,7 +69,7 @@ export default function CaregiverScheduleScreen() {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     const { data, error } = await supabase
-      .from('assignments')
+      .from('visits')
       .select(`
         id,
         scheduled_date,
@@ -110,7 +110,7 @@ export default function CaregiverScheduleScreen() {
     const endDate = format(addDays(weekStart, 6), 'yyyy-MM-dd');
 
     const { data } = await supabase
-      .from('assignments')
+      .from('visits')
       .select('scheduled_date')
       .eq('caregiver_id', user.id)
       .gte('scheduled_date', startDate)

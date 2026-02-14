@@ -50,7 +50,7 @@ export default function CheckOutScreen() {
     try {
       // Fetch assignment with elder info
       const { data: assignmentData, error: assignmentError } = await supabase
-        .from('assignments')
+        .from('visits')
         .select(`
           id,
           status,
@@ -84,7 +84,7 @@ export default function CheckOutScreen() {
 
       // Fetch task counts
       const { data: tasksData, error: tasksError } = await supabase
-        .from('assignment_tasks')
+        .from('visit_tasks')
         .select('id, status')
         .eq('assignment_id', id);
 
@@ -132,7 +132,7 @@ export default function CheckOutScreen() {
 
       // Update assignment in Supabase
       const { error: updateError } = await supabase
-        .from('assignments')
+        .from('visits')
         .update({
           status: 'completed',
           actual_check_out: new Date().toISOString(),

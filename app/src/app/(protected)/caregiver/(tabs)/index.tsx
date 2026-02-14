@@ -72,7 +72,7 @@ export default function CaregiverTodayScreen() {
 
     try {
       const { data, error } = await supabase
-        .from('assignments')
+        .from('visits')
         .select(`
           id,
           scheduled_date,
@@ -85,7 +85,7 @@ export default function CaregiverTodayScreen() {
             last_name,
             address
           ),
-          assignment_tasks (
+          visit_tasks (
             id,
             task:task_library (
               name,
@@ -104,7 +104,7 @@ export default function CaregiverTodayScreen() {
       const transformed = (data || []).map((item: any) => ({
         ...item,
         elder: Array.isArray(item.elder) ? item.elder[0] : item.elder,
-        assignment_tasks: (item.assignment_tasks || []).map((at: any) => ({
+        assignment_tasks: (item.visit_tasks || []).map((at: any) => ({
           ...at,
           task: Array.isArray(at.task) ? at.task[0] : at.task,
         })),

@@ -55,7 +55,7 @@ export default function ScheduleScreen() {
       const weekEnd = addDays(weekStart, 6);
 
       const { data, error } = await supabase
-        .from('assignments')
+        .from('visits')
         .select(`
           id,
           scheduled_date,

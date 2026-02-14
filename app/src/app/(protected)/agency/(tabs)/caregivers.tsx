@@ -75,7 +75,7 @@ export default function CaregiversScreen() {
       if (caregiversData) {
         // Get today's visits for all caregivers
         const { data: visitsData } = await supabase
-          .from('assignments')
+          .from('visits')
           .select('caregiver_id, status')
           .eq('agency_id', user.agency_id)
           .eq('scheduled_date', today);

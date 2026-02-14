@@ -105,7 +105,7 @@ export default function AgencyDashboard() {
 
         // Today's visits
         supabase
-          .from('assignments')
+          .from('visits')
           .select(`
             id,
             scheduled_date,
@@ -123,7 +123,7 @@ export default function AgencyDashboard() {
 
         // Recent activity (last 10 completed/in-progress visits)
         supabase
-          .from('assignments')
+          .from('visits')
           .select(`
             id,
             status,

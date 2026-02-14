@@ -72,7 +72,7 @@ export default function NotesScreen() {
     if (!id) return;
 
     const { data } = await supabase
-      .from('assignments')
+      .from('visits')
       .select(`
         elder:elders (
           id,

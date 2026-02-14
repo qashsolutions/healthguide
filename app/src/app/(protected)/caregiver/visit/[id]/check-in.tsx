@@ -67,7 +67,7 @@ export default function CheckInScreen() {
       if (!id) return;
 
       const { data, error } = await supabase
-        .from('assignments')
+        .from('visits')
         .select(`
           id,
           scheduled_date,
@@ -156,7 +156,7 @@ export default function CheckInScreen() {
 
     // Record check-in to Supabase
     const { error: updateError } = await supabase
-      .from('assignments')
+      .from('visits')
       .update({
         status: 'in_progress',
         actual_check_in: new Date().toISOString(),

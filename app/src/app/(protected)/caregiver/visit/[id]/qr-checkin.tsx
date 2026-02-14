@@ -54,7 +54,7 @@ export default function QRCheckInScreen() {
 
       // Record check-in to Supabase
       const { error: updateError } = await supabase
-        .from('assignments')
+        .from('visits')
         .update({
           status: 'in_progress',
           actual_check_in: new Date().toISOString(),

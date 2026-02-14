@@ -31,7 +31,7 @@ export async function prefetchCaregiverData(
 
   // Fetch upcoming assignments with related data
   const { data: assignments, error } = await supabase
-    .from('assignments')
+    .from('visits')
     .select(`
       *,
       elder:elders (
@@ -50,7 +50,7 @@ export async function prefetchCaregiverData(
         medical_notes,
         special_instructions
       ),
-      assignment_tasks (
+      visit_tasks (
         *,
         task:task_library (id, name, icon, category)
       )
@@ -86,8 +86,8 @@ export async function prefetchCaregiverData(
       const localAssignmentId = await cacheAssignment(assignment, caregiverId);
 
       // Cache tasks
-      if (assignment.assignment_tasks) {
-        for (const task of assignment.assignment_tasks) {
+      if (assignment.visit_tasks) {
+        for (const task of assignment.visit_tasks) {
           await cacheAssignmentTask(task, localAssignmentId);
         }
       }

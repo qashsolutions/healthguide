@@ -214,8 +214,8 @@ class SyncQueueManager {
   // Map local table name to Supabase table name
   private mapTableName(localTable: string): string {
     const mapping: Record<string, string> = {
-      assignments: 'assignments',
-      assignment_tasks: 'assignment_tasks',
+      assignments: 'visits',
+      assignment_tasks: 'visit_tasks',
       observations: 'observations',
     };
     return mapping[localTable] || localTable;
