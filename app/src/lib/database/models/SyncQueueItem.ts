@@ -10,15 +10,15 @@ export type SyncStatus = 'pending' | 'syncing' | 'failed' | 'completed';
 export default class SyncQueueItem extends Model {
   static table = 'sync_queue';
 
-  @field('table_name') tableName!: string;
-  @field('operation') operation!: SyncOperation;
-  @field('record_id') recordId!: string;
-  @field('server_id') serverId?: string;
-  @field('data') data!: string; // JSON stringified
-  @field('status') status!: SyncStatus;
-  @field('retry_count') retryCount!: number;
-  @field('last_error') lastError?: string;
-  @field('created_at') createdAt!: number;
+  @field('table_name') declare tableName: string;
+  @field('operation') declare operation: SyncOperation;
+  @field('record_id') declare recordId: string;
+  @field('server_id') declare serverId: string | undefined;
+  @field('data') declare data: string; // JSON stringified
+  @field('status') declare status: SyncStatus;
+  @field('retry_count') declare retryCount: number;
+  @field('last_error') declare lastError: string | undefined;
+  @field('created_at') declare createdAt: number;
 
   // Get parsed data
   get parsedData(): Record<string, any> {

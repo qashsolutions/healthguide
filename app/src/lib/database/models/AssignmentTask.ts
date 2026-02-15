@@ -11,19 +11,19 @@ export default class AssignmentTask extends Model {
     assignments: { type: 'belongs_to' as const, key: 'assignment_id' },
   };
 
-  @field('server_id') serverId!: string;
-  @field('assignment_id') assignmentId!: string;
-  @field('task_id') taskId!: string;
-  @field('task_name') taskName!: string;
-  @field('task_icon') taskIcon!: string;
-  @field('task_category') taskCategory!: string;
-  @field('is_required') isRequired!: boolean;
-  @field('status') status!: string;
-  @field('completed_at') completedAt?: string;
-  @field('skip_reason') skipReason?: string;
-  @field('notes') notes?: string;
-  @field('synced') synced!: boolean;
-  @field('local_updated_at') localUpdatedAt!: number;
+  @field('server_id') declare serverId: string;
+  @field('assignment_id') declare assignmentId: string;
+  @field('task_id') declare taskId: string;
+  @field('task_name') declare taskName: string;
+  @field('task_icon') declare taskIcon: string;
+  @field('task_category') declare taskCategory: string;
+  @field('is_required') declare isRequired: boolean;
+  @field('status') declare status: string;
+  @field('completed_at') declare completedAt: string | undefined;
+  @field('skip_reason') declare skipReason: string | undefined;
+  @field('notes') declare notes: string | undefined;
+  @field('synced') declare synced: boolean;
+  @field('local_updated_at') declare localUpdatedAt: number;
 
   @relation('assignments', 'assignment_id') assignment: any;
 

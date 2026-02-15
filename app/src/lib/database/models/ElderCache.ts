@@ -7,21 +7,21 @@ import { field, writer } from '@nozbe/watermelondb/decorators';
 export default class ElderCache extends Model {
   static table = 'elders_cache';
 
-  @field('server_id') serverId!: string;
-  @field('first_name') firstName!: string;
-  @field('last_name') lastName!: string;
-  @field('photo_url') photoUrl?: string;
-  @field('address') address!: string;
-  @field('apartment') apartment?: string;
-  @field('city') city!: string;
-  @field('state') state!: string;
-  @field('zip_code') zipCode!: string;
-  @field('latitude') latitude!: number;
-  @field('longitude') longitude!: number;
-  @field('phone') phone?: string;
-  @field('medical_notes') medicalNotes?: string;
-  @field('special_instructions') specialInstructions?: string;
-  @field('cached_at') cachedAt!: number;
+  @field('server_id') declare serverId: string;
+  @field('first_name') declare firstName: string;
+  @field('last_name') declare lastName: string;
+  @field('photo_url') declare photoUrl: string | undefined;
+  @field('address') declare address: string;
+  @field('apartment') declare apartment: string | undefined;
+  @field('city') declare city: string;
+  @field('state') declare state: string;
+  @field('zip_code') declare zipCode: string;
+  @field('latitude') declare latitude: number;
+  @field('longitude') declare longitude: number;
+  @field('phone') declare phone: string | undefined;
+  @field('medical_notes') declare medicalNotes: string | undefined;
+  @field('special_instructions') declare specialInstructions: string | undefined;
+  @field('cached_at') declare cachedAt: number;
 
   // Get full name
   get fullName(): string {

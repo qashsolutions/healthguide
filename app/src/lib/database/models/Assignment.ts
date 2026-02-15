@@ -12,22 +12,22 @@ export default class Assignment extends Model {
     observations: { type: 'has_many' as const, foreignKey: 'assignment_id' },
   };
 
-  @field('server_id') serverId!: string;
-  @field('elder_id') elderId!: string;
-  @field('caregiver_id') caregiverId!: string;
-  @field('scheduled_date') scheduledDate!: string;
-  @field('start_time') startTime!: string;
-  @field('end_time') endTime!: string;
-  @field('status') status!: string;
-  @field('actual_check_in') actualCheckIn?: string;
-  @field('actual_check_out') actualCheckOut?: string;
-  @field('check_in_latitude') checkInLatitude?: number;
-  @field('check_in_longitude') checkInLongitude?: number;
-  @field('check_out_latitude') checkOutLatitude?: number;
-  @field('check_out_longitude') checkOutLongitude?: number;
-  @field('notes') notes?: string;
-  @field('synced') synced!: boolean;
-  @field('local_updated_at') localUpdatedAt!: number;
+  @field('server_id') declare serverId: string;
+  @field('elder_id') declare elderId: string;
+  @field('caregiver_id') declare caregiverId: string;
+  @field('scheduled_date') declare scheduledDate: string;
+  @field('start_time') declare startTime: string;
+  @field('end_time') declare endTime: string;
+  @field('status') declare status: string;
+  @field('actual_check_in') declare actualCheckIn: string | undefined;
+  @field('actual_check_out') declare actualCheckOut: string | undefined;
+  @field('check_in_latitude') declare checkInLatitude: number | undefined;
+  @field('check_in_longitude') declare checkInLongitude: number | undefined;
+  @field('check_out_latitude') declare checkOutLatitude: number | undefined;
+  @field('check_out_longitude') declare checkOutLongitude: number | undefined;
+  @field('notes') declare notes: string | undefined;
+  @field('synced') declare synced: boolean;
+  @field('local_updated_at') declare localUpdatedAt: number;
 
   @children('assignment_tasks') tasks: any;
   @children('observations') observations: any;

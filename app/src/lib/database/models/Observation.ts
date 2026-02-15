@@ -11,17 +11,17 @@ export default class Observation extends Model {
     assignments: { type: 'belongs_to' as const, key: 'assignment_id' },
   };
 
-  @field('server_id') serverId?: string;
-  @field('assignment_id') assignmentId!: string;
-  @field('elder_id') elderId!: string;
-  @field('caregiver_id') caregiverId!: string;
-  @field('category') category!: string;
-  @field('value') value?: string;
-  @field('note') note?: string;
-  @field('is_flagged') isFlagged!: boolean;
-  @field('photo_url') photoUrl?: string;
-  @field('synced') synced!: boolean;
-  @field('local_updated_at') localUpdatedAt!: number;
+  @field('server_id') declare serverId: string | undefined;
+  @field('assignment_id') declare assignmentId: string;
+  @field('elder_id') declare elderId: string;
+  @field('caregiver_id') declare caregiverId: string;
+  @field('category') declare category: string;
+  @field('value') declare value: string | undefined;
+  @field('note') declare note: string | undefined;
+  @field('is_flagged') declare isFlagged: boolean;
+  @field('photo_url') declare photoUrl: string | undefined;
+  @field('synced') declare synced: boolean;
+  @field('local_updated_at') declare localUpdatedAt: number;
 
   @relation('assignments', 'assignment_id') assignment: any;
 
