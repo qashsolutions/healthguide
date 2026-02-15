@@ -2,6 +2,7 @@
 // Shows all visits for the family member's elder
 
 import { useState, useEffect, useCallback } from 'react';
+import { createShadow } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -252,11 +253,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadow(1, 0.05, 4, 2),
   },
   visitHeader: {
     flexDirection: 'row',

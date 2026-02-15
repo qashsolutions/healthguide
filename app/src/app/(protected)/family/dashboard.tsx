@@ -2,6 +2,7 @@
 // Overview of elder care with recent visits and notifications
 
 import { useState, useEffect, useCallback } from 'react';
+import { createShadow } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -361,11 +362,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...createShadow(2, 0.05, 8, 2),
   },
   todayStatus: {
     flexDirection: 'row',
@@ -448,11 +445,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...createShadow(1, 0.05, 4, 1),
   },
   actionEmoji: {
     fontSize: 28,

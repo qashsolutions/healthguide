@@ -182,6 +182,10 @@ export async function registerNotificationCategories(): Promise<void> {
 export function setupNotificationResponseHandler(
   navigate: (screen: string, params?: any) => void
 ): () => void {
+  if (Platform.OS === 'web') {
+    return () => {}; // No-op on web
+  }
+
   const subscription = Notifications.addNotificationResponseReceivedListener(
     (response) => {
       const data = response.notification.request.content.data as any;
@@ -221,6 +225,10 @@ export function setupNotificationResponseHandler(
  * Handle foreground notifications
  */
 export function setupForegroundHandler(): () => void {
+  if (Platform.OS === 'web') {
+    return () => {}; // No-op on web
+  }
+
   const subscription = Notifications.addNotificationReceivedListener(
     (notification) => {
       // Notification received while app is in foreground
