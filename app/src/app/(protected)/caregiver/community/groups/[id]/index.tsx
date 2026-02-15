@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius } from '@/theme/spacing';
+import { spacing, borderRadius, shadows } from '@/theme/spacing';
 import { PersonIcon, SendIcon, HeartIcon, CommunityIcon } from '@/components/icons';
 
 interface GroupDetails {
@@ -576,11 +576,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     borderBottomLeftRadius: borderRadius.sm,
     padding: spacing[3],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...shadows.sm,
   },
   messageBubbleOwn: {
     backgroundColor: roleColors.caregiver,

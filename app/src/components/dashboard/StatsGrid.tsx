@@ -3,6 +3,7 @@
 
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { createShadow } from '@/theme/spacing';
 
 interface DashboardStats {
   totalCaregivers: number;
@@ -155,11 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadow(1, 0.05, 4, 2),
   },
   cardTablet: {
     width: '23%',

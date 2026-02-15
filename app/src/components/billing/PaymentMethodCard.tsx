@@ -3,6 +3,7 @@
 
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
+import { createShadow } from '@/theme/spacing';
 
 interface PaymentMethod {
   brand: string;
@@ -118,11 +119,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...createShadow(2, 0.05, 8, 2),
   },
   header: {
     marginBottom: 16,

@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { format } from 'date-fns';
 import Svg, { Path } from 'react-native-svg';
+import { createShadow } from '@/theme/spacing';
 
 interface Visit {
   id: string;
@@ -188,11 +189,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadow(1, 0.05, 4, 2),
   },
   timeRow: {
     flexDirection: 'row',

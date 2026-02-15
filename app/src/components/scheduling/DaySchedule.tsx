@@ -4,6 +4,7 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { format } from 'date-fns';
 import Svg, { Path } from 'react-native-svg';
+import { createShadow } from '@/theme/spacing';
 
 interface TimeSlot {
   id: string;
@@ -212,11 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderLeftWidth: 4,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadow(1, 0.05, 4, 2),
   },
   slotHeader: {
     flexDirection: 'row',

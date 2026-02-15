@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing } from '@/theme/spacing';
+import { spacing, createShadow } from '@/theme/spacing';
 import {
   AgencyOwnerIcon,
   CaregiverIcon,
@@ -169,11 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing[4],
-    shadowColor: colors.primary[700],
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 10,
+    ...createShadow(6, 0.25, 12, 10, colors.primary[700]),
   },
   title: {
     fontFamily: typography.fontFamily.display,
@@ -205,11 +201,7 @@ const styles = StyleSheet.create({
     padding: spacing[4],
     alignItems: 'center',
     marginBottom: spacing[2],
-    shadowColor: colors.neutral[900],
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    ...createShadow(2, 0.08, 8, 3, colors.neutral[900]),
   },
   roleCardPressed: {
     opacity: 0.8,

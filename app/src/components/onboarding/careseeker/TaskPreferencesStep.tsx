@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import * as Haptics from 'expo-haptics';
+import { createShadow } from '@/theme/spacing';
 
 interface Task {
   id: string;
@@ -330,11 +331,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E5E7EB',
     position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...createShadow(1, 0.05, 4, 1),
   },
   taskCardSelected: {
     borderColor: '#3B82F6',

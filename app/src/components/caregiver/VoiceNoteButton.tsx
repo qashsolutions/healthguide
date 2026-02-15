@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Alert, Platform } from 'react-native';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius } from '@/theme/spacing';
+import { spacing, borderRadius, createShadow } from '@/theme/spacing';
 import { MicrophoneIcon } from '@/components/icons';
 import { hapticFeedback } from '@/utils/haptics';
 
@@ -182,15 +182,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[500],
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.primary[500],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...createShadow(4, 0.3, 8, 8, colors.primary[500]),
   },
   buttonRecording: {
     backgroundColor: colors.error[500],
-    shadowColor: colors.error[500],
+    ...createShadow(4, 0.3, 8, 8, colors.error[500]),
   },
   buttonPressed: {
     transform: [{ scale: 0.95 }],

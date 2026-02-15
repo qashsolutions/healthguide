@@ -16,6 +16,7 @@ import {
   Modal,
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { shadows } from '@/theme/spacing';
 
 interface CaregiverRating {
   id: string;
@@ -227,11 +228,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...shadows.sm,
   },
   reviewHeader: {
     flexDirection: 'row',

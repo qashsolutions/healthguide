@@ -18,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, touchTargets, borderRadius } from '@/theme/spacing';
+import { spacing, touchTargets, borderRadius, createShadow } from '@/theme/spacing';
 import { ChevronLeftIcon, CheckIcon } from '@/components/icons';
 import { Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
@@ -300,11 +300,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
     borderLeftWidth: 4,
     borderLeftColor: roleColors.caregiver,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    ...createShadow(2, 0.1, 4, 2),
   },
   agencyName: {
     ...typography.caregiver.label,

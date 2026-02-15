@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { shadows } from '@/theme/spacing';
 
 interface Elder {
   id: string;
@@ -211,11 +212,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadows.md,
     // Minimum 72px touch target via padding
     minHeight: 140,
   },

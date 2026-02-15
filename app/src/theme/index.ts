@@ -8,6 +8,7 @@ export {
   touchTargets,
   borderRadius,
   shadows,
+  createShadow,
   type SpacingKey,
   type TouchTargetKey,
   type BorderRadiusKey,

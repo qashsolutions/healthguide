@@ -5,7 +5,7 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius } from '@/theme/spacing';
+import { spacing, borderRadius, createShadow } from '@/theme/spacing';
 import {
   CaregiverIcon,
   FamilyIcon,
@@ -174,11 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 16,
     padding: spacing[4],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadow(1, 0.06, 4, 2),
   },
   header: {
     flexDirection: 'row',

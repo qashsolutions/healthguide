@@ -18,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, Button } from '@/components/ui';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing } from '@/theme/spacing';
+import { spacing, shadows } from '@/theme/spacing';
 import { AlertIcon, ClockIcon, CheckIcon } from '@/components/icons';
 import { TaskCategory, CATEGORY_LABELS, DEFAULT_TASKS } from '@/data/defaultTasks';
 
@@ -311,11 +311,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: spacing[3],
     marginBottom: spacing[2],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...shadows.sm,
   },
   taskContent: {
     flex: 1,

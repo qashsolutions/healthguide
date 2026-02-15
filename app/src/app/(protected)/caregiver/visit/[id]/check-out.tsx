@@ -7,7 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TapButton } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius } from '@/theme/spacing';
+import { spacing, borderRadius, createShadow } from '@/theme/spacing';
 import { CheckIcon, LocationIcon, ClockIcon } from '@/components/icons';
 import { hapticFeedback, vibrate } from '@/utils/haptics';
 import { getCurrentLocation } from '@/services/location';
@@ -369,11 +369,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing[6],
-    shadowColor: colors.success[500],
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    ...createShadow(8, 0.4, 16, 12, colors.success[500]),
   },
   successText: {
     ...typography.styles.h1,

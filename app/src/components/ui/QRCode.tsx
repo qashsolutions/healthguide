@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import QRCodeSVG from 'react-native-qrcode-svg';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing } from '@/theme/spacing';
+import { spacing, shadows, createShadow } from '@/theme/spacing';
 
 interface QRCodeProps {
   /** The data to encode (typically a deep link URL) */
@@ -134,11 +134,7 @@ const styles = StyleSheet.create({
   qrWrapper: {
     padding: spacing[4],
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadows.md,
   },
   codeContainer: {
     marginTop: spacing[4],
@@ -166,11 +162,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: spacing[6],
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    ...createShadow(2, 0.08, 8, 3),
   },
   cardTitle: {
     ...typography.styles.h3,

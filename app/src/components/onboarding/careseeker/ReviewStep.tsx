@@ -4,6 +4,7 @@
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Button } from '@/components/ui/Button';
+import { createShadow } from '@/theme/spacing';
 
 interface Props {
   formData: {
@@ -263,11 +264,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...createShadow(1, 0.05, 4, 1),
   },
   sectionHeader: {
     flexDirection: 'row',

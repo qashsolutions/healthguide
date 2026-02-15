@@ -3,6 +3,7 @@
 
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { format, startOfWeek, addDays } from 'date-fns';
+import { createShadow } from '@/theme/spacing';
 
 interface Assignment {
   id: string;
@@ -163,11 +164,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginHorizontal: 16,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadow(1, 0.05, 4, 2),
   },
   title: {
     fontSize: 18,

@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, Pressable, Linking, ActivityIndicator } from 'r
 import { format } from 'date-fns';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
+import { createShadow } from '@/theme/spacing';
 
 interface Invoice {
   id: string;
@@ -193,11 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...createShadow(2, 0.05, 8, 2),
   },
   title: {
     fontSize: 18,

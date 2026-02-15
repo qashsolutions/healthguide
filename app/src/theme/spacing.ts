@@ -1,6 +1,8 @@
 // HealthGuide Spacing System
 // Per healthguide-core/theming skill - consistent spacing scale
 
+import { Platform, type ViewStyle } from 'react-native';
+
 export const spacing = {
   // Base spacing scale (4px increments)
   0: 0,
@@ -56,44 +58,50 @@ export const borderRadius = {
   full: 9999,
 } as const;
 
+// Shadow utility - returns platform-appropriate shadow styles
+// On web: uses boxShadow (CSS). On native: uses shadow* props.
+function hexToRgba(hex: string, opacity: number): string {
+  let r: number, g: number, b: number;
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  }
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+export function createShadow(
+  offsetY: number,
+  opacity: number,
+  blurRadius: number,
+  elevation: number,
+  color: string = '#000',
+): ViewStyle {
+  if (Platform.OS === 'web') {
+    const rgba = hexToRgba(color, opacity);
+    return { boxShadow: `0px ${offsetY}px ${blurRadius}px ${rgba}` } as ViewStyle;
+  }
+  return {
+    shadowColor: color,
+    shadowOffset: { width: 0, height: offsetY },
+    shadowOpacity: opacity,
+    shadowRadius: blurRadius,
+    elevation,
+  };
+}
+
 // Shadows
 export const shadows = {
-  none: {
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-  },
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  xl: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-} as const;
+  none: createShadow(0, 0, 0, 0),
+  sm: createShadow(1, 0.05, 2, 1),
+  md: createShadow(2, 0.1, 4, 3),
+  lg: createShadow(4, 0.15, 8, 5),
+  xl: createShadow(8, 0.2, 16, 8),
+};
 
 export type SpacingKey = keyof typeof spacing;
 export type TouchTargetKey = keyof typeof touchTargets;

@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, Badge } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius } from '@/theme/spacing';
+import { spacing, borderRadius, shadows } from '@/theme/spacing';
 import {
   UsersIcon,
   PersonIcon,
@@ -654,11 +654,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[4],
     alignItems: 'center',
     gap: spacing[3],
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadows.md,
   },
   findCaregiversIcon: {
     width: 56,
