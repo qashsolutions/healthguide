@@ -10,6 +10,10 @@ supabase/.env*
 
 # IDE / tool state
 .claude/
+.mcp.json
+
+# Binary documents
+*.xlsx
 
 # Lock files
 .~lock.*
