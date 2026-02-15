@@ -1,0 +1,2793 @@
+[
+  {
+    "id": 1,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "App title \"HealthGuide\" renders",
+    "status": "pass"
+  },
+  {
+    "id": 2,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "Subtitle \"Professional Elder Care Management\" displays",
+    "status": "pass"
+  },
+  {
+    "id": 3,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "\"I am a...\" section title shows",
+    "status": "pass"
+  },
+  {
+    "id": 4,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "Agency Owner role card renders with correct text",
+    "status": "pass"
+  },
+  {
+    "id": 5,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "Caregiver role card renders with correct text",
+    "status": "pass"
+  },
+  {
+    "id": 6,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "\"I have an invite code\" button renders",
+    "status": "pass"
+  },
+  {
+    "id": 7,
+    "batch": 1,
+    "testFile": "01-auth/01-welcome-screen.test.tsx",
+    "screen": "(auth)/index.tsx",
+    "feature": "Privacy Policy and Terms links render",
+    "status": "pass"
+  },
+  {
+    "id": 8,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Email input field renders",
+    "status": "pass"
+  },
+  {
+    "id": 9,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Password input field renders",
+    "status": "pass"
+  },
+  {
+    "id": 10,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Sign In button renders",
+    "status": "pass"
+  },
+  {
+    "id": 11,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Error state shows on invalid credentials",
+    "status": "pass"
+  },
+  {
+    "id": 12,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Loading state shows during sign-in",
+    "status": "pass"
+  },
+  {
+    "id": 13,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Navigates to register from login",
+    "status": "pass"
+  },
+  {
+    "id": 14,
+    "batch": 2,
+    "testFile": "01-auth/02-agency-login.test.tsx",
+    "screen": "(auth)/login.tsx",
+    "feature": "Sign-in calls signInWithEmail",
+    "status": "pass"
+  },
+  {
+    "id": 15,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/phone-login.tsx",
+    "feature": "Phone number input renders",
+    "status": "pass"
+  },
+  {
+    "id": 16,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/phone-login.tsx",
+    "feature": "\"Send Code\" button renders",
+    "status": "pass"
+  },
+  {
+    "id": 17,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/phone-login.tsx",
+    "feature": "Phone validation rejects invalid numbers",
+    "status": "pass"
+  },
+  {
+    "id": 18,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/phone-login.tsx",
+    "feature": "signInWithPhone called with formatted number",
+    "status": "pass"
+  },
+  {
+    "id": 19,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/verify-otp.tsx",
+    "feature": "OTP input shows 6 digit fields",
+    "status": "pass"
+  },
+  {
+    "id": 20,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/verify-otp.tsx",
+    "feature": "Timer countdown displays",
+    "status": "pass"
+  },
+  {
+    "id": 21,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/verify-otp.tsx",
+    "feature": "Resend code button appears after timer",
+    "status": "pass"
+  },
+  {
+    "id": 22,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/verify-otp.tsx",
+    "feature": "OTP verification calls verifyOTP",
+    "status": "pass"
+  },
+  {
+    "id": 23,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/verify-otp.tsx",
+    "feature": "Error shown on invalid OTP",
+    "status": "pass"
+  },
+  {
+    "id": 24,
+    "batch": 3,
+    "testFile": "01-auth/03-phone-login-otp.test.tsx",
+    "screen": "(auth)/verify-otp.tsx",
+    "feature": "Back button navigates to previous screen",
+    "status": "pass"
+  },
+  {
+    "id": 25,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Full name input renders",
+    "status": "pass"
+  },
+  {
+    "id": 26,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Email input renders",
+    "status": "pass"
+  },
+  {
+    "id": 27,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Password input renders",
+    "status": "pass"
+  },
+  {
+    "id": 28,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Confirm password input renders",
+    "status": "pass"
+  },
+  {
+    "id": 29,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Registration button renders",
+    "status": "pass"
+  },
+  {
+    "id": 30,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Password mismatch error shown",
+    "status": "pass"
+  },
+  {
+    "id": 31,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "signUpWithEmail called with correct data",
+    "status": "pass"
+  },
+  {
+    "id": 32,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/join-group.tsx",
+    "feature": "Join group screen renders invite code input",
+    "status": "pass"
+  },
+  {
+    "id": 33,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/join-group.tsx",
+    "feature": "Join group validates code format",
+    "status": "pass"
+  },
+  {
+    "id": 34,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/join-group.tsx",
+    "feature": "Join group submit calls API",
+    "status": "pass"
+  },
+  {
+    "id": 35,
+    "batch": 4,
+    "testFile": "01-auth/04-registration.test.tsx",
+    "screen": "(auth)/register.tsx",
+    "feature": "Terms of Service link renders",
+    "status": "pass"
+  },
+  {
+    "id": 36,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone number input renders",
+    "status": "pass"
+  },
+  {
+    "id": 37,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Title \"Create Your Caregiver Profile\" renders",
+    "status": "pass"
+  },
+  {
+    "id": 38,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Subtitle \"Free — showcase your skills\" renders",
+    "status": "pass"
+  },
+  {
+    "id": 39,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Country code prefix +1 renders",
+    "status": "pass"
+  },
+  {
+    "id": 40,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "\"Send Code\" button renders",
+    "status": "pass"
+  },
+  {
+    "id": 41,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Help text about 6-digit code renders",
+    "status": "pass"
+  },
+  {
+    "id": 42,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Back button renders",
+    "status": "pass"
+  },
+  {
+    "id": 43,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone validation rejects short numbers",
+    "status": "pass"
+  },
+  {
+    "id": 44,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone number formatting works",
+    "status": "pass"
+  },
+  {
+    "id": 45,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Loading state on submission",
+    "status": "pass"
+  },
+  {
+    "id": 46,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Success navigates to verify-otp with caregiver role",
+    "status": "pass"
+  },
+  {
+    "id": 47,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "\"Already have an account? Sign In\" link renders",
+    "status": "pass"
+  },
+  {
+    "id": 48,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Error message on API failure",
+    "status": "pass"
+  },
+  {
+    "id": 49,
+    "batch": 5,
+    "testFile": "01-auth/05a-caregiver-signup.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "\"Sign In\" link navigates to phone-login",
+    "status": "pass"
+  },
+  {
+    "id": 50,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Step 1: Personal info form renders",
+    "status": "pass"
+  },
+  {
+    "id": 51,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Step 2: Skills/certifications renders",
+    "status": "pass"
+  },
+  {
+    "id": 52,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Step 3: Availability schedule renders",
+    "status": "pass"
+  },
+  {
+    "id": 53,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Step 4: About You renders",
+    "status": "pass"
+  },
+  {
+    "id": 54,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Progress indicator shows current step",
+    "status": "pass"
+  },
+  {
+    "id": 55,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Next button advances to next step",
+    "status": "pass"
+  },
+  {
+    "id": 56,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Back button returns to previous step",
+    "status": "pass"
+  },
+  {
+    "id": 57,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Photo upload button renders (skip-native: camera)",
+    "status": "pass"
+  },
+  {
+    "id": 58,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Bio text area renders",
+    "status": "pass"
+  },
+  {
+    "id": 59,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "NPI verification field and Verify button render",
+    "status": "pass"
+  },
+  {
+    "id": 60,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Step indicator shows 4 steps",
+    "status": "pass"
+  },
+  {
+    "id": 61,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Submit on final step calls API",
+    "status": "pass"
+  },
+  {
+    "id": 62,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Validation prevents advancing without required fields",
+    "status": "pass"
+  },
+  {
+    "id": 63,
+    "batch": 6,
+    "testFile": "01-auth/05b-caregiver-profile-setup.test.tsx",
+    "screen": "(auth)/caregiver-profile-setup.tsx",
+    "feature": "Skip button renders on steps 2-4",
+    "status": "pass"
+  },
+  {
+    "id": 64,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Dashboard title renders",
+    "status": "pass"
+  },
+  {
+    "id": 65,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Stats grid shows 4 KPI cards",
+    "status": "pass"
+  },
+  {
+    "id": 66,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Total caregivers count displays",
+    "status": "pass"
+  },
+  {
+    "id": 67,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Total elders count displays",
+    "status": "pass"
+  },
+  {
+    "id": 68,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Today's visits count displays",
+    "status": "pass"
+  },
+  {
+    "id": 69,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Completion rate percentage displays",
+    "status": "pass"
+  },
+  {
+    "id": 70,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Today's schedule section renders",
+    "status": "pass"
+  },
+  {
+    "id": 71,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Visit cards show elder name and caregiver",
+    "status": "pass"
+  },
+  {
+    "id": 72,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Visit cards show time and status",
+    "status": "pass"
+  },
+  {
+    "id": 73,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Find Caregivers card renders",
+    "status": "pass"
+  },
+  {
+    "id": 74,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Today's Progress section with completion rate renders",
+    "status": "pass"
+  },
+  {
+    "id": 75,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Alerts section renders",
+    "status": "pass"
+  },
+  {
+    "id": 76,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Pull to refresh works",
+    "status": "pass"
+  },
+  {
+    "id": 77,
+    "batch": 7,
+    "testFile": "02-agency/06-agency-dashboard.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Empty state shows when no visits",
+    "status": "pass"
+  },
+  {
+    "id": 78,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Elders list renders",
+    "status": "pass"
+  },
+  {
+    "id": 79,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Elder card shows name, age, care level",
+    "status": "pass"
+  },
+  {
+    "id": 80,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Search/filter elders works",
+    "status": "pass"
+  },
+  {
+    "id": 81,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "\"Add Elder\" button renders",
+    "status": "pass"
+  },
+  {
+    "id": 82,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Elder detail form renders (new elder mode)",
+    "status": "pass"
+  },
+  {
+    "id": 83,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Elder form shows care needs selection",
+    "status": "pass"
+  },
+  {
+    "id": 84,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Elder form shows emergency contact fields",
+    "status": "pass"
+  },
+  {
+    "id": 85,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Elder form Save button renders",
+    "status": "pass"
+  },
+  {
+    "id": 86,
+    "batch": 8,
+    "testFile": "02-agency/07-agency-elders.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Empty state when no elders",
+    "status": "pass"
+  },
+  {
+    "id": 87,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Caregivers list renders",
+    "status": "pass"
+  },
+  {
+    "id": 88,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Caregiver card shows name, status, rating",
+    "status": "pass"
+  },
+  {
+    "id": 89,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Search/filter caregivers works",
+    "status": "pass"
+  },
+  {
+    "id": 90,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Caregiver directory link renders",
+    "status": "pass"
+  },
+  {
+    "id": 91,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/schedule.tsx",
+    "feature": "Schedule tab shows weekly calendar",
+    "status": "pass"
+  },
+  {
+    "id": 92,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/schedule.tsx",
+    "feature": "Schedule shows visit assignments",
+    "status": "pass"
+  },
+  {
+    "id": 93,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/schedule.tsx",
+    "feature": "Can navigate to new assignment",
+    "status": "pass"
+  },
+  {
+    "id": 94,
+    "batch": 9,
+    "testFile": "02-agency/08-agency-caregivers.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Empty state when no caregivers",
+    "status": "pass"
+  },
+  {
+    "id": 95,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Settings page renders",
+    "status": "pass"
+  },
+  {
+    "id": 96,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Task Library link renders",
+    "status": "pass"
+  },
+  {
+    "id": 97,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Agency Profile link renders",
+    "status": "pass"
+  },
+  {
+    "id": 98,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Notification Settings link renders",
+    "status": "pass"
+  },
+  {
+    "id": 99,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Task Library description text renders",
+    "status": "pass"
+  },
+  {
+    "id": 100,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Agency Profile description text renders",
+    "status": "pass"
+  },
+  {
+    "id": 101,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Notification Settings description text renders",
+    "status": "pass"
+  },
+  {
+    "id": 102,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Settings items are pressable",
+    "status": "pass"
+  },
+  {
+    "id": 103,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "All 3 settings items render",
+    "status": "pass"
+  },
+  {
+    "id": 104,
+    "batch": 10,
+    "testFile": "02-agency/09a-agency-settings.test.tsx",
+    "screen": "agency/settings/index.tsx",
+    "feature": "Chevron icons render for navigation",
+    "status": "pass"
+  },
+  {
+    "id": 105,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/task-library.tsx",
+    "feature": "Task library lists default 28 tasks",
+    "status": "pass"
+  },
+  {
+    "id": 106,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/task-library.tsx",
+    "feature": "Task cards show name and icon",
+    "status": "pass"
+  },
+  {
+    "id": 107,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/task-library.tsx",
+    "feature": "Add custom task button renders",
+    "status": "pass"
+  },
+  {
+    "id": 108,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/add-task.tsx",
+    "feature": "Add task form has name, category, icon fields",
+    "status": "pass"
+  },
+  {
+    "id": 109,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/billing.tsx",
+    "feature": "Billing page shows subscription status",
+    "status": "pass"
+  },
+  {
+    "id": 110,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/billing.tsx",
+    "feature": "Subscription card renders plan details",
+    "status": "pass"
+  },
+  {
+    "id": 111,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/billing.tsx",
+    "feature": "Payment method card renders",
+    "status": "pass"
+  },
+  {
+    "id": 112,
+    "batch": 11,
+    "testFile": "02-agency/09b-task-library-billing.test.tsx",
+    "screen": "settings/billing.tsx",
+    "feature": "Invoice history list renders",
+    "status": "pass"
+  },
+  {
+    "id": 113,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Greeting renders with caregiver first name",
+    "status": "pass"
+  },
+  {
+    "id": 114,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Visit count subtitle shows '0 visits today'",
+    "status": "pass"
+  },
+  {
+    "id": 115,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Empty state shows 'All done for today!'",
+    "status": "pass"
+  },
+  {
+    "id": 116,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Empty state subtitle 'Check your schedule for upcoming visits'",
+    "status": "pass"
+  },
+  {
+    "id": 117,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Visit card shows elder name",
+    "status": "pass"
+  },
+  {
+    "id": 118,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Visit card shows elder address",
+    "status": "pass"
+  },
+  {
+    "id": 119,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Visit card shows formatted time range",
+    "status": "pass"
+  },
+  {
+    "id": 120,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "'Start Visit' button renders for scheduled visit",
+    "status": "pass"
+  },
+  {
+    "id": 121,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "'Continue Visit' button renders for in-progress visit",
+    "status": "pass"
+  },
+  {
+    "id": 122,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "'In Progress' badge renders for in-progress visit",
+    "status": "pass"
+  },
+  {
+    "id": 123,
+    "batch": 12,
+    "testFile": "03-caregiver/10-caregiver-dashboard.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Visit count updates when visits present",
+    "status": "pass"
+  },
+  {
+    "id": 124,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/index.tsx",
+    "feature": "Visit detail shows elder name",
+    "status": "pass"
+  },
+  {
+    "id": 125,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/index.tsx",
+    "feature": "Visit detail shows scheduled time range",
+    "status": "pass"
+  },
+  {
+    "id": 126,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/index.tsx",
+    "feature": "Visit detail shows full address",
+    "status": "pass"
+  },
+  {
+    "id": 127,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/index.tsx",
+    "feature": "Visit detail shows tasks section with count",
+    "status": "pass"
+  },
+  {
+    "id": 128,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/check-in.tsx",
+    "feature": "Check-in screen header renders",
+    "status": "pass"
+  },
+  {
+    "id": 129,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/check-in.tsx",
+    "feature": "'TAP TO CHECK IN' button renders",
+    "status": "pass"
+  },
+  {
+    "id": 130,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/check-in.tsx",
+    "feature": "Check-in shows client name",
+    "status": "pass"
+  },
+  {
+    "id": 131,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/check-in.tsx",
+    "feature": "'Use QR Code Instead' fallback button renders",
+    "status": "pass"
+  },
+  {
+    "id": 132,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/index.tsx",
+    "feature": "Visit detail shows Notes section",
+    "status": "pass"
+  },
+  {
+    "id": 133,
+    "batch": 13,
+    "testFile": "03-caregiver/11a-visit-detail.test.tsx",
+    "screen": "visit/[id]/index.tsx",
+    "feature": "Visit detail 'Start Visit' button renders",
+    "status": "pass"
+  },
+  {
+    "id": 134,
+    "batch": 14,
+    "testFile": "03-caregiver/11b-checkin-qr.test.tsx",
+    "screen": "visit/[id]/qr-checkin.tsx",
+    "feature": "QR Check-In header renders",
+    "status": "pass"
+  },
+  {
+    "id": 135,
+    "batch": 14,
+    "testFile": "03-caregiver/11b-checkin-qr.test.tsx",
+    "screen": "visit/[id]/qr-checkin.tsx",
+    "feature": "Camera permission request shows 'Camera Access Needed'",
+    "status": "pass"
+  },
+  {
+    "id": 136,
+    "batch": 14,
+    "testFile": "03-caregiver/11b-checkin-qr.test.tsx",
+    "screen": "visit/[id]/qr-checkin.tsx",
+    "feature": "'Allow Camera Access' button renders",
+    "status": "pass"
+  },
+  {
+    "id": 137,
+    "batch": 14,
+    "testFile": "03-caregiver/11b-checkin-qr.test.tsx",
+    "screen": "visit/[id]/qr-checkin.tsx",
+    "feature": "'Go Back' button renders in permission denied state",
+    "status": "pass"
+  },
+  {
+    "id": 138,
+    "batch": 14,
+    "testFile": "03-caregiver/11b-checkin-qr.test.tsx",
+    "screen": "visit/[id]/qr-checkin.tsx",
+    "feature": "Camera granted shows scan instruction",
+    "status": "pass"
+  },
+  {
+    "id": 139,
+    "batch": 14,
+    "testFile": "03-caregiver/11b-checkin-qr.test.tsx",
+    "screen": "visit/[id]/qr-checkin.tsx",
+    "feature": "'QR code not working?' help text renders",
+    "status": "pass"
+  },
+  {
+    "id": 140,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Task list renders with task names",
+    "status": "pass"
+  },
+  {
+    "id": 141,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Header shows elder first name in title",
+    "status": "pass"
+  },
+  {
+    "id": 142,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Progress shows completed count",
+    "status": "pass"
+  },
+  {
+    "id": 143,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "'Continue' button renders",
+    "status": "pass"
+  },
+  {
+    "id": 144,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Empty state shows when no tasks",
+    "status": "pass"
+  },
+  {
+    "id": 145,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Empty state shows 'Continue to add observations'",
+    "status": "pass"
+  },
+  {
+    "id": 146,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Task cards show status",
+    "status": "pass"
+  },
+  {
+    "id": 147,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "Progress bar section renders",
+    "status": "pass"
+  },
+  {
+    "id": 148,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/tasks.tsx",
+    "feature": "'All Done!' label when all tasks completed",
+    "status": "pass"
+  },
+  {
+    "id": 149,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/notes.tsx",
+    "feature": "Observations header renders",
+    "status": "pass"
+  },
+  {
+    "id": 150,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/notes.tsx",
+    "feature": "Shows 'How is [name] today?'",
+    "status": "pass"
+  },
+  {
+    "id": 151,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/notes.tsx",
+    "feature": "'Continue' button renders on notes",
+    "status": "pass"
+  },
+  {
+    "id": 152,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/notes.tsx",
+    "feature": "Observation categories render (Mood, Appetite, Mobility, Activity)",
+    "status": "pass"
+  },
+  {
+    "id": 153,
+    "batch": 15,
+    "testFile": "03-caregiver/12-tasks-notes.test.tsx",
+    "screen": "visit/[id]/notes.tsx",
+    "feature": "'Additional Notes' section renders with voice button",
+    "status": "pass"
+  },
+  {
+    "id": 154,
+    "batch": 16,
+    "testFile": "03-caregiver/13-checkout-history.test.tsx",
+    "screen": "visit/[id]/check-out.tsx",
+    "feature": "'TAP TO CHECK OUT' button renders",
+    "status": "pass"
+  },
+  {
+    "id": 155,
+    "batch": 16,
+    "testFile": "03-caregiver/13-checkout-history.test.tsx",
+    "screen": "visit/[id]/check-out.tsx",
+    "feature": "Client name shown on check-out screen",
+    "status": "pass"
+  },
+  {
+    "id": 156,
+    "batch": 16,
+    "testFile": "03-caregiver/13-checkout-history.test.tsx",
+    "screen": "visit/[id]/check-out.tsx",
+    "feature": "Tasks completed count shows",
+    "status": "pass"
+  },
+  {
+    "id": 157,
+    "batch": 16,
+    "testFile": "03-caregiver/13-checkout-history.test.tsx",
+    "screen": "visit-history.tsx",
+    "feature": "'Ready to leave?' title renders",
+    "status": "pass"
+  },
+  {
+    "id": 158,
+    "batch": 16,
+    "testFile": "03-caregiver/13-checkout-history.test.tsx",
+    "screen": "visit-history.tsx",
+    "feature": "Visit history empty state renders",
+    "status": "pass"
+  },
+  {
+    "id": 159,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "community.tsx",
+    "feature": "Community 'Support' title renders",
+    "status": "pass"
+  },
+  {
+    "id": 160,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "wellness.tsx",
+    "feature": "Daily Check-in wellness prompt renders",
+    "status": "pass"
+  },
+  {
+    "id": 161,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "resources.tsx",
+    "feature": "Resource categories render (Training, Wellness, Legal, Benefits)",
+    "status": "pass"
+  },
+  {
+    "id": 162,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "community.tsx",
+    "feature": "Support Groups section renders with group names",
+    "status": "pass"
+  },
+  {
+    "id": 163,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "wellness.tsx",
+    "feature": "Wellness 'Daily Check-in' title renders",
+    "status": "pass"
+  },
+  {
+    "id": 164,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "resources.tsx",
+    "feature": "Resource cards show title and description",
+    "status": "pass"
+  },
+  {
+    "id": 165,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "resources.tsx",
+    "feature": "All resource items render",
+    "status": "pass"
+  },
+  {
+    "id": 166,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "wellness.tsx",
+    "feature": "Mood, Energy, Stress scale selectors render",
+    "status": "pass"
+  },
+  {
+    "id": 167,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "wellness.tsx",
+    "feature": "'Save Check-in' button renders",
+    "status": "pass"
+  },
+  {
+    "id": 168,
+    "batch": 17,
+    "testFile": "03-caregiver/14a-community.test.tsx",
+    "screen": "community.tsx",
+    "feature": "Quick Actions section with navigation cards",
+    "status": "pass"
+  },
+  {
+    "id": 169,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/groups/",
+    "feature": "Groups list renders",
+    "status": "pass"
+  },
+  {
+    "id": 170,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/groups/",
+    "feature": "Group card shows name and member count",
+    "status": "pass"
+  },
+  {
+    "id": 171,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/groups/",
+    "feature": "Group detail shows messages",
+    "status": "pass"
+  },
+  {
+    "id": 172,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/groups/",
+    "feature": "Can send message in group",
+    "status": "pass"
+  },
+  {
+    "id": 173,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/journal.tsx",
+    "feature": "Journal screen renders",
+    "status": "pass"
+  },
+  {
+    "id": 174,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/journal.tsx",
+    "feature": "Journal entry text area renders",
+    "status": "pass"
+  },
+  {
+    "id": 175,
+    "batch": 18,
+    "testFile": "03-caregiver/14b-groups-journal.test.tsx",
+    "screen": "community/journal.tsx",
+    "feature": "Journal entries list renders",
+    "status": "pass"
+  },
+  {
+    "id": 176,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "pending-invitations.tsx",
+    "feature": "Pending invitations list renders",
+    "status": "pass"
+  },
+  {
+    "id": 177,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "pending-invitations.tsx",
+    "feature": "Invitation card shows agency name",
+    "status": "pass"
+  },
+  {
+    "id": 178,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "pending-invitations.tsx",
+    "feature": "Accept invitation button works",
+    "status": "pass"
+  },
+  {
+    "id": 179,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "pending-invitations.tsx",
+    "feature": "Decline invitation button works",
+    "status": "pass"
+  },
+  {
+    "id": 180,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "my-profile.tsx",
+    "feature": "My profile screen renders",
+    "status": "pass"
+  },
+  {
+    "id": 181,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "my-profile.tsx",
+    "feature": "Profile shows name and phone",
+    "status": "pass"
+  },
+  {
+    "id": 182,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "my-profile.tsx",
+    "feature": "Profile edit fields render",
+    "status": "pass"
+  },
+  {
+    "id": 183,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "my-profile.tsx",
+    "feature": "Save profile button works",
+    "status": "pass"
+  },
+  {
+    "id": 184,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "schedule.tsx",
+    "feature": "Schedule screen renders weekly view",
+    "status": "skip-stub"
+  },
+  {
+    "id": 185,
+    "batch": 19,
+    "testFile": "03-caregiver/15-invitations-profile.test.tsx",
+    "screen": "schedule.tsx",
+    "feature": "Schedule shows assigned visits",
+    "status": "skip-stub"
+  },
+  {
+    "id": 186,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "careseeker/(tabs)/index.tsx",
+    "feature": "Home screen renders with greeting",
+    "status": "pass"
+  },
+  {
+    "id": 187,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "careseeker/(tabs)/index.tsx",
+    "feature": "Care team section renders",
+    "status": "pass"
+  },
+  {
+    "id": 188,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "careseeker/(tabs)/index.tsx",
+    "feature": "Care team shows assigned caregivers",
+    "status": "pass"
+  },
+  {
+    "id": 189,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "careseeker/(tabs)/index.tsx",
+    "feature": "Today's visits section renders",
+    "status": "pass"
+  },
+  {
+    "id": 190,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "careseeker/(tabs)/index.tsx",
+    "feature": "Emergency contact button renders",
+    "status": "pass"
+  },
+  {
+    "id": 191,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "daily-check-in.tsx",
+    "feature": "Daily check-in button renders",
+    "status": "pass"
+  },
+  {
+    "id": 192,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "daily-check-in.tsx",
+    "feature": "Daily check-in mood selector renders",
+    "status": "pass"
+  },
+  {
+    "id": 193,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "daily-check-in.tsx",
+    "feature": "Daily check-in wellness questions render",
+    "status": "pass"
+  },
+  {
+    "id": 194,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "daily-check-in.tsx",
+    "feature": "Daily check-in submit button works",
+    "status": "pass"
+  },
+  {
+    "id": 195,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "daily-check-in.tsx",
+    "feature": "Daily check-in shows today's entry if exists",
+    "status": "pass"
+  },
+  {
+    "id": 196,
+    "batch": 20,
+    "testFile": "04-careseeker/16-careseeker-home.test.tsx",
+    "screen": "careseeker/(tabs)/index.tsx",
+    "feature": "Activities tab renders",
+    "status": "pass"
+  },
+  {
+    "id": 197,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "activities.tsx",
+    "feature": "Activities screen renders categories",
+    "status": "pass"
+  },
+  {
+    "id": 198,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "activities.tsx",
+    "feature": "Memory game option renders",
+    "status": "pass"
+  },
+  {
+    "id": 199,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "games/memory.tsx",
+    "feature": "Memory game board renders cards",
+    "status": "pass"
+  },
+  {
+    "id": 200,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "games/memory.tsx",
+    "feature": "Memory game flips cards on tap",
+    "status": "pass"
+  },
+  {
+    "id": 201,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "games/memory.tsx",
+    "feature": "Memory game detects matches",
+    "status": "pass"
+  },
+  {
+    "id": 202,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "games/memory.tsx",
+    "feature": "Memory game shows score",
+    "status": "pass"
+  },
+  {
+    "id": 203,
+    "batch": 21,
+    "testFile": "04-careseeker/17-activities-games.test.tsx",
+    "screen": "games/memory.tsx",
+    "feature": "Memory game saves score to game_sessions",
+    "status": "pass"
+  },
+  {
+    "id": 204,
+    "batch": 22,
+    "testFile": "04-careseeker/18-calls.test.tsx",
+    "screen": "calls.tsx",
+    "feature": "Calls screen renders",
+    "status": "pass"
+  },
+  {
+    "id": 205,
+    "batch": 22,
+    "testFile": "04-careseeker/18-calls.test.tsx",
+    "screen": "calls.tsx",
+    "feature": "Contact list renders care team members",
+    "status": "pass"
+  },
+  {
+    "id": 206,
+    "batch": 22,
+    "testFile": "04-careseeker/18-calls.test.tsx",
+    "screen": "calls.tsx",
+    "feature": "Call button renders for each contact (skip-native: calling)",
+    "status": "pass"
+  },
+  {
+    "id": 207,
+    "batch": 22,
+    "testFile": "04-careseeker/18-calls.test.tsx",
+    "screen": "calls.tsx",
+    "feature": "Video call button renders (skip-native: video calling)",
+    "status": "pass"
+  },
+  {
+    "id": 208,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Dashboard renders with elder name",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 209,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Elder status card renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 210,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Last check-in time displays",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 211,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Care team section renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 212,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Caregiver cards show name and photo",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 213,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Recent visits section renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 214,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Visit cards show date and tasks completed",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 215,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Alerts section renders",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 216,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Quick actions render (View Reports, Settings)",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 217,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Mood trend indicator renders",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 218,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Last daily check-in mood displays",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 219,
+    "batch": 23,
+    "testFile": "05-family/19-family-dashboard.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Elder location shows (skip-native: GPS)",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 220,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/visits.tsx",
+    "feature": "Visits list renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 221,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/visits.tsx",
+    "feature": "Visit card shows caregiver name and date",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 222,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/visits.tsx",
+    "feature": "Visit card shows task completion percentage",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 223,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/visits.tsx",
+    "feature": "Visit detail shows notes",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 224,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/visits.tsx",
+    "feature": "Visit detail shows check-in/out times",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 225,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/reports.tsx",
+    "feature": "Reports screen renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 226,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/reports.tsx",
+    "feature": "Weekly report card renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 227,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/reports.tsx",
+    "feature": "Monthly report card renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 228,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/reports.tsx",
+    "feature": "Report shows visit count and hours",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 229,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/reports.tsx",
+    "feature": "Report shows task completion stats",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 230,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/reports.tsx",
+    "feature": "Report detail view renders",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 231,
+    "batch": 24,
+    "testFile": "05-family/20-visits-reports.test.tsx",
+    "screen": "family/visits.tsx",
+    "feature": "Can navigate between visit list and detail",
+    "status": "skip-stub",
+    "testedAt": "2026-02-15T12:00:00Z",
+    "notes": "Feature not implemented in current screen"
+  },
+  {
+    "id": 232,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Settings page renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 233,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Profile section renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 234,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Profile name editable",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 235,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Profile phone editable",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 236,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Notification preferences render",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 237,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Push notifications toggle renders (skip-native: push)",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 238,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Email notifications toggle renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 239,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "SMS notifications toggle renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 240,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Elder care preferences render",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 241,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Sign out button renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 242,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Save settings button renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 243,
+    "batch": 25,
+    "testFile": "05-family/21-family-settings.test.tsx",
+    "screen": "family/settings/",
+    "feature": "Alert thresholds configurable",
+    "status": "pass",
+    "testedAt": "2026-02-15T12:00:00Z"
+  },
+  {
+    "id": 244,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Button",
+    "feature": "Button renders with text",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 245,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Button",
+    "feature": "Button fires onPress callback",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 246,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Button",
+    "feature": "Button shows loading state",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 247,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Button",
+    "feature": "Button disabled state works",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 248,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Input",
+    "feature": "Input renders with placeholder",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 249,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Input",
+    "feature": "Input accepts text input",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 250,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Input",
+    "feature": "Input shows error state",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 251,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Input",
+    "feature": "Input password mode hides text",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 252,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Card",
+    "feature": "Card renders children",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 253,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Card",
+    "feature": "Card applies custom styles",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 254,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Badge",
+    "feature": "Badge renders with text",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 255,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/Badge",
+    "feature": "Badge applies variant colors",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 256,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/OTP",
+    "feature": "OTP input renders correct number of fields",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 257,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/OTP",
+    "feature": "OTP input auto-advances on digit entry",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 258,
+    "batch": 26,
+    "testFile": "06-shared/22a-ui-components.test.tsx",
+    "screen": "components/OTP",
+    "feature": "OTP input handles backspace",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 259,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/TapButton",
+    "feature": "TapButton renders with label",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 260,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/TapButton",
+    "feature": "TapButton fires onPress",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 261,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/TapButton",
+    "feature": "TapButton shows active state",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 262,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/ProgressBar",
+    "feature": "ProgressBar renders with percentage",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 263,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/ProgressBar",
+    "feature": "ProgressBar fills correctly at 50%",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 264,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/ProgressBar",
+    "feature": "ProgressBar shows 0% empty state",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 265,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/ProgressBar",
+    "feature": "ProgressBar shows 100% full state",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 266,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/QRCode",
+    "feature": "QRCode component renders (skip-native if SVG issues)",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 267,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/QRCode",
+    "feature": "QRCode accepts value prop",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 268,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/Icons",
+    "feature": "TaskIcons render for each category",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 269,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/Icons",
+    "feature": "ObservationIcons render for each category",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 270,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/Icons",
+    "feature": "TaskIconMapper maps task type to correct icon",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 271,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/Icons",
+    "feature": "Icon components accept size prop",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 272,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/Icons",
+    "feature": "Icon components accept color prop",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 273,
+    "batch": 27,
+    "testFile": "06-shared/22b-ui-components.test.tsx",
+    "screen": "components/HealthGuideLogo",
+    "feature": "HealthGuideLogo renders",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 274,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/TaskCard",
+    "feature": "TaskCard renders task name",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 275,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/TaskCard",
+    "feature": "TaskCard shows completion status",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 276,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/TaskCard",
+    "feature": "TaskCard onComplete fires callback",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 277,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/TaskCard",
+    "feature": "TaskCard onSkip fires callback",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 278,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/SkipReasonModal",
+    "feature": "SkipReasonModal renders reasons",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 279,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/SkipReasonModal",
+    "feature": "SkipReasonModal fires onSelect callback",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 280,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/SkipReasonModal",
+    "feature": "SkipReasonModal close button works",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 281,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/RatingModal",
+    "feature": "RatingModal renders star rating",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 282,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/RatingModal",
+    "feature": "RatingModal fires onRate callback",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 283,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/RatingSummary",
+    "feature": "RatingSummary shows average rating",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 284,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/ReviewsList",
+    "feature": "ReviewsList renders review cards",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 285,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/WeekCalendar",
+    "feature": "WeekCalendar renders 7 days",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 286,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/WeekCalendar",
+    "feature": "WeekCalendar highlights current day",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 287,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/WeekStrip",
+    "feature": "WeekStrip renders navigation arrows",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 288,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/DaySchedule",
+    "feature": "DaySchedule renders time slots",
+    "status": "skip-stub",
+    "notes": "Complex component, tested via WeekCalendar",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 289,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/StatsGrid",
+    "feature": "StatsGrid renders metric cards",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 290,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/TodaySchedule",
+    "feature": "TodaySchedule renders visit list",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 291,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/WeeklyOverview",
+    "feature": "WeeklyOverview renders chart/stats",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 292,
+    "batch": 28,
+    "testFile": "06-shared/22c-ui-components.test.tsx",
+    "screen": "components/AlertsList",
+    "feature": "AlertsList renders alert items",
+    "status": "pass",
+    "testedAt": "2026-02-15T13:00:00Z"
+  },
+  {
+    "id": 293,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext provides user state",
+    "status": "pass"
+  },
+  {
+    "id": 294,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext signInWithEmail calls supabase",
+    "status": "pass"
+  },
+  {
+    "id": 295,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext signUpWithEmail calls supabase",
+    "status": "pass"
+  },
+  {
+    "id": 296,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext signInWithPhone calls supabase",
+    "status": "pass"
+  },
+  {
+    "id": 297,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext verifyOTP calls supabase",
+    "status": "pass"
+  },
+  {
+    "id": 298,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext signOut clears state",
+    "status": "pass"
+  },
+  {
+    "id": 299,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext isRole checks correctly",
+    "status": "pass"
+  },
+  {
+    "id": 300,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "contexts/AuthContext",
+    "feature": "AuthContext loading state transitions",
+    "status": "pass"
+  },
+  {
+    "id": 301,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "services/location",
+    "feature": "Location service getCurrentPosition works (skip-native: GPS)",
+    "status": "skip-native"
+  },
+  {
+    "id": 302,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "services/location",
+    "feature": "Location service requestPermissions works (skip-native: GPS)",
+    "status": "skip-native"
+  },
+  {
+    "id": 303,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "utils/invite",
+    "feature": "Invite link generation creates valid URL",
+    "status": "pass"
+  },
+  {
+    "id": 304,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "utils/invite",
+    "feature": "Invite link parsing extracts code",
+    "status": "pass"
+  },
+  {
+    "id": 305,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "lib/supabase",
+    "feature": "isSupabaseConfigured returns boolean",
+    "status": "pass"
+  },
+  {
+    "id": 306,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "hooks/useAuth",
+    "feature": "useAuth hook returns context",
+    "status": "pass"
+  },
+  {
+    "id": 307,
+    "batch": 29,
+    "testFile": "06-shared/23a-data-api.test.tsx",
+    "screen": "hooks/useRequireRole",
+    "feature": "useRequireRole hook checks role",
+    "status": "pass"
+  },
+  {
+    "id": 308,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/colors",
+    "feature": "Color tokens have all required shades",
+    "status": "pass"
+  },
+  {
+    "id": 309,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/colors",
+    "feature": "Colors primary palette has 50-900",
+    "status": "pass"
+  },
+  {
+    "id": 310,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/colors",
+    "feature": "roleColors has all 4 role keys",
+    "status": "pass"
+  },
+  {
+    "id": 311,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/typography",
+    "feature": "Typography has all font families",
+    "status": "pass"
+  },
+  {
+    "id": 312,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/typography",
+    "feature": "Typography styles object has expected keys",
+    "status": "pass"
+  },
+  {
+    "id": 313,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/spacing",
+    "feature": "Spacing scale has expected values",
+    "status": "pass"
+  },
+  {
+    "id": 314,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/borders",
+    "feature": "Border radius tokens exist",
+    "status": "pass"
+  },
+  {
+    "id": 315,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "theme/shadows",
+    "feature": "Shadow tokens exist",
+    "status": "pass"
+  },
+  {
+    "id": 316,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "constants/defaultTasks",
+    "feature": "Default tasks list has 28 entries",
+    "status": "pass"
+  },
+  {
+    "id": 317,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "constants/defaultTasks",
+    "feature": "Each default task has name, category, icon",
+    "status": "pass"
+  },
+  {
+    "id": 318,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "constants/defaultTasks",
+    "feature": "Default task categories are valid",
+    "status": "pass"
+  },
+  {
+    "id": 319,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "utils/haptics",
+    "feature": "Haptics impactAsync callable (skip-native: haptics)",
+    "status": "pass"
+  },
+  {
+    "id": 320,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "utils/haptics",
+    "feature": "Haptics selectionAsync callable (skip-native: haptics)",
+    "status": "pass"
+  },
+  {
+    "id": 321,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "utils/haptics",
+    "feature": "Haptics notificationAsync callable (skip-native: haptics)",
+    "status": "pass"
+  },
+  {
+    "id": 322,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "db/schema",
+    "feature": "WatermelonDB schema defines required tables",
+    "status": "pass"
+  },
+  {
+    "id": 323,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "db/models/Assignment",
+    "feature": "Assignment model has correct fields",
+    "status": "pass"
+  },
+  {
+    "id": 324,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "db/models/AssignmentTask",
+    "feature": "AssignmentTask model has correct fields",
+    "status": "pass"
+  },
+  {
+    "id": 325,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "db/models/Observation",
+    "feature": "Observation model has correct fields",
+    "status": "pass"
+  },
+  {
+    "id": 326,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "db/models/SyncQueueItem",
+    "feature": "SyncQueueItem model has correct fields",
+    "status": "pass"
+  },
+  {
+    "id": 327,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "types/auth",
+    "feature": "Auth types UserRole has all 5 roles",
+    "status": "pass"
+  },
+  {
+    "id": 328,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "types/auth",
+    "feature": "Auth types AUTH_METHODS maps correctly",
+    "status": "pass"
+  },
+  {
+    "id": 329,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "types/agency",
+    "feature": "Agency type has required fields",
+    "status": "pass"
+  },
+  {
+    "id": 330,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "games/trivia.tsx",
+    "feature": "Trivia game screen renders (skip-stub)",
+    "status": "skip-stub"
+  },
+  {
+    "id": 331,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "games/music-therapy.tsx",
+    "feature": "Music therapy screen renders (skip-stub)",
+    "status": "skip-stub"
+  },
+  {
+    "id": 332,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "games/photo-memories.tsx",
+    "feature": "Photo memories screen renders (skip-stub)",
+    "status": "skip-stub"
+  },
+  {
+    "id": 333,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "components/OfflineIndicator",
+    "feature": "Offline indicator component renders",
+    "status": "pass"
+  },
+  {
+    "id": 334,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "components/SyncStatusBar",
+    "feature": "SyncStatusBar component renders",
+    "status": "pass"
+  },
+  {
+    "id": 335,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "db/models/ElderCache",
+    "feature": "ElderCache model has correct fields",
+    "status": "pass"
+  },
+  {
+    "id": 336,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "components/SubscriptionCard",
+    "feature": "SubscriptionCard renders",
+    "status": "pass"
+  },
+  {
+    "id": 337,
+    "batch": 30,
+    "testFile": "06-shared/23b-data-api.test.tsx",
+    "screen": "components/PaymentMethodCard",
+    "feature": "PaymentMethodCard renders",
+    "status": "pass"
+  }
+]
