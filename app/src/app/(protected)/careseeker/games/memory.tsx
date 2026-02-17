@@ -17,14 +17,32 @@ import { Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, shadows } from '@/theme/spacing';
+import {
+  FlowerBlossomIcon,
+  FlowerSunIcon,
+  FlowerHibiscusIcon,
+  FlowerRoseIcon,
+  FlowerTulipIcon,
+  FlowerDaisyIcon,
+  PartyIcon,
+  SyncIcon,
+  IconProps,
+} from '@/components/icons';
 import * as Haptics from 'expo-haptics';
 
-// Simple flower emojis for elder-friendly game
-const EMOJIS = ['🌸', '🌻', '🌺', '🌹', '🌷', '🌼'];
+// Flower icon components for elder-friendly game
+const FLOWER_ICONS: React.ComponentType<IconProps>[] = [
+  FlowerBlossomIcon,
+  FlowerSunIcon,
+  FlowerHibiscusIcon,
+  FlowerRoseIcon,
+  FlowerTulipIcon,
+  FlowerDaisyIcon,
+];
 
 interface Card {
   id: number;
-  emoji: string;
+  iconIndex: number;
   isFlipped: boolean;
   isMatched: boolean;
 }
@@ -46,14 +64,14 @@ export default function MemoryGameScreen() {
 
   function initializeGame() {
     // Create pairs of cards - 6 pairs = 12 cards
-    const gameEmojis = EMOJIS.slice(0, 6);
-    const cardPairs = [...gameEmojis, ...gameEmojis];
+    const iconIndices = FLOWER_ICONS.map((_, i) => i);
+    const cardPairs = [...iconIndices, ...iconIndices];
 
     // Shuffle
     const shuffled = cardPairs
-      .map((emoji, index) => ({
+      .map((iconIndex, index) => ({
         id: index,
-        emoji,
+        iconIndex,
         isFlipped: false,
         isMatched: false,
       }))
@@ -96,7 +114,7 @@ export default function MemoryGameScreen() {
         const card1 = newCards.find((c) => c.id === first);
         const card2 = newCards.find((c) => c.id === second);
 
-        if (card1?.emoji === card2?.emoji) {
+        if (card1?.iconIndex === card2?.iconIndex) {
           // Match found!
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setTimeout(() => {
@@ -159,7 +177,7 @@ export default function MemoryGameScreen() {
     }
 
     Alert.alert(
-      '🎉 Great Job!',
+      'Great Job!',
       `You matched all the flowers in ${moves} moves!\n\nThat was wonderful!`,
       [
         { text: 'Play Again', onPress: initializeGame },
@@ -205,13 +223,16 @@ export default function MemoryGameScreen() {
             accessibilityRole="button"
             accessibilityLabel={
               card.isFlipped || card.isMatched
-                ? `Card with ${card.emoji}`
+                ? `Card with flower ${card.iconIndex + 1}`
                 : 'Hidden card'
             }
             accessibilityState={{ selected: card.isFlipped }}
           >
             {card.isFlipped || card.isMatched ? (
-              <Text style={styles.emoji}>{card.emoji}</Text>
+              (() => {
+                const FlowerIcon = FLOWER_ICONS[card.iconIndex];
+                return <FlowerIcon size={48} />;
+              })()
             ) : (
               <Text style={styles.cardBack}>?</Text>
             )}
@@ -222,11 +243,12 @@ export default function MemoryGameScreen() {
       {/* New Game Button */}
       <View style={styles.footer}>
         <Button
-          title="🔄 New Game"
+          title="New Game"
           variant="outline"
           size="lg"
           onPress={initializeGame}
           style={styles.resetButton}
+          icon={<SyncIcon size={20} color={colors.primary[500]} />}
         />
       </View>
     </SafeAreaView>
@@ -294,9 +316,6 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     color: colors.white,
-  },
-  emoji: {
-    fontSize: 48,
   },
   footer: {
     paddingTop: spacing[4],

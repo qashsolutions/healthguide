@@ -163,14 +163,14 @@ describe('Batch 23: Family Dashboard', () => {
     expect(screen.getByText('Settings')).toBeTruthy();
   });
 
-  // Feature #212: Quick action emojis render
-  it('#212 - Quick action emojis render', async () => {
+  // Feature #212: Quick action SVG icons render
+  it('#212 - Quick action icons render', async () => {
     render(<FamilyDashboardScreen />);
     await waitFor(() => {
-      expect(screen.getByText('📋')).toBeTruthy();
+      expect(screen.getByText('Reports')).toBeTruthy();
     });
-    expect(screen.getByText('📆')).toBeTruthy();
-    expect(screen.getByText('⚙️')).toBeTruthy();
+    expect(screen.getByText('All Visits')).toBeTruthy();
+    expect(screen.getByText('Settings')).toBeTruthy();
   });
 
   // Feature #213: Recent Visits section (empty when no visits)

@@ -20,6 +20,19 @@ import { Card } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
+import {
+  SadFaceIcon,
+  FrownFaceIcon,
+  NeutralFaceIcon,
+  SmileFaceIcon,
+  BatteryLowIcon,
+  LightningIcon,
+  MuscleIcon,
+  FireIcon,
+  MeditateIcon,
+  SOSIcon,
+  type IconProps,
+} from '@/components/icons';
 
 interface WellnessLog {
   id: string;
@@ -36,10 +49,18 @@ const SCALE_LABELS: Record<string, string[]> = {
   stress: ['Minimal', 'Low', 'Moderate', 'High', 'Overwhelmed'],
 };
 
-const SCALE_EMOJIS: Record<string, string[]> = {
-  mood: ['😢', '😔', '😐', '🙂', '😊'],
-  energy: ['🔋', '🪫', '⚡', '💪', '🔥'],
-  stress: ['😌', '🧘', '😤', '😰', '🆘'],
+type ScaleIconComponent = React.ComponentType<IconProps>;
+
+const SCALE_ICONS: Record<string, ScaleIconComponent[]> = {
+  mood: [SadFaceIcon, FrownFaceIcon, NeutralFaceIcon, SmileFaceIcon, SmileFaceIcon],
+  energy: [BatteryLowIcon, BatteryLowIcon, LightningIcon, MuscleIcon, FireIcon],
+  stress: [SmileFaceIcon, MeditateIcon, NeutralFaceIcon, SadFaceIcon, SOSIcon],
+};
+
+const SCALE_ICON_COLORS: Record<string, string[]> = {
+  mood: [colors.error[500], colors.warning[600], colors.warning[500], colors.success[500], colors.success[500]],
+  energy: [colors.warning[500], colors.warning[500], colors.warning[500], colors.success[500], colors.error[500]],
+  stress: [colors.success[500], colors.success[500], colors.warning[500], colors.error[500], colors.error[500]],
 };
 
 export default function WellnessScreen() {
@@ -166,9 +187,11 @@ export default function WellnessScreen() {
               ]}
               onPress={() => onChange(level)}
             >
-              <Text style={styles.scaleEmoji}>
-                {SCALE_EMOJIS[category][level - 1]}
-              </Text>
+              {(() => {
+                const ScaleIcon = SCALE_ICONS[category][level - 1];
+                const iconColor = SCALE_ICON_COLORS[category][level - 1];
+                return <ScaleIcon size={28} color={iconColor} />;
+              })()}
               <Text
                 style={[
                   styles.scaleText,
@@ -272,9 +295,9 @@ export default function WellnessScreen() {
                 <View style={styles.historyHeader}>
                   <Text style={styles.historyDate}>{formatDate(log.date)}</Text>
                   <View style={styles.historyEmojis}>
-                    <Text>{SCALE_EMOJIS.mood[log.mood - 1]}</Text>
-                    <Text>{SCALE_EMOJIS.energy[log.energy - 1]}</Text>
-                    <Text>{SCALE_EMOJIS.stress[log.stress - 1]}</Text>
+                    {(() => { const I = SCALE_ICONS.mood[log.mood - 1]; return <I size={18} color={SCALE_ICON_COLORS.mood[log.mood - 1]} />; })()}
+                    {(() => { const I = SCALE_ICONS.energy[log.energy - 1]; return <I size={18} color={SCALE_ICON_COLORS.energy[log.energy - 1]} />; })()}
+                    {(() => { const I = SCALE_ICONS.stress[log.stress - 1]; return <I size={18} color={SCALE_ICON_COLORS.stress[log.stress - 1]} />; })()}
                   </View>
                 </View>
                 <View style={styles.historyScores}>
@@ -354,8 +377,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: roleColors.caregiver,
   },
-  scaleEmoji: {
-    fontSize: 22,
+  scaleIcon: {
     marginBottom: spacing[0.5],
   },
   scaleText: {

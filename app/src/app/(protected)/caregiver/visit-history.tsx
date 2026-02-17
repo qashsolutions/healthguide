@@ -19,7 +19,7 @@ import { Card, Badge } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { CheckIcon, ClockIcon, PersonIcon } from '@/components/icons';
+import { CheckIcon, ClockIcon, PersonIcon, FileTextIcon } from '@/components/icons';
 
 interface Visit {
   id: string;
@@ -71,7 +71,7 @@ export default function VisitHistoryScreen() {
           status,
           actual_start,
           actual_end,
-          elder:elders(full_name),
+          elder:elders(first_name, last_name),
           visit_tasks(id, task:task_library(name))
         `)
         .eq('caregiver_id', user.id)
@@ -89,7 +89,7 @@ export default function VisitHistoryScreen() {
         status: v.status,
         actual_start: v.actual_start,
         actual_end: v.actual_end,
-        elder_name: v.elder?.full_name || 'Unknown Elder',
+        elder_name: v.elder ? `${v.elder.first_name || ''} ${v.elder.last_name || ''}`.trim() || 'Unknown Elder' : 'Unknown Elder',
         task_summary: Array.isArray(v.visit_tasks)
           ? v.visit_tasks.map((t: any) => t.task?.name).filter(Boolean).slice(0, 3).join(', ')
           : '',
@@ -275,7 +275,7 @@ export default function VisitHistoryScreen() {
         }
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyEmoji}>📋</Text>
+            <View style={styles.emptyIcon}><FileTextIcon size={48} color={colors.neutral[300]} /></View>
             <Text style={styles.emptyText}>No visit history yet</Text>
             <Text style={styles.emptySubtext}>
               Completed and missed visits will appear here
@@ -353,8 +353,7 @@ const styles = StyleSheet.create({
   loadingMore: {
     paddingVertical: spacing[4],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

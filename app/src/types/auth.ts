@@ -9,15 +9,15 @@ export interface UserProfile {
   phone?: string;
   role: UserRole;
   agency_id?: string; // Links caregiver/careseeker/volunteer to agency
-  full_name: string;
-  avatar_url?: string;
+  first_name: string;
+  last_name: string;
+  full_name: string; // Computed: `${first_name} ${last_name}`
+  photo_url?: string;
+  is_active?: boolean;
+  certifications?: string[];
+  hire_date?: string;
   created_at: string;
   updated_at: string;
-  user_metadata?: {
-    first_name?: string;
-    last_name?: string;
-    [key: string]: any;
-  };
 }
 
 // Alias for backwards compatibility

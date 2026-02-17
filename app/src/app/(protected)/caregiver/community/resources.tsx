@@ -9,7 +9,8 @@ import { Card } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { ChevronRightIcon } from '@/components/icons';
+import { ChevronRightIcon, BookIcon, HeartIcon, ScaleIcon, HospitalIcon } from '@/components/icons';
+import type { IconProps } from '@/components/icons';
 
 interface Resource {
   title: string;
@@ -19,14 +20,14 @@ interface Resource {
 
 interface ResourceCategory {
   name: string;
-  emoji: string;
+  Icon: React.ComponentType<IconProps>;
   resources: Resource[];
 }
 
 const RESOURCE_CATEGORIES: ResourceCategory[] = [
   {
     name: 'Training',
-    emoji: '📖',
+    Icon: BookIcon,
     resources: [
       {
         title: 'CMS EVV Requirements',
@@ -47,7 +48,7 @@ const RESOURCE_CATEGORIES: ResourceCategory[] = [
   },
   {
     name: 'Wellness',
-    emoji: '💚',
+    Icon: HeartIcon,
     resources: [
       {
         title: 'Caregiver Burnout Prevention',
@@ -68,7 +69,7 @@ const RESOURCE_CATEGORIES: ResourceCategory[] = [
   },
   {
     name: 'Legal',
-    emoji: '⚖️',
+    Icon: ScaleIcon,
     resources: [
       {
         title: 'Caregiver Rights & Protections',
@@ -84,7 +85,7 @@ const RESOURCE_CATEGORIES: ResourceCategory[] = [
   },
   {
     name: 'Benefits',
-    emoji: '🏥',
+    Icon: HospitalIcon,
     resources: [
       {
         title: 'Healthcare.gov',
@@ -127,7 +128,7 @@ export default function ResourcesScreen() {
         {RESOURCE_CATEGORIES.map((category) => (
           <View key={category.name} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionEmoji}>{category.emoji}</Text>
+              <category.Icon size={24} color={roleColors.caregiver} />
               <Text style={styles.sectionTitle}>{category.name}</Text>
             </View>
 
@@ -177,8 +178,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing[2],
     marginLeft: spacing[1],
   },
-  sectionEmoji: {
-    fontSize: 20,
+  sectionIcon: {
+    width: 24,
   },
   sectionTitle: {
     ...typography.caregiver.label,

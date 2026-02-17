@@ -118,10 +118,13 @@ const ELDER_FIRST_NAMES = [
 export function generateElders(count: number, agencyId = 'agency-1') {
   return Array.from({ length: count }, (_, i) => {
     const location = US_CITIES[i % US_CITIES.length];
+    const firstName = ELDER_FIRST_NAMES[i % ELDER_FIRST_NAMES.length];
+    const lastName = LAST_NAMES[i % LAST_NAMES.length];
     return {
       id: `elder-${i + 1}`,
-      full_name: `${ELDER_FIRST_NAMES[i % ELDER_FIRST_NAMES.length]} ${LAST_NAMES[i % LAST_NAMES.length]}`,
-      preferred_name: ELDER_FIRST_NAMES[i % ELDER_FIRST_NAMES.length],
+      first_name: firstName,
+      last_name: lastName,
+      full_name: `${firstName} ${lastName}`,
       phone: `(555) ${String(200 + i).padStart(3, '0')}-${String(2000 + i).padStart(4, '0')}`,
       address_line1: `${100 + i} Main St`,
       city: location.city,
@@ -241,8 +244,8 @@ export function generateVisits(
       caregiver_id: caregiverIds[i % caregiverIds.length],
       agency_id: elder.agency_id,
       scheduled_date: today,
-      start_time: `${String(hour).padStart(2, '0')}:00`,
-      end_time: `${String(hour + 1).padStart(2, '0')}:00`,
+      scheduled_start: `${String(hour).padStart(2, '0')}:00`,
+      scheduled_end: `${String(hour + 1).padStart(2, '0')}:00`,
       status,
       actual_start: status === 'in_progress' || status === 'completed'
         ? `${today}T${String(hour).padStart(2, '0')}:05:00`
@@ -253,8 +256,8 @@ export function generateVisits(
       tasks_completed: status === 'completed' ? 3 : (status === 'in_progress' ? 1 : 0),
       tasks_total: 3,
       elder: {
-        full_name: elder.full_name,
-        preferred_name: elder.preferred_name,
+        first_name: elder.first_name,
+        last_name: elder.last_name,
         address_line1: elder.address_line1,
         city: elder.city,
         state: elder.state,

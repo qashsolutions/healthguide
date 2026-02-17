@@ -214,12 +214,13 @@ describe('Batch 28: SkipReasonModal', () => {
 
 describe('Batch 28: RatingModal', () => {
   // Feature #281 - RatingModal shows thumbs UI (test via RatingSummary compact mode)
+  // ThumbsUpIcon is now an SVG component; verify percentage and review count render
   it('#281 - RatingSummary shows thumbs up when positive', () => {
     render(
       <RatingSummary ratingCount={10} positiveCount={8} mode="compact" />
     );
-    expect(screen.getByText('👍')).toBeTruthy();
     expect(screen.getByText(/80%/)).toBeTruthy();
+    expect(screen.getByText(/10 reviews/)).toBeTruthy();
   });
 
   // Feature #282 - RatingModal callback (test RatingSummary "No reviews" state)

@@ -8,7 +8,7 @@ import { Card, Badge } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { ClockIcon, PersonIcon, LocationIcon } from '@/components/icons';
+import { ClockIcon, PersonIcon, LocationIcon, MoonIcon } from '@/components/icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, addDays, startOfWeek, parseISO } from 'date-fns';
@@ -18,8 +18,8 @@ import { OfflineIndicator } from '@/components/sync';
 interface Assignment {
   id: string;
   scheduled_date: string;
-  start_time: string;
-  end_time: string;
+  scheduled_start: string;
+  scheduled_end: string;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   elder: {
     id: string;
@@ -73,8 +73,8 @@ export default function CaregiverScheduleScreen() {
       .select(`
         id,
         scheduled_date,
-        start_time,
-        end_time,
+        scheduled_start,
+        scheduled_end,
         status,
         elder:elders (
           id,
@@ -86,7 +86,7 @@ export default function CaregiverScheduleScreen() {
       `)
       .eq('caregiver_id', user.id)
       .eq('scheduled_date', dateStr)
-      .order('start_time', { ascending: true });
+      .order('scheduled_start', { ascending: true });
 
     if (error) {
       console.error('Error fetching assignments:', error);
@@ -271,7 +271,7 @@ export default function CaregiverScheduleScreen() {
                     <View style={styles.timeRow}>
                       <ClockIcon size={18} color={colors.text.secondary} />
                       <Text style={styles.timeText}>
-                        {formatTime(assignment.start_time)} - {formatTime(assignment.end_time)}
+                        {formatTime(assignment.scheduled_start)} - {formatTime(assignment.scheduled_end)}
                       </Text>
                     </View>
                     <View style={styles.addressRow}>
@@ -290,7 +290,7 @@ export default function CaregiverScheduleScreen() {
           ))
         ) : (
           <View style={styles.emptyDay}>
-            <Text style={styles.emptyEmoji}>😴</Text>
+            <View style={styles.emptyIcon}><MoonIcon size={48} color={colors.neutral[300]} /></View>
             <Text style={styles.emptyText}>No visits scheduled</Text>
             <Text style={styles.emptySubtext}>Pull down to refresh</Text>
           </View>
@@ -411,8 +411,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[12],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

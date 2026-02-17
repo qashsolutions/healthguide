@@ -24,8 +24,8 @@ import { CalendarIcon, ClockIcon, PersonIcon, PlusIcon, ChevronRightIcon } from 
 interface ScheduledVisit {
   id: string;
   scheduled_date: string;
-  start_time: string;
-  end_time: string;
+  scheduled_start: string;
+  scheduled_end: string;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'missed';
   caregiver_name: string;
   elder_name: string;
@@ -59,24 +59,23 @@ export default function ScheduleScreen() {
         .select(`
           id,
           scheduled_date,
-          start_time,
-          end_time,
+          scheduled_start,
+          scheduled_end,
           status,
           tasks,
-          caregiver:caregivers (
-            full_name,
-            user:user_profiles!user_id (first_name, last_name)
+          caregiver:caregiver_profiles (
+            full_name
           ),
           elder:elders (
-            full_name,
-            preferred_name
+            first_name,
+            last_name
           )
         `)
         .eq('agency_id', user.agency_id)
         .gte('scheduled_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('scheduled_date', format(weekEnd, 'yyyy-MM-dd'))
         .order('scheduled_date')
-        .order('start_time');
+        .order('scheduled_start');
 
       if (error) throw error;
 
@@ -84,20 +83,19 @@ export default function ScheduleScreen() {
         const formattedVisits = data.map((v: any) => {
           // Transform caregiver join
           const caregiverRaw = Array.isArray(v.caregiver) ? v.caregiver[0] : v.caregiver;
-          const caregiverUserRaw = caregiverRaw?.user;
-          const caregiverUser = Array.isArray(caregiverUserRaw) ? caregiverUserRaw[0] : caregiverUserRaw;
-          const caregiverName = caregiverRaw?.full_name ||
-            (caregiverUser ? `${caregiverUser.first_name} ${caregiverUser.last_name}` : 'Unassigned');
+          const caregiverName = caregiverRaw?.full_name || 'Unassigned';
 
           // Transform elder join
           const elderRaw = Array.isArray(v.elder) ? v.elder[0] : v.elder;
-          const elderName = elderRaw?.preferred_name || elderRaw?.full_name || 'Unknown Elder';
+          const elderName = elderRaw
+            ? [elderRaw.first_name, elderRaw.last_name].filter(Boolean).join(' ') || 'Unknown Elder'
+            : 'Unknown Elder';
 
           return {
             id: v.id,
             scheduled_date: v.scheduled_date,
-            start_time: v.start_time || '00:00',
-            end_time: v.end_time || '00:00',
+            scheduled_start: v.scheduled_start || '',
+            scheduled_end: v.scheduled_end || '',
             status: v.status || 'scheduled',
             caregiver_name: caregiverName,
             elder_name: elderName,
@@ -168,6 +166,16 @@ export default function ScheduleScreen() {
 
   function formatTime(time: string): string {
     if (!time) return '';
+    // Handle ISO timestamp (e.g. "2024-01-15T09:00:00") or time string (e.g. "09:00")
+    const date = new Date(time);
+    if (!isNaN(date.getTime())) {
+      const hour = date.getHours();
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}:${minutes} ${ampm}`;
+    }
+    // Fallback: parse as "HH:MM" string
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours, 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -267,9 +275,9 @@ export default function ScheduleScreen() {
           </View>
         ) : selectedDayVisits.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>
-              {isSameDay(selectedDate, new Date()) ? '' : ''}
-            </Text>
+            <View style={styles.emptyIcon}>
+              <CalendarIcon size={48} color={colors.neutral[300]} />
+            </View>
             <Text style={styles.emptyText}>No visits scheduled</Text>
             <Text style={styles.emptySubtext}>
               Tap "+ Add" to schedule a visit
@@ -291,7 +299,7 @@ export default function ScheduleScreen() {
                   <View style={styles.timeContainer}>
                     <ClockIcon size={16} color={colors.text.secondary} />
                     <Text style={styles.timeText}>
-                      {formatTime(visit.start_time)} - {formatTime(visit.end_time)}
+                      {formatTime(visit.scheduled_start)} - {formatTime(visit.scheduled_end)}
                     </Text>
                   </View>
                   <Badge
@@ -444,8 +452,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[8],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

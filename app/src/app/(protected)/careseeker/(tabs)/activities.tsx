@@ -7,12 +7,13 @@ import { useRouter } from 'expo-router';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, touchTargets, borderRadius, shadows } from '@/theme/spacing';
+import { BrainIcon, HelpIcon, MusicIcon, CameraIcon, IconProps } from '@/components/icons';
 
-const activities = [
-  { id: 'memory', emoji: '🧠', title: 'Memory Game', color: colors.primary[500] },
-  { id: 'trivia', emoji: '❓', title: 'Trivia', color: colors.warning[500] },
-  { id: 'music', emoji: '🎵', title: 'Music', color: colors.error[400] },
-  { id: 'photos', emoji: '📸', title: 'Photos', color: roleColors.careseeker },
+const activities: { id: string; Icon: React.ComponentType<IconProps>; title: string; color: string }[] = [
+  { id: 'memory', Icon: BrainIcon, title: 'Memory Game', color: colors.primary[500] },
+  { id: 'trivia', Icon: HelpIcon, title: 'Trivia', color: colors.warning[500] },
+  { id: 'music', Icon: MusicIcon, title: 'Music', color: colors.error[400] },
+  { id: 'photos', Icon: CameraIcon, title: 'Photos', color: roleColors.careseeker },
 ];
 
 export default function ElderActivitiesScreen() {
@@ -27,20 +28,23 @@ export default function ElderActivitiesScreen() {
 
         {/* Activity Grid */}
         <View style={styles.grid}>
-          {activities.map((activity) => (
-            <Pressable
-              key={activity.id}
-              style={({ pressed }) => [
-                styles.activityButton,
-                { backgroundColor: activity.color },
-                pressed && styles.buttonPressed,
-              ]}
-              onPress={() => router.push(`/(protected)/careseeker/games/${activity.id}` as any)}
-            >
-              <Text style={styles.emoji}>{activity.emoji}</Text>
-              <Text style={styles.activityTitle}>{activity.title}</Text>
-            </Pressable>
-          ))}
+          {activities.map((activity) => {
+            const ActivityIcon = activity.Icon;
+            return (
+              <Pressable
+                key={activity.id}
+                style={({ pressed }) => [
+                  styles.activityButton,
+                  { backgroundColor: activity.color },
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={() => router.push(`/(protected)/careseeker/games/${activity.id}` as any)}
+              >
+                <ActivityIcon size={64} color={colors.white} />
+                <Text style={styles.activityTitle}>{activity.title}</Text>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -84,10 +88,6 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
-  },
-  emoji: {
-    fontSize: 64,
-    marginBottom: spacing[2],
   },
   activityTitle: {
     ...typography.elder.button,

@@ -10,7 +10,7 @@ import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, touchTargets, borderRadius } from '@/theme/spacing';
 import { GradientHeader } from '@/components/ui/GradientHeader';
-import { ClockIcon, LocationIcon, PersonIcon, CheckIcon, AlertIcon } from '@/components/icons';
+import { ClockIcon, LocationIcon, PersonIcon, CheckIcon, AlertIcon, SparkleIcon } from '@/components/icons';
 import {
   MealIcon,
   CompanionshipIcon,
@@ -24,8 +24,8 @@ import { OfflineIndicator } from '@/components/sync';
 interface Assignment {
   id: string;
   scheduled_date: string;
-  start_time: string;
-  end_time: string;
+  scheduled_start: string;
+  scheduled_end: string;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   elder: {
     id: string;
@@ -77,8 +77,8 @@ export default function CaregiverTodayScreen() {
         .select(`
           id,
           scheduled_date,
-          start_time,
-          end_time,
+          scheduled_start,
+          scheduled_end,
           status,
           elder:elders (
             id,
@@ -98,7 +98,7 @@ export default function CaregiverTodayScreen() {
         .eq('caregiver_id', user.id)
         .eq('scheduled_date', today)
         .in('status', ['scheduled', 'in_progress'])
-        .order('start_time', { ascending: true });
+        .order('scheduled_start', { ascending: true });
 
       if (error) throw error;
       // Transform Supabase joins (arrays) to objects
@@ -262,7 +262,7 @@ export default function CaregiverTodayScreen() {
             <View style={styles.timeSection}>
               <ClockIcon size={28} color={roleColors.caregiver} />
               <Text style={styles.timeText}>
-                {formatTime(visit.start_time)} - {formatTime(visit.end_time)}
+                {formatTime(visit.scheduled_start)} - {formatTime(visit.scheduled_end)}
               </Text>
             </View>
 
@@ -298,7 +298,7 @@ export default function CaregiverTodayScreen() {
         {/* Empty State */}
         {assignments.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>✨</Text>
+            <View style={styles.emptyIcon}><SparkleIcon size={48} color={colors.neutral[300]} /></View>
             <Text style={styles.emptyTitle}>All done for today!</Text>
             <Text style={styles.emptySubtitle}>
               Check your schedule for upcoming visits
@@ -449,8 +449,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[12],
   },
-  emptyEmoji: {
-    fontSize: 64,
+  emptyIcon: {
     marginBottom: spacing[4],
   },
   emptyTitle: {

@@ -163,11 +163,15 @@ describe('Batch 20: Daily Check-In', () => {
     expect(screen.getByText('Great!')).toBeTruthy();
   });
 
-  // Feature #193: Mood emojis render
-  it('#193 - Mood emojis render for each option', () => {
+  // Feature #193: Mood options render with labels (SVG icons replaced emojis)
+  it('#193 - Mood options render with labels for each option', () => {
     render(<DailyCheckInScreen />);
-    expect(screen.getByText('😢')).toBeTruthy();
-    expect(screen.getByText('🥰')).toBeTruthy();
+    // Emojis were replaced with SVG icon components; verify all 5 mood labels render
+    expect(screen.getByText('Not Good')).toBeTruthy();
+    expect(screen.getByText('A Little Low')).toBeTruthy();
+    expect(screen.getByText('Okay')).toBeTruthy();
+    expect(screen.getByText('Good')).toBeTruthy();
+    expect(screen.getByText('Great!')).toBeTruthy();
   });
 
   // Feature #194: Submit button renders

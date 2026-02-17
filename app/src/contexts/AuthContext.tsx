@@ -29,20 +29,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile from database
   const fetchUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
-    if (!isSupabaseConfigured()) return null;
-
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching profile:', error);
+    console.log('[Auth] fetchUserProfile called for:', userId);
+    if (!isSupabaseConfigured()) {
+      console.log('[Auth] Supabase not configured');
       return null;
     }
 
-    return data as UserProfile;
+    try {
+      console.log('[Auth] Querying user_profiles...');
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      console.log('[Auth] Query result:', { data: !!data, error: error?.message });
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+
+      // Construct full_name from first_name + last_name (DB stores them separately)
+      const profile = data as any;
+      return {
+        ...profile,
+        full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User',
+      } as UserProfile;
+    } catch (err) {
+      console.error('[Auth] fetchUserProfile exception:', err);
+      return null;
+    }
   }, []);
 
   // Fetch agency if user has one
@@ -71,15 +88,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Check existing session
+    console.log('[Auth] Checking existing session...');
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('[Auth] getSession result:', { hasSession: !!session, userId: session?.user?.id });
       if (session?.user) {
         const profile = await fetchUserProfile(session.user.id);
+        console.log('[Auth] Profile fetched:', { hasProfile: !!profile, role: profile?.role });
         let agency: Agency | null = null;
 
         if (profile?.agency_id) {
+          console.log('[Auth] Fetching agency:', profile.agency_id);
           agency = await fetchAgency(profile.agency_id);
+          console.log('[Auth] Agency fetched:', { hasAgency: !!agency });
         }
 
+        console.log('[Auth] Setting state: loading=false, initialized=true');
         setState({
           user: profile,
           agency,
@@ -167,12 +190,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Create profile record
     if (data.user) {
+      // Split full_name into first_name/last_name for DB (table has separate columns)
+      const nameParts = (profile.full_name || '').trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
       const { error: profileError } = await supabase.from('user_profiles').insert({
         id: data.user.id,
-        email,
-        full_name: profile.full_name,
+        first_name: profile.first_name || firstName,
+        last_name: profile.last_name || lastName,
+        phone: profile.phone,
         role: profile.role || 'agency_owner',
-        ...profile,
       });
 
       if (profileError) {

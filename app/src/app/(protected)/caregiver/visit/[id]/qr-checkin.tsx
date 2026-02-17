@@ -57,7 +57,7 @@ export default function QRCheckInScreen() {
         .from('visits')
         .update({
           status: 'in_progress',
-          actual_check_in: new Date().toISOString(),
+          actual_start: new Date().toISOString(),
           check_in_latitude: null,
           check_in_longitude: null,
           check_in_method: 'qr_code',

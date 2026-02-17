@@ -18,13 +18,23 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, shadows } from '@/theme/spacing';
 import * as Haptics from 'expo-haptics';
+import {
+  SadFaceIcon,
+  FrownFaceIcon,
+  NeutralFaceIcon,
+  SmileFaceIcon,
+  LoveFaceIcon,
+  CheckIcon,
+  SparkleIcon,
+  type IconProps,
+} from '@/components/icons';
 
 const MOOD_OPTIONS = [
-  { value: 1, emoji: '😢', label: 'Not Good', color: colors.error[100], borderColor: colors.error[300] },
-  { value: 2, emoji: '😕', label: 'A Little Low', color: colors.warning[100], borderColor: colors.warning[300] },
-  { value: 3, emoji: '🙂', label: 'Okay', color: colors.neutral[100], borderColor: colors.neutral[300] },
-  { value: 4, emoji: '😊', label: 'Good', color: colors.success[100], borderColor: colors.success[300] },
-  { value: 5, emoji: '🥰', label: 'Great!', color: colors.primary[100], borderColor: colors.primary[300] },
+  { value: 1, Icon: SadFaceIcon, iconColor: '#EF4444', label: 'Not Good', color: colors.error[100], borderColor: colors.error[300] },
+  { value: 2, Icon: FrownFaceIcon, iconColor: '#F97316', label: 'A Little Low', color: colors.warning[100], borderColor: colors.warning[300] },
+  { value: 3, Icon: NeutralFaceIcon, iconColor: '#EAB308', label: 'Okay', color: colors.neutral[100], borderColor: colors.neutral[300] },
+  { value: 4, Icon: SmileFaceIcon, iconColor: '#22C55E', label: 'Good', color: colors.success[100], borderColor: colors.success[300] },
+  { value: 5, Icon: LoveFaceIcon, iconColor: '#EC4899', label: 'Great!', color: colors.primary[100], borderColor: colors.primary[300] },
 ];
 
 export default function ElderDailyCheckInScreen() {
@@ -86,7 +96,9 @@ export default function ElderDailyCheckInScreen() {
           }}
         />
         <View style={styles.completedContainer}>
-          <Text style={styles.completedEmoji}>✅</Text>
+          <View style={styles.completedIcon}>
+            <CheckIcon size={48} color={colors.success[500]} />
+          </View>
           <Text style={styles.completedTitle}>Thank You!</Text>
           <Text style={styles.completedSubtitle}>
             Your check-in is complete.{'\n'}Have a wonderful day!
@@ -118,7 +130,10 @@ export default function ElderDailyCheckInScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Good Morning! ☀️</Text>
+          <View style={styles.greetingRow}>
+            <Text style={styles.greeting}>Good Morning!</Text>
+            <SparkleIcon size={28} color={colors.warning[400]} />
+          </View>
           <Text style={styles.question}>How are you feeling today?</Text>
         </View>
 
@@ -140,7 +155,9 @@ export default function ElderDailyCheckInScreen() {
               accessibilityLabel={option.label}
               accessibilityState={{ selected: selectedMood === option.value }}
             >
-              <Text style={styles.moodEmoji}>{option.emoji}</Text>
+              <View style={styles.moodIconWrap}>
+                <option.Icon size={48} color={option.iconColor} />
+              </View>
               <Text style={styles.moodLabel}>{option.label}</Text>
               {selectedMood === option.value && (
                 <View style={styles.checkmark}>
@@ -179,11 +196,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing[8],
   },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    marginBottom: spacing[2],
+  },
   greeting: {
     ...typography.elder.heading,
     color: colors.text.primary,
     textAlign: 'center',
-    marginBottom: spacing[2],
   },
   question: {
     ...typography.elder.body,
@@ -207,8 +230,7 @@ const styles = StyleSheet.create({
   moodCardSelected: {
     borderWidth: 4,
   },
-  moodEmoji: {
-    fontSize: 56,
+  moodIconWrap: {
     marginRight: spacing[4],
   },
   moodLabel: {
@@ -238,8 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing[8],
   },
-  completedEmoji: {
-    fontSize: 80,
+  completedIcon: {
     marginBottom: spacing[6],
   },
   completedTitle: {

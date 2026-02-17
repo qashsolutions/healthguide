@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, Pressable, Linking, A
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, touchTargets, borderRadius, shadows } from '@/theme/spacing';
-import { PhoneIcon, PersonIcon } from '@/components/icons';
+import { PhoneIcon, PersonIcon, SOSIcon } from '@/components/icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { hapticFeedback } from '@/utils/haptics';
@@ -26,22 +26,22 @@ interface EmergencyContact {
   phone: string;
 }
 
-const AVATAR_MAP: Record<string, string> = {
-  daughter: '👩',
-  son: '👨',
-  granddaughter: '👧',
-  grandson: '👦',
-  wife: '👩',
-  husband: '👨',
-  sister: '👩',
-  brother: '👨',
-  friend: '🧑',
-  niece: '👧',
-  nephew: '👦',
+const AVATAR_COLORS: Record<string, string> = {
+  daughter: '#EC4899',
+  son: '#3B82F6',
+  granddaughter: '#F472B6',
+  grandson: '#60A5FA',
+  wife: '#EC4899',
+  husband: '#3B82F6',
+  sister: '#EC4899',
+  brother: '#3B82F6',
+  friend: '#8B5CF6',
+  niece: '#F472B6',
+  nephew: '#60A5FA',
 };
 
-function getAvatar(relationship: string): string {
-  return AVATAR_MAP[relationship?.toLowerCase()] || '🧑';
+function getAvatarColor(relationship: string): string {
+  return AVATAR_COLORS[relationship?.toLowerCase()] || '#8B5CF6';
 }
 
 export default function ElderCallsScreen() {
@@ -166,7 +166,9 @@ export default function ElderCallsScreen() {
                 ]}
                 onPress={() => handleCall(contact)}
               >
-                <Text style={styles.avatar}>{getAvatar(contact.relationship)}</Text>
+                <View style={styles.avatarContainer}>
+                  <PersonIcon size={40} color={getAvatarColor(contact.relationship)} />
+                </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactName}>{contact.name}</Text>
                   <Text style={styles.contactRelation}>{contact.relationship}</Text>
@@ -178,7 +180,7 @@ export default function ElderCallsScreen() {
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>📱</Text>
+              <PhoneIcon size={56} color={colors.text.tertiary} />
               <Text style={styles.emptyText}>No contacts yet</Text>
               <Text style={styles.emptySubtext}>Ask your agency to add video call contacts</Text>
             </View>
@@ -196,7 +198,7 @@ export default function ElderCallsScreen() {
               ]}
               onPress={handleEmergencyCall}
             >
-              <Text style={styles.emergencyEmoji}>🆘</Text>
+              <SOSIcon size={32} color={colors.white} />
               <Text style={styles.emergencyText}>
                 Call {emergencyContact.name}
                 {emergencyContact.relationship ? ` (${emergencyContact.relationship})` : ''}
@@ -204,7 +206,7 @@ export default function ElderCallsScreen() {
             </Pressable>
           ) : (
             <View style={[styles.emergencyButton, styles.emergencyDisabled]}>
-              <Text style={styles.emergencyEmoji}>🆘</Text>
+              <SOSIcon size={32} color={colors.white} />
               <Text style={styles.emergencyText}>No emergency contact set</Text>
             </View>
           )}
@@ -251,8 +253,13 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
-  avatar: {
-    fontSize: 56,
+  avatarContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.neutral[100],
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: spacing[4],
   },
   contactInfo: {
@@ -284,10 +291,6 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: spacing[8],
-  },
-  emptyEmoji: {
-    fontSize: 56,
-    marginBottom: spacing[3],
   },
   emptyText: {
     ...typography.elder.heading,
@@ -325,9 +328,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[8],
     gap: spacing[3],
     minWidth: 200,
-  },
-  emergencyEmoji: {
-    fontSize: 32,
   },
   emergencyText: {
     ...typography.elder.button,

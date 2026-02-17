@@ -20,7 +20,7 @@ import { Card } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, shadows } from '@/theme/spacing';
-import { PlusIcon } from '@/components/icons';
+import { PlusIcon, SmileFaceIcon, NeutralFaceIcon, FrownFaceIcon, SadFaceIcon, NoteIcon } from '@/components/icons';
 
 interface JournalEntry {
   id: string;
@@ -30,11 +30,11 @@ interface JournalEntry {
 }
 
 const MOODS = [
-  { emoji: '😊', label: 'Great' },
-  { emoji: '🙂', label: 'Good' },
-  { emoji: '😐', label: 'Okay' },
-  { emoji: '😔', label: 'Low' },
-  { emoji: '😢', label: 'Tough' },
+  { label: 'Great', Icon: SmileFaceIcon, color: '#22C55E' },
+  { label: 'Good', Icon: SmileFaceIcon, color: '#84CC16' },
+  { label: 'Okay', Icon: NeutralFaceIcon, color: '#EAB308' },
+  { label: 'Low', Icon: FrownFaceIcon, color: '#F97316' },
+  { label: 'Tough', Icon: SadFaceIcon, color: '#EF4444' },
 ];
 
 const STORAGE_KEY = '@healthguide_journal_entries';
@@ -133,17 +133,24 @@ export default function JournalScreen() {
     }) + ` at ${timeStr}`;
   }
 
-  const renderEntry = ({ item }: { item: JournalEntry }) => (
-    <Card variant="default" padding="md" style={styles.entryCard}>
-      <Pressable onLongPress={() => deleteEntry(item.id)}>
-        <View style={styles.entryHeader}>
-          <Text style={styles.entryMood}>{item.mood}</Text>
-          <Text style={styles.entryDate}>{formatDate(item.date)}</Text>
-        </View>
-        <Text style={styles.entryText}>{item.text}</Text>
-      </Pressable>
-    </Card>
-  );
+  const renderEntry = ({ item }: { item: JournalEntry }) => {
+    const mood = MOODS.find((m) => m.label === item.mood);
+    return (
+      <Card variant="default" padding="md" style={styles.entryCard}>
+        <Pressable onLongPress={() => deleteEntry(item.id)}>
+          <View style={styles.entryHeader}>
+            {mood ? (
+              <mood.Icon size={24} color={mood.color} />
+            ) : (
+              <Text style={styles.entryMood}>{item.mood}</Text>
+            )}
+            <Text style={styles.entryDate}>{formatDate(item.date)}</Text>
+          </View>
+          <Text style={styles.entryText}>{item.text}</Text>
+        </Pressable>
+      </Card>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -163,15 +170,17 @@ export default function JournalScreen() {
                   key={mood.label}
                   style={[
                     styles.moodChip,
-                    selectedMood === mood.emoji && styles.moodChipSelected,
+                    selectedMood === mood.label && styles.moodChipSelected,
                   ]}
-                  onPress={() => setSelectedMood(mood.emoji)}
+                  onPress={() => setSelectedMood(mood.label)}
                 >
-                  <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+                  <View style={styles.moodIcon}>
+                    <mood.Icon size={32} color={mood.color} />
+                  </View>
                   <Text
                     style={[
                       styles.moodLabel,
-                      selectedMood === mood.emoji && styles.moodLabelSelected,
+                      selectedMood === mood.label && styles.moodLabelSelected,
                     ]}
                   >
                     {mood.label}
@@ -217,7 +226,7 @@ export default function JournalScreen() {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyEmoji}>📝</Text>
+                  <NoteIcon size={48} color={colors.neutral[300]} />
                   <Text style={styles.emptyText}>Your journal is empty</Text>
                   <Text style={styles.emptySubtext}>
                     Start writing to track your thoughts and feelings
@@ -274,8 +283,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[8],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {
@@ -329,8 +337,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: roleColors.caregiver,
   },
-  moodEmoji: {
-    fontSize: 28,
+  moodIcon: {
     marginBottom: spacing[1],
   },
   moodLabel: {

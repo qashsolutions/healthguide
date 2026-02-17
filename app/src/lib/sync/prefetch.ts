@@ -176,11 +176,11 @@ async function cacheAssignment(assignment: any, caregiverId: string): Promise<st
       record.elderId = assignment.elder_id;
       record.caregiverId = caregiverId;
       record.scheduledDate = assignment.scheduled_date;
-      record.startTime = assignment.start_time;
-      record.endTime = assignment.end_time;
+      record.startTime = assignment.scheduled_start;
+      record.endTime = assignment.scheduled_end;
       record.status = assignment.status;
-      record.actualCheckIn = assignment.actual_check_in;
-      record.actualCheckOut = assignment.actual_check_out;
+      record.actualCheckIn = assignment.actual_start;
+      record.actualCheckOut = assignment.actual_end;
       record.checkInLatitude = assignment.check_in_latitude;
       record.checkInLongitude = assignment.check_in_longitude;
       record.checkOutLatitude = assignment.check_out_latitude;
@@ -196,8 +196,8 @@ async function cacheAssignment(assignment: any, caregiverId: string): Promise<st
     if (existing.synced) {
       await existing.update((record: any) => {
         record.status = assignment.status;
-        record.actualCheckIn = assignment.actual_check_in;
-        record.actualCheckOut = assignment.actual_check_out;
+        record.actualCheckIn = assignment.actual_start;
+        record.actualCheckOut = assignment.actual_end;
         record.checkInLatitude = assignment.check_in_latitude;
         record.checkInLongitude = assignment.check_in_longitude;
         record.checkOutLatitude = assignment.check_out_latitude;
@@ -226,7 +226,7 @@ async function cacheAssignmentTask(task: any, localAssignmentId: string) {
       record.assignmentId = localAssignmentId;
       record.taskId = task.task_id;
       record.taskName = task.task?.name || 'Unknown Task';
-      record.taskIcon = task.task?.icon || '📋';
+      record.taskIcon = task.task?.icon || 'clipboard';
       record.taskCategory = task.task?.category || 'other';
       record.isRequired = task.is_required ?? false;
       record.status = task.status;

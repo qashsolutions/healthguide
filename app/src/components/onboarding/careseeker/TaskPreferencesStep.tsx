@@ -2,9 +2,20 @@
 // Icon-based task selection from agency's task library
 
 import { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
+import {
+  HandCareIcon,
+  WalkingIcon,
+  AppleIcon,
+  PillIcon,
+  HomeIcon,
+  MessageIcon,
+  FileTextIcon,
+  IconProps,
+} from '@/components/icons';
 import * as Haptics from 'expo-haptics';
 import { createShadow } from '@/theme/spacing';
 
@@ -30,13 +41,13 @@ interface Props {
   onBack: () => void;
 }
 
-const CATEGORIES = [
-  { id: 'personal_care', label: 'Personal Care', icon: '🧴' },
-  { id: 'mobility', label: 'Mobility', icon: '🚶' },
-  { id: 'nutrition', label: 'Nutrition', icon: '🍎' },
-  { id: 'medication', label: 'Medication', icon: '💊' },
-  { id: 'housekeeping', label: 'Housekeeping', icon: '🏠' },
-  { id: 'companionship', label: 'Companionship', icon: '💬' },
+const CATEGORIES: { id: string; label: string; Icon: React.ComponentType<IconProps> }[] = [
+  { id: 'personal_care', label: 'Personal Care', Icon: HandCareIcon },
+  { id: 'mobility', label: 'Mobility', Icon: WalkingIcon },
+  { id: 'nutrition', label: 'Nutrition', Icon: AppleIcon },
+  { id: 'medication', label: 'Medication', Icon: PillIcon },
+  { id: 'housekeeping', label: 'Housekeeping', Icon: HomeIcon },
+  { id: 'companionship', label: 'Companionship', Icon: MessageIcon },
 ];
 
 export function TaskPreferencesStep({
@@ -115,7 +126,7 @@ export function TaskPreferencesStep({
           <Text style={styles.title}>Care Tasks</Text>
         </View>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>📋</Text>
+          <FileTextIcon size={64} color="#9CA3AF" />
           <Text style={styles.emptyText}>No tasks available</Text>
           <Text style={styles.emptySubtext}>
             The agency hasn't set up their task library yet. You can skip this step and add tasks
@@ -154,6 +165,7 @@ export function TaskPreferencesStep({
           const selectedInCategory = selectedTasks.filter((st) =>
             tasksInCategory.some((t) => t.id === st.task_id)
           ).length;
+          const CatIcon = cat.Icon;
 
           return (
             <Pressable
@@ -163,7 +175,7 @@ export function TaskPreferencesStep({
               accessibilityRole="tab"
               accessibilityState={{ selected: activeCategory === cat.id }}
             >
-              <Text style={styles.categoryIcon}>{cat.icon}</Text>
+              <CatIcon size={24} color={activeCategory === cat.id ? '#FFFFFF' : '#6B7280'} />
               <Text
                 style={[
                   styles.categoryLabel,
@@ -283,10 +295,6 @@ const styles = StyleSheet.create({
   categoryTabActive: {
     backgroundColor: '#3B82F6',
   },
-  categoryIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
   categoryLabel: {
     fontSize: 12,
     fontWeight: '500',
@@ -373,10 +381,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
   },
   emptyText: {
     fontSize: 20,

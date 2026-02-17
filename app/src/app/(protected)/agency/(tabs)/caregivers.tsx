@@ -19,7 +19,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { PersonIcon, PlusIcon, PhoneIcon, CheckIcon, SearchIcon } from '@/components/icons';
+import { PersonIcon, PlusIcon, PhoneIcon, SearchIcon, UsersIcon } from '@/components/icons';
 
 const MAX_CAREGIVERS = 15;
 
@@ -27,9 +27,8 @@ interface Caregiver {
   id: string;
   full_name: string;
   phone: string;
-  status: 'active' | 'inactive' | 'pending';
-  is_licensed: boolean;
-  avatar_url?: string;
+  is_active: boolean;
+  photo_url?: string;
   // Computed stats
   active_visits: number;
   today_visits: number;
@@ -57,17 +56,14 @@ export default function CaregiversScreen() {
 
       // Get caregivers for this agency
       const { data: caregiversData, error } = await supabase
-        .from('caregivers')
+        .from('caregiver_profiles')
         .select(`
           id,
           full_name,
           phone,
-          status,
-          is_licensed,
-          avatar_url,
-          user:user_profiles!user_id (first_name, last_name)
+          is_active,
+          photo_url
         `)
-        .eq('agency_id', user.agency_id)
         .order('full_name');
 
       if (error) throw error;
@@ -83,15 +79,13 @@ export default function CaregiversScreen() {
         // Map caregivers with computed stats
         const caregiversWithStats = caregiversData.map((c: any) => {
           const caregiverVisits = visitsData?.filter(v => v.caregiver_id === c.id) || [];
-          const userProfile = Array.isArray(c.user) ? c.user[0] : c.user;
 
           return {
             id: c.id,
-            full_name: c.full_name || (userProfile ? `${userProfile.first_name} ${userProfile.last_name}` : 'Unknown'),
+            full_name: c.full_name || 'Unknown',
             phone: c.phone || '',
-            status: c.status || 'pending',
-            is_licensed: c.is_licensed || false,
-            avatar_url: c.avatar_url,
+            is_active: c.is_active ?? true,
+            photo_url: c.photo_url,
             active_visits: caregiverVisits.filter(v => v.status === 'in_progress').length,
             today_visits: caregiverVisits.length,
           };
@@ -129,12 +123,6 @@ export default function CaregiversScreen() {
   );
 
   const renderCaregiver = ({ item }: { item: Caregiver }) => {
-    const statusColors = {
-      active: colors.success[500],
-      inactive: colors.error[500],
-      pending: colors.warning[500],
-    };
-
     return (
       <Card
         variant="default"
@@ -152,17 +140,11 @@ export default function CaregiversScreen() {
               <PhoneIcon size={14} color={colors.text.secondary} />
               <Text style={styles.phoneText}>{item.phone}</Text>
             </View>
-            {item.is_licensed && (
-              <View style={styles.licenseBadge}>
-                <CheckIcon size={12} color={colors.success[500]} />
-                <Text style={styles.licenseText}>Licensed</Text>
-              </View>
-            )}
           </View>
           <View
             style={[
               styles.statusDot,
-              { backgroundColor: statusColors[item.status] },
+              { backgroundColor: item.is_active ? colors.success[500] : colors.error[500] },
             ]}
           />
         </View>
@@ -220,9 +202,9 @@ export default function CaregiversScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>
-              {loading ? '' : ''}
-            </Text>
+            <View style={styles.emptyIcon}>
+              <UsersIcon size={48} color={colors.neutral[300]} />
+            </View>
             <Text style={styles.emptyText}>
               {loading ? 'Loading caregivers...' : 'No caregivers yet'}
             </Text>
@@ -316,17 +298,6 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     color: colors.text.secondary,
   },
-  licenseBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: spacing[1],
-  },
-  licenseText: {
-    fontSize: 12,
-    color: colors.success[500],
-    fontWeight: '500',
-  },
   statusDot: {
     width: 12,
     height: 12,
@@ -359,8 +330,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[8],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

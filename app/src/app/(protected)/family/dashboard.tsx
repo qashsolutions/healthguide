@@ -27,6 +27,7 @@ import {
   setupNotificationResponseHandler,
   clearBadge,
 } from '@/lib/notifications';
+import { FileTextIcon, CalendarIcon, SettingsIcon } from '@/components/icons';
 
 interface ElderInfo {
   id: string;
@@ -256,7 +257,9 @@ export default function FamilyDashboardScreen() {
             onPress={() => router.push('/family/reports')}
             style={styles.actionCard}
           >
-            <Text style={styles.actionEmoji}>📋</Text>
+            <View style={styles.actionIconWrap}>
+              <FileTextIcon size={28} color={roleColors.family} />
+            </View>
             <Text style={styles.actionLabel}>Reports</Text>
           </Card>
 
@@ -264,7 +267,9 @@ export default function FamilyDashboardScreen() {
             onPress={() => router.push('/family/visits')}
             style={styles.actionCard}
           >
-            <Text style={styles.actionEmoji}>📆</Text>
+            <View style={styles.actionIconWrap}>
+              <CalendarIcon size={28} color={roleColors.family} />
+            </View>
             <Text style={styles.actionLabel}>All Visits</Text>
           </Card>
 
@@ -272,7 +277,9 @@ export default function FamilyDashboardScreen() {
             onPress={() => router.push('/family/settings')}
             style={styles.actionCard}
           >
-            <Text style={styles.actionEmoji}>⚙️</Text>
+            <View style={styles.actionIconWrap}>
+              <SettingsIcon size={28} color={roleColors.family} />
+            </View>
             <Text style={styles.actionLabel}>Settings</Text>
           </Card>
         </View>
@@ -421,8 +428,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  actionEmoji: {
-    fontSize: 28,
+  actionIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: roleColors.family + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: spacing[2],
   },
   actionLabel: {

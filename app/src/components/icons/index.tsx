@@ -2,7 +2,7 @@
 // Per healthguide-core/theming skill - Professional SVG icons
 
 import React from 'react';
-import Svg, { Path, Circle, Rect, G } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, G, Line } from 'react-native-svg';
 import { colors } from '@/theme/colors';
 
 export interface IconProps {
@@ -785,6 +785,496 @@ export function HealthGuideLogo({ size = 48, color = colors.white }: IconProps) 
         strokeWidth={4}
         strokeLinecap="round"
       />
+    </Svg>
+  );
+}
+
+// ==========================================
+// MOOD / EXPRESSION ICONS
+// ==========================================
+
+// Happy face - Great mood
+export function SmileFaceIcon({ size = 24, color = colors.success[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+      <Path d="M8 14C8.5 15.5 10 17 12 17C14 17 15.5 15.5 16 14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="9" cy="9" r="1.5" fill={color} />
+      <Circle cx="15" cy="9" r="1.5" fill={color} />
+    </Svg>
+  );
+}
+
+// Neutral face - Okay mood
+export function NeutralFaceIcon({ size = 24, color = colors.warning[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+      <Line x1="8" y1="15" x2="16" y2="15" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="9" cy="9" r="1.5" fill={color} />
+      <Circle cx="15" cy="9" r="1.5" fill={color} />
+    </Svg>
+  );
+}
+
+// Sad face - Low mood
+export function SadFaceIcon({ size = 24, color = colors.error[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+      <Path d="M16 16C15.5 14.5 14 13 12 13C10 13 8.5 14.5 8 16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="9" cy="9" r="1.5" fill={color} />
+      <Circle cx="15" cy="9" r="1.5" fill={color} />
+    </Svg>
+  );
+}
+
+// Love face - Excellent mood
+export function LoveFaceIcon({ size = 24, color = colors.error[400] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+      <Path d="M8 14C8.5 15.5 10 17 12 17C14 17 15.5 15.5 16 14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M7.5 8.5C7.5 8 8 7 9 7C10 7 10.5 8 10.5 8.5C10.5 9.5 9 10.5 9 10.5C9 10.5 7.5 9.5 7.5 8.5Z" fill={color} />
+      <Path d="M13.5 8.5C13.5 8 14 7 15 7C16 7 16.5 8 16.5 8.5C16.5 9.5 15 10.5 15 10.5C15 10.5 13.5 9.5 13.5 8.5Z" fill={color} />
+    </Svg>
+  );
+}
+
+// Slightly frowning - A Little Low mood
+export function FrownFaceIcon({ size = 24, color = colors.warning[600] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+      <Path d="M15 16C14.7 15 13.5 14 12 14C10.5 14 9.3 15 9 16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="9" cy="9" r="1.5" fill={color} />
+      <Circle cx="15" cy="9" r="1.5" fill={color} />
+    </Svg>
+  );
+}
+
+// ==========================================
+// HEALTH / MEDICAL ICONS
+// ==========================================
+
+// Pill - Medication
+export function PillIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M10.5 1.5L3 9C1.34 10.66 1.34 13.34 3 15L9 21C10.66 22.66 13.34 22.66 15 21L22.5 13.5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Line x1="6.75" y1="12.75" x2="12.75" y2="6.75" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Brain - Cognitive
+export function BrainIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 2C9.5 2 7.5 3.5 7 5.5C5 5.5 3 7.5 3 10C3 12 4.5 13.5 6 14V20C6 21.1 6.9 22 8 22H16C17.1 22 18 21.1 18 20V14C19.5 13.5 21 12 21 10C21 7.5 19 5.5 17 5.5C16.5 3.5 14.5 2 12 2Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 2V22" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Walking person - Mobility
+export function WalkingIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="13" cy="4" r="2" stroke={color} strokeWidth={2} />
+      <Path d="M10 10L8 22" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M14 10L16 22" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M10 10H14L16 14" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6 14L10 10" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Fork & knife - Appetite / Nutrition
+export function UtensilsIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 2V10C3 11.1 3.9 12 5 12H7C8.1 12 9 11.1 9 10V2" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6 2V22" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M18 2V8C18 10.21 16.21 12 14 12H18V22" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Shower head - Hygiene
+export function ShowerIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 4V8C4 13.52 8.48 18 14 18H20" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="4" cy="4" r="2" stroke={color} strokeWidth={2} />
+      <Path d="M18 14V22" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M14 16V22" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M22 16V22" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Bandage - Skin / Pain
+export function BandageIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M18 2L22 6L6 22L2 18L18 2Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Line x1="12" y1="8" x2="8" y2="12" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="11" cy="11" r="1" fill={color} />
+      <Circle cx="13" cy="13" r="1" fill={color} />
+    </Svg>
+  );
+}
+
+// Stethoscope - Medical / Pain
+export function StethoscopeIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M6 2V8C6 10.21 7.79 12 10 12H14C16.21 12 18 10.21 18 8V2" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 12V16C12 18.21 10.21 20 8 20C5.79 20 4 18.21 4 16V14" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="20" cy="14" r="2" stroke={color} strokeWidth={2} />
+      <Path d="M20 16V18C20 20.21 18.21 22 16 22C13.79 22 12 20.21 12 18V16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Moon - Sleep
+export function MoonIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Apple - Nutrition (onboarding)
+export function AppleIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3C12 3 14 1 16 2" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M17 6C19.5 6 22 8.5 22 12C22 17 18 22 15 22C14 22 13 21.5 12 21.5C11 21.5 10 22 9 22C6 22 2 17 2 12C2 8.5 4.5 6 7 6C9 6 10.5 7 12 7C13.5 7 15 6 17 6Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// ==========================================
+// ENERGY / WELLNESS ICONS
+// ==========================================
+
+// Battery - Energy level
+export function BatteryIcon({ size = 24, color = colors.success[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="7" width="18" height="10" rx="2" stroke={color} strokeWidth={2} />
+      <Path d="M22 11V13" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Rect x="5" y="10" width="12" height="4" rx="1" fill={color} opacity={0.3} />
+    </Svg>
+  );
+}
+
+// Battery Low - Low energy
+export function BatteryLowIcon({ size = 24, color = colors.warning[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="7" width="18" height="10" rx="2" stroke={color} strokeWidth={2} />
+      <Path d="M22 11V13" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Rect x="5" y="10" width="4" height="4" rx="1" fill={color} opacity={0.3} />
+    </Svg>
+  );
+}
+
+// Lightning bolt - Energy
+export function LightningIcon({ size = 24, color = colors.warning[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Muscle / Flexed arm - Strong
+export function MuscleIcon({ size = 24, color = colors.success[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 15C4 15 5 9 7 7C9 5 11 7 11 9V15" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M11 9C11 9 13 5 15 5C17 5 18 7 18 9C18 11 17 15 17 15" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M4 15H17C19 15 20 16 20 18V19C20 20 19 21 18 21H6C5 21 4 20 4 19V15Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Fire - High energy
+export function FireIcon({ size = 24, color = colors.error[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6 18C6 14.69 8.69 12 12 12C15.31 12 18 14.69 18 18C18 20.21 15.31 22 12 22C8.69 22 6 20.21 6 18Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Meditation - Low stress
+export function MeditateIcon({ size = 24, color = colors.success[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="5" r="3" stroke={color} strokeWidth={2} />
+      <Path d="M6 20C6 20 6 14 12 14C18 14 18 20 18 20" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M3 17L6 14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M21 17L18 14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// SOS - Emergency / Crisis
+export function SOSIcon({ size = 24, color = colors.error[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="6" width="20" height="12" rx="3" stroke={color} strokeWidth={2} />
+      <Path d="M7 10C7.55 10 8 10.45 8 11C8 11.55 7.55 12 7 12H6V13C6 13.55 5.55 14 5 14" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      <Path d="M12 10V14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M10 10H14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M10 14H14" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M17 10C17.55 10 18 10.45 18 11C18 11.55 17.55 12 17 12H16V13C16 13.55 16.45 14 17 14" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Star - Rating
+export function StarIcon({ size = 24, color = colors.warning[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <Path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// ==========================================
+// OBJECT / ACTIVITY ICONS
+// ==========================================
+
+// Book - Resources / Training
+export function BookIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 19.5C4 18.12 5.12 17 6.5 17H20" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6.5 2H20V22H6.5C5.12 22 4 20.88 4 19.5V4.5C4 3.12 5.12 2 6.5 2Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M8 7H16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M8 11H13" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Scale - Legal / Balance
+export function ScaleIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3V21" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M8 21H16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M3 7L12 5L21 7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3 7L6 15H0L3 7Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M21 7L24 15H18L21 7Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Hospital - Healthcare facility
+export function HospitalIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="3" y="3" width="18" height="18" rx="2" stroke={color} strokeWidth={2} />
+      <Path d="M12 8V16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M8 12H16" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M3 10H21" stroke={color} strokeWidth={2} />
+    </Svg>
+  );
+}
+
+// Thumbs up - Positive
+export function ThumbsUpIcon({ size = 24, color = colors.success[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M7 22H4C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V13C2 12.4696 2.21071 11.9609 2.58579 11.5858C2.96086 11.2107 3.46957 11 4 11H7M14 9V5C14 4.20435 13.6839 3.44129 13.1213 2.87868C12.5587 2.31607 11.7956 2 11 2L7 11V22H18.28C18.7623 22.0055 19.2304 21.8364 19.5979 21.524C19.9654 21.2116 20.2077 20.7769 20.28 20.3L21.66 11.3C21.7035 11.0134 21.6842 10.7207 21.6033 10.4423C21.5225 10.1638 21.3821 9.90629 21.1919 9.68751C21.0016 9.46873 20.7661 9.29393 20.5016 9.17522C20.2371 9.0565 19.9499 8.99672 19.66 9H14Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Thumbs down - Negative
+export function ThumbsDownIcon({ size = 24, color = colors.error[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M17 2H19.67C20.236 1.98999 20.7859 2.18813 21.2154 2.55681C21.6449 2.92549 21.9241 3.43905 22 4V11C21.9241 11.5609 21.6449 12.0745 21.2154 12.4432C20.7859 12.8119 20.236 13.01 19.67 13H17M10 15V19C10 19.7956 10.3161 20.5587 10.8787 21.1213C11.4413 21.6839 12.2044 22 13 22L17 13V2H5.72C5.23767 1.99454 4.76959 2.16359 4.40209 2.47599C4.0346 2.78839 3.79227 3.22309 3.72 3.7L2.34 12.7C2.29651 12.9866 2.31583 13.2793 2.39666 13.5577C2.4775 13.8362 2.61793 14.0937 2.80817 14.3125C2.99842 14.5313 3.23393 14.7061 3.49843 14.8248C3.76294 14.9435 4.05009 15.0033 4.34 15H10Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Wave hand - Greeting
+export function WaveIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M7.5 12.5L5.5 10.5C4.95 9.95 4.95 9.05 5.5 8.5C6.05 7.95 6.95 7.95 7.5 8.5L11.5 12.5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9.5 10.5L7.5 8.5C6.95 7.95 6.95 7.05 7.5 6.5C8.05 5.95 8.95 5.95 9.5 6.5L13.5 10.5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M11.5 8.5L10.5 7.5C9.95 6.95 9.95 6.05 10.5 5.5C11.05 4.95 11.95 4.95 12.5 5.5L16 9" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M13.5 6.5L13 6C12.45 5.45 12.45 4.55 13 4C13.55 3.45 14.45 3.45 15 4L19 8C20.5 9.5 21 11.5 20.5 14C20 16.5 18 19 15 20.5C12 22 9 21.5 7 20" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Sparkle - Decoration / Empty state
+export function SparkleIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Party / Celebration
+export function PartyIcon({ size = 24, color = colors.warning[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M2 22L8.5 8.5L15.5 15.5L2 22Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M14 9L15 2" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M16 13L22 11" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M18 6L22 3" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="19" cy="7" r="1" fill={color} />
+      <Circle cx="14" cy="5" r="1" fill={color} />
+      <Circle cx="20" cy="12" r="1" fill={color} />
+    </Svg>
+  );
+}
+
+// Music note
+export function MusicIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 18V5L21 3V16" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="6" cy="18" r="3" stroke={color} strokeWidth={2} />
+      <Circle cx="18" cy="16" r="3" stroke={color} strokeWidth={2} />
+    </Svg>
+  );
+}
+
+// Hand / Personal care
+export function HandCareIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M18 11V6C18 5.45 17.55 5 17 5C16.45 5 16 5.45 16 6V11" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M14 11V4C14 3.45 13.55 3 13 3C12.45 3 12 3.45 12 4V11" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M10 11V6C10 5.45 9.55 5 9 5C8.45 5 8 5.45 8 6V14L5.5 11.5C5.07 11.07 4.31 11.07 3.88 11.5C3.45 11.93 3.45 12.69 3.88 13.12L9 18.24C9.75 19 10.75 19.5 12 19.5H16C18.21 19.5 20 17.71 20 15.5V11C20 10.45 19.55 10 19 10C18.45 10 18 10.45 18 11" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// ==========================================
+// SYNC STATUS ICONS
+// ==========================================
+
+// Cloud - Offline
+export function CloudIcon({ size = 24, color = colors.neutral[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M18 10H16.74C16.36 8.22 15.36 6.66 13.89 5.59C12.42 4.52 10.58 4.02 8.74 4.17C6.9 4.33 5.18 5.13 3.93 6.41C2.68 7.69 2 9.37 2 11.12C2 12.87 2.68 14.55 3.93 15.83C5.18 17.11 6.9 17.91 8.74 18.07C10.58 18.22 12.42 17.72 13.89 16.65C15.36 15.58 16.36 14.02 16.74 12.24H18C19.06 12.24 20.08 12.66 20.83 13.41C21.58 14.16 22 15.18 22 16.24C22 17.3 21.58 18.32 20.83 19.07C20.08 19.82 19.06 20.24 18 20.24H6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Sync / Refresh arrows
+export function SyncIcon({ size = 24, color = colors.primary[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M23 4V10H17" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M1 20V14H7" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3.51 9A9 9 0 0 1 20.49 4.51L23 7M1 17L3.51 19.49A9 9 0 0 0 20.49 15" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// Hourglass - Pending
+export function HourglassIcon({ size = 24, color = colors.warning[500] }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M6 2H18" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M6 22H18" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M7 2V7.5L12 12L17 7.5V2" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M7 22V16.5L12 12L17 16.5V22" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// ==========================================
+// MEMORY GAME CARD ICONS
+// ==========================================
+
+// Flower 1 - Rose
+export function FlowerRoseIcon({ size = 24, color = '#E11D48' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="10" r="4" fill={color} opacity={0.2} stroke={color} strokeWidth={2} />
+      <Circle cx="12" cy="10" r="1.5" fill={color} />
+      <Path d="M12 14V22" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+      <Path d="M12 17L9 15" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Flower 2 - Sunflower
+export function FlowerSunIcon({ size = 24, color = '#EAB308' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="10" r="3" fill="#92400E" stroke="#92400E" strokeWidth={1} />
+      <Path d="M12 3V5M12 15V17M7 10H5M19 10H17M8.5 6.5L9.5 7.5M14.5 12.5L15.5 13.5M15.5 6.5L14.5 7.5M9.5 12.5L8.5 13.5" stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+      <Path d="M12 17V22" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Flower 3 - Tulip
+export function FlowerTulipIcon({ size = 24, color = '#DB2777' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3C10 3 8 5 8 8C8 10 10 12 12 12C14 12 16 10 16 8C16 5 14 3 12 3Z" fill={color} opacity={0.2} stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 12V22" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+      <Path d="M12 16L8 19" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+      <Path d="M12 16L16 19" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Flower 4 - Daisy
+export function FlowerDaisyIcon({ size = 24, color = colors.white }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="10" r="2" fill="#EAB308" />
+      <Path d="M12 4V6M12 14V16M6 10H8M16 10H18M8 6L9.5 7.5M14.5 12.5L16 14M16 6L14.5 7.5M9.5 12.5L8 14" stroke={color === colors.white ? '#A855F7' : color} strokeWidth={2.5} strokeLinecap="round" />
+      <Path d="M12 16V22" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Flower 5 - Cherry Blossom
+export function FlowerBlossomIcon({ size = 24, color = '#F9A8D4' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="7" r="2" fill={color} stroke={color} strokeWidth={1} />
+      <Circle cx="9" cy="10" r="2" fill={color} stroke={color} strokeWidth={1} />
+      <Circle cx="15" cy="10" r="2" fill={color} stroke={color} strokeWidth={1} />
+      <Circle cx="10" cy="13" r="2" fill={color} stroke={color} strokeWidth={1} />
+      <Circle cx="14" cy="13" r="2" fill={color} stroke={color} strokeWidth={1} />
+      <Circle cx="12" cy="10" r="1.5" fill="#BE185D" />
+      <Path d="M12 15V22" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// Flower 6 - Hibiscus
+export function FlowerHibiscusIcon({ size = 24, color = '#DC2626' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 4C10.5 4 9 5.5 9 7.5C9 8.5 10 10 12 10C14 10 15 8.5 15 7.5C15 5.5 13.5 4 12 4Z" fill={color} opacity={0.3} stroke={color} strokeWidth={1.5} />
+      <Path d="M7 8C6 9 6 11 7.5 12C8.5 12.7 10 12 10 12" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      <Path d="M17 8C18 9 18 11 16.5 12C15.5 12.7 14 12 14 12" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+      <Circle cx="12" cy="9" r="1.5" fill={color} />
+      <Path d="M12 12V22" stroke="#16A34A" strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }

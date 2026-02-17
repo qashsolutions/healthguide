@@ -24,13 +24,14 @@ import { CalendarIcon, ClockIcon, PersonIcon, CheckIcon } from '@/components/ico
 
 interface Elder {
   id: string;
-  full_name: string;
-  preferred_name: string | null;
+  first_name: string;
+  last_name: string;
 }
 
 interface Caregiver {
   id: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface TaskItem {
@@ -90,10 +91,10 @@ export default function NewAssignmentScreen() {
   async function fetchElders() {
     const { data } = await supabase
       .from('elders')
-      .select('id, full_name, preferred_name')
+      .select('id, first_name, last_name')
       .eq('agency_id', user!.agency_id)
       .eq('is_active', true)
-      .order('full_name');
+      .order('first_name');
 
     if (data) setElders(data);
   }
@@ -101,11 +102,11 @@ export default function NewAssignmentScreen() {
   async function fetchCaregivers() {
     const { data } = await supabase
       .from('user_profiles')
-      .select('id, full_name')
+      .select('id, first_name, last_name')
       .eq('agency_id', user!.agency_id)
       .eq('role', 'caregiver')
       .eq('is_active', true)
-      .order('full_name');
+      .order('first_name');
 
     if (data) setCaregivers(data);
   }
@@ -281,7 +282,7 @@ export default function NewAssignmentScreen() {
                         selectedElderId === elder.id && styles.selectionTextSelected,
                       ]}
                     >
-                      {elder.preferred_name || elder.full_name}
+                      {elder.first_name} {elder.last_name}
                     </Text>
                   </Pressable>
                 ))}
@@ -317,7 +318,7 @@ export default function NewAssignmentScreen() {
                         selectedCaregiverId === cg.id && styles.selectionTextSelected,
                       ]}
                     >
-                      {cg.full_name}
+                      {cg.first_name} {cg.last_name}
                     </Text>
                   </Pressable>
                 ))}

@@ -118,7 +118,7 @@ export default function CaregiverDetailScreen() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('caregivers')
+        .from('caregiver_profiles')
         .select('*')
         .eq('id', id)
         .single();
@@ -155,14 +155,14 @@ export default function CaregiverDetailScreen() {
     setSaving(true);
     try {
       if (isNew) {
-        const { error } = await supabase.from('caregivers').insert({
+        const { error } = await supabase.from('caregiver_profiles').insert({
           ...form,
           agency_id: user?.agency_id,
         });
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('caregivers')
+          .from('caregiver_profiles')
           .update(form)
           .eq('id', id);
         if (error) throw error;
@@ -208,7 +208,7 @@ export default function CaregiverDetailScreen() {
           onPress: async () => {
             try {
               const { error } = await supabase
-                .from('caregivers')
+                .from('caregiver_profiles')
                 .update({ status: 'inactive' })
                 .eq('id', id);
               if (error) throw error;

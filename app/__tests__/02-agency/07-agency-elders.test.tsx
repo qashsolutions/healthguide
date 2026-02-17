@@ -168,8 +168,8 @@ describe('Batch 8: Elder Detail (New Mode)', () => {
   it('#82 - Elder form renders with Personal Information section', () => {
     render(<ElderDetailScreen />);
     expect(screen.getByText('Personal Information')).toBeTruthy();
-    expect(screen.getByPlaceholderText('John Smith')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Johnny')).toBeTruthy();
+    expect(screen.getByPlaceholderText('John')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Smith')).toBeTruthy();
   });
 
   // Feature #83: Care needs selection renders

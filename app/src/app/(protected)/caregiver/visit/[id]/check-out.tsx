@@ -20,7 +20,7 @@ type CheckOutStatus = 'idle' | 'processing' | 'success';
 interface AssignmentData {
   id: string;
   status: string;
-  actual_check_in: string | null;
+  actual_start: string | null;
   elder: {
     id: string;
     first_name: string;
@@ -54,7 +54,7 @@ export default function CheckOutScreen() {
         .select(`
           id,
           status,
-          actual_check_in,
+          actual_start,
           elder:elders (
             id,
             first_name,
@@ -73,8 +73,8 @@ export default function CheckOutScreen() {
       setAssignment(transformed);
 
       // Calculate visit duration
-      if (transformed?.actual_check_in) {
-        const checkInTime = parseISO(assignmentData.actual_check_in);
+      if (transformed?.actual_start) {
+        const checkInTime = parseISO(assignmentData.actual_start);
         const now = new Date();
         const minutes = differenceInMinutes(now, checkInTime);
         const hours = Math.floor(minutes / 60);
@@ -105,10 +105,10 @@ export default function CheckOutScreen() {
 
   // Update duration every minute while on screen
   useEffect(() => {
-    if (!assignment?.actual_check_in) return;
+    if (!assignment?.actual_start) return;
 
     const interval = setInterval(() => {
-      const checkInTime = parseISO(assignment.actual_check_in!);
+      const checkInTime = parseISO(assignment.actual_start!);
       const now = new Date();
       const minutes = differenceInMinutes(now, checkInTime);
       const hours = Math.floor(minutes / 60);
@@ -117,7 +117,7 @@ export default function CheckOutScreen() {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [assignment?.actual_check_in]);
+  }, [assignment?.actual_start]);
 
   const clientName = assignment
     ? `${assignment.elder.first_name} ${assignment.elder.last_name}`
@@ -135,7 +135,7 @@ export default function CheckOutScreen() {
         .from('visits')
         .update({
           status: 'completed',
-          actual_check_out: new Date().toISOString(),
+          actual_end: new Date().toISOString(),
           check_out_latitude: location?.latitude || null,
           check_out_longitude: location?.longitude || null,
         })

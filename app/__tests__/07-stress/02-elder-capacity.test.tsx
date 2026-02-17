@@ -131,9 +131,9 @@ describe('Batch 32: Elder Capacity — Elders List', () => {
   // #361
   it('#361 - First elder name renders', async () => {
     render(<EldersScreen />);
-    // Screen shows preferred_name as displayName
+    // Screen constructs full_name from first_name + last_name
     await waitFor(() => {
-      expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
   });
 
@@ -145,36 +145,37 @@ describe('Batch 32: Elder Capacity — Elders List', () => {
     });
     // FlatList may virtualize, but all 15 are in state
     expect(elders15[14].full_name).toBeDefined();
-    expect(elders15[14].preferred_name).toBeDefined();
+    expect(elders15[14].first_name).toBeDefined();
+    expect(elders15[14].last_name).toBeDefined();
   });
 
   // #363
   it('#363 - Search filters by full_name', async () => {
     render(<EldersScreen />);
     await waitFor(() => {
-      expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
     const searchInput = screen.getByPlaceholderText('Search elders...');
     fireEvent.change(searchInput, { target: { value: 'Margaret' } });
-    expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+    expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
   });
 
   // #364
-  it('#364 - Search by preferred_name works', async () => {
+  it('#364 - Search by first_name works', async () => {
     render(<EldersScreen />);
     await waitFor(() => {
-      expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
     const searchInput = screen.getByPlaceholderText('Search elders...');
     fireEvent.change(searchInput, { target: { value: 'Margaret' } });
-    expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+    expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
   });
 
   // #365
   it('#365 - Each elder card shows city/state', async () => {
     render(<EldersScreen />);
     await waitFor(() => {
-      expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
     // First elder is from New York, NY
     expect(screen.getByText(/New York/)).toBeTruthy();
@@ -184,7 +185,7 @@ describe('Batch 32: Elder Capacity — Elders List', () => {
   it('#366 - Pending handshake elders have distinct status', async () => {
     render(<EldersScreen />);
     await waitFor(() => {
-      expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
     // Elder at index 0 has status 'pending_handshake'
     expect(screen.getByText(/pending handshake/i)).toBeTruthy();
@@ -197,14 +198,14 @@ describe('Batch 32: Elder Capacity — Elders List', () => {
       expect(screen.getByText(/15 elders/i)).toBeTruthy();
     });
     // First elder is visible
-    expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+    expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
   });
 
   // #368
   it('#368 - "+ Add" button renders with 15 elders', async () => {
     render(<EldersScreen />);
     await waitFor(() => {
-      expect(screen.getByText(elders15[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
     expect(screen.getByText('+ Add')).toBeTruthy();
   });
@@ -257,7 +258,7 @@ describe('Batch 32: Elder Capacity — Elder Detail Form', () => {
   });
 
   // #373
-  it('#373 - Form with 500-char full_name does not crash', async () => {
+  it('#373 - Form with 500-char first_name does not crash', async () => {
     render(<ElderDetailScreen />);
     await waitFor(() => {
       expect(screen.getByText('Personal Information')).toBeTruthy();

@@ -88,17 +88,17 @@ export default class Observation extends Model {
   // Get category icon
   get categoryIcon(): string {
     const iconMap: Record<string, string> = {
-      mood: '😊',
-      mobility: '🚶',
-      appetite: '🍽️',
-      medication: '💊',
-      skin: '🩹',
-      sleep: '😴',
-      pain: '🩺',
-      cognitive: '🧠',
-      social: '👥',
-      other: '📝',
+      mood: 'smile',
+      mobility: 'walking',
+      appetite: 'utensils',
+      medication: 'pill',
+      skin: 'bandage',
+      sleep: 'moon',
+      pain: 'stethoscope',
+      cognitive: 'brain',
+      social: 'users',
+      other: 'note',
     };
-    return iconMap[this.category] || '📝';
+    return iconMap[this.category] || 'note';
   }
 }

@@ -18,6 +18,7 @@ import { TimePicker } from '@/components/ui/TimePicker';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, layout } from '@/theme/spacing';
+import { SparkleIcon } from '@/components/icons';
 
 interface NotificationPreferences {
   check_in: boolean;
@@ -197,7 +198,9 @@ export default function NotificationSettingsScreen() {
 
         {/* Info Box */}
         <View style={styles.infoBox}>
-          <Text style={styles.infoIcon}>💡</Text>
+          <View style={styles.infoIconWrap}>
+            <SparkleIcon size={20} color={colors.info[600]} />
+          </View>
           <Text style={styles.infoText}>
             All notifications are delivered as push notifications to this device.
             Make sure notifications are enabled in your device settings.
@@ -307,8 +310,7 @@ const styles = StyleSheet.create({
     padding: layout.screenPadding,
     marginBottom: layout.sectionGap,
   },
-  infoIcon: {
-    fontSize: 20,
+  infoIconWrap: {
     marginRight: spacing[3],
   },
   infoText: {

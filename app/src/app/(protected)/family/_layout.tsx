@@ -44,12 +44,17 @@ export default function FamilyLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="settings/index"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => <SettingsIcon color={color} />,
         }}
       />
+      {/* Hide sub-routes from tab bar */}
+      <Tabs.Screen name="settings/profile" options={{ href: null }} />
+      <Tabs.Screen name="settings/notifications" options={{ href: null }} />
+      <Tabs.Screen name="visit/[id]" options={{ href: null }} />
+      <Tabs.Screen name="report/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

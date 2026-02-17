@@ -5,6 +5,7 @@
 // This module provides a lazy initialization that gracefully handles Expo Go.
 // For full offline support, use a development build.
 
+import { Platform } from 'react-native';
 import { Database } from '@nozbe/watermelondb';
 import { schema } from './schema';
 import Assignment from './models/Assignment';
@@ -22,6 +23,13 @@ let _isExpoGo = false;
 function initializeDatabase(): Database | null {
   if (_database) return _database;
   if (_initError) return null;
+
+  // SQLiteAdapter requires native code — skip entirely on web
+  if (Platform.OS === 'web') {
+    _initError = new Error('WatermelonDB not available on web');
+    _isExpoGo = true;
+    return null;
+  }
 
   try {
     // Dynamic import to prevent crash in Expo Go

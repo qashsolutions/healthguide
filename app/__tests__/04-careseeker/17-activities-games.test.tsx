@@ -109,11 +109,10 @@ describe('Batch 21: Activities', () => {
     expect(screen.getByText('Choose something fun!')).toBeTruthy();
   });
 
-  // Feature #198: Memory game option renders
+  // Feature #198: Memory game option renders (BrainIcon SVG replaced emoji)
   it('#198 - Memory Game activity card renders', () => {
     render(<ActivitiesScreen />);
     expect(screen.getByText('Memory Game')).toBeTruthy();
-    expect(screen.getByText('🧠')).toBeTruthy();
   });
 });
 
@@ -142,10 +141,10 @@ describe('Batch 21: Memory Game', () => {
     expect(screen.getByText('0')).toBeTruthy();
   });
 
-  // Feature #202: New Game button renders
+  // Feature #202: New Game button renders (SyncIcon SVG replaced emoji in button)
   it('#202 - New Game button renders', () => {
     render(<MemoryGameScreen />);
-    expect(screen.getByText('🔄 New Game')).toBeTruthy();
+    expect(screen.getByText('New Game')).toBeTruthy();
   });
 
   // Feature #203: Activity grid shows all 4 options (trivia, music, photos)

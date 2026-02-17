@@ -135,7 +135,7 @@ describe('Batch 35: Dashboard Stress — Agency Dashboard', () => {
       chainCopy.gte = jest.fn().mockReturnValue(chainCopy);
       chainCopy.lte = jest.fn().mockReturnValue(chainCopy);
 
-      if (table === 'caregivers') {
+      if (table === 'caregiver_profiles') {
         chainCopy.then = jest.fn((resolve: any) =>
           resolve({ data: caregivers15, error: null })
         );

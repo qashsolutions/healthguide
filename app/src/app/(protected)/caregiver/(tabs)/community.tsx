@@ -8,7 +8,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { CommunityIcon, HeartIcon, PersonIcon } from '@/components/icons';
+import { CommunityIcon, HeartIcon, PersonIcon, MessageIcon, BookIcon, SOSIcon, NoteIcon } from '@/components/icons';
 
 // Mock data
 const mockGroups = [
@@ -38,7 +38,7 @@ const mockGroups = [
 const mockWellnessPrompt = {
   title: 'Daily Check-in',
   question: 'How are you feeling today?',
-  options: ['😊 Great', '😐 Okay', '😔 Struggling'],
+  options: ['Great', 'Okay', 'Struggling'],
 };
 
 export default function CaregiverCommunityScreen() {
@@ -123,7 +123,7 @@ export default function CaregiverCommunityScreen() {
               onPress={() => router.push('/(protected)/caregiver/community/groups' as any)}
               style={styles.actionCard}
             >
-              <Text style={styles.actionEmoji}>💬</Text>
+              <View style={styles.actionIconWrap}><MessageIcon size={28} color={roleColors.caregiver} /></View>
               <Text style={styles.actionText}>Chat with Peer</Text>
             </Card>
             <Card
@@ -132,7 +132,7 @@ export default function CaregiverCommunityScreen() {
               onPress={() => router.push('/(protected)/caregiver/community/resources' as any)}
               style={styles.actionCard}
             >
-              <Text style={styles.actionEmoji}>📚</Text>
+              <View style={styles.actionIconWrap}><BookIcon size={28} color={roleColors.caregiver} /></View>
               <Text style={styles.actionText}>Resources</Text>
             </Card>
             <Card
@@ -141,7 +141,7 @@ export default function CaregiverCommunityScreen() {
               onPress={() => Linking.openURL('tel:988')}
               style={styles.actionCard}
             >
-              <Text style={styles.actionEmoji}>🆘</Text>
+              <View style={styles.actionIconWrap}><SOSIcon size={28} color={roleColors.caregiver} /></View>
               <Text style={styles.actionText}>Get Help Now</Text>
             </Card>
             <Card
@@ -150,7 +150,7 @@ export default function CaregiverCommunityScreen() {
               onPress={() => router.push('/(protected)/caregiver/community/journal' as any)}
               style={styles.actionCard}
             >
-              <Text style={styles.actionEmoji}>📝</Text>
+              <View style={styles.actionIconWrap}><NoteIcon size={28} color={roleColors.caregiver} /></View>
               <Text style={styles.actionText}>Journal</Text>
             </Card>
           </View>
@@ -268,8 +268,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[5],
   },
-  actionEmoji: {
-    fontSize: 32,
+  actionIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: roleColors.caregiver + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: spacing[2],
   },
   actionText: {

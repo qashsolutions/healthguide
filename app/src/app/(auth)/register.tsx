@@ -63,7 +63,10 @@ export default function RegisterScreen() {
     try {
       setError('');
       // Sign up
+      const nameParts = fullName.trim().split(/\s+/);
       await signUpWithEmail(email, password, {
+        first_name: nameParts[0] || '',
+        last_name: nameParts.slice(1).join(' ') || '',
         full_name: fullName,
         role: 'agency_owner',
       });

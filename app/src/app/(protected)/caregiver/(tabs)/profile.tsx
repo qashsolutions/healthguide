@@ -10,7 +10,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { PersonIcon, PhoneIcon, CalendarIcon, CheckIcon } from '@/components/icons';
+import { PersonIcon, PhoneIcon, CalendarIcon, CheckIcon, StarIcon } from '@/components/icons';
 
 export default function CaregiverProfileScreen() {
   const router = useRouter();
@@ -106,7 +106,7 @@ export default function CaregiverProfileScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>⭐ {stats.rating}</Text>
+            <Text style={styles.statValue}><StarIcon size={16} color="#F59E0B" /> {stats.rating}</Text>
             <Text style={styles.statLabel}>Rating</Text>
           </View>
         </View>

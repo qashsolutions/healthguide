@@ -9,7 +9,7 @@ import { TapButton } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { CheckIcon, ArrowLeftIcon } from '@/components/icons';
+import { CheckIcon, ArrowLeftIcon, FileTextIcon } from '@/components/icons';
 import { hapticFeedback } from '@/utils/haptics';
 import { VisitTask, TaskStatus } from '@/types/visit';
 import { supabase } from '@/lib/supabase';
@@ -292,7 +292,7 @@ export default function TasksScreen() {
       >
         {tasks.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📋</Text>
+            <View style={styles.emptyIcon}><FileTextIcon size={48} color={colors.neutral[300]} /></View>
             <Text style={styles.emptyText}>No tasks assigned</Text>
             <Text style={styles.emptySubtext}>Continue to add observations</Text>
           </View>
@@ -345,8 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[12],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

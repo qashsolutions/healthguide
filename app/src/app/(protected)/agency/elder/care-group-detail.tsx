@@ -31,8 +31,8 @@ interface CareGroupMember {
   created_at: string;
   caregiver?: {
     id: string;
-    email: string;
-    full_name?: string;
+    first_name?: string;
+    last_name?: string;
   };
 }
 
@@ -82,7 +82,7 @@ export default function CareGroupDetailScreen() {
         .select(
           `
           *,
-          care_group_members(id, care_group_id, caregiver_id, role, status, consent_status, created_at, caregiver:users(id, email, full_name)),
+          care_group_members(id, care_group_id, caregiver_id, role, status, consent_status, created_at, caregiver:user_profiles(id, first_name, last_name)),
           elder:elders(first_name, last_name),
           agency:agencies(name)
         `
@@ -164,12 +164,12 @@ export default function CareGroupDetailScreen() {
 
   // Handle remove member
   const handleRemoveMember = useCallback(
-    async (memberId: string, memberEmail?: string) => {
+    async (memberId: string, memberName?: string) => {
       if (!careGroup) return;
 
       Alert.alert(
         'Remove Member',
-        `Are you sure you want to remove ${memberEmail || 'this member'} from the care group?`,
+        `Are you sure you want to remove ${memberName || 'this member'} from the care group?`,
         [
           { text: 'Cancel', onPress: () => {} },
           {
@@ -290,11 +290,11 @@ export default function CareGroupDetailScreen() {
                     </View>
                     <View style={styles.memberInfo}>
                       <Text style={styles.memberName}>
-                        {member.caregiver?.full_name || member.caregiver?.email || 'Unknown'}
+                        {member.caregiver?.first_name ? `${member.caregiver.first_name} ${member.caregiver.last_name || ''}`.trim() : 'Unknown'}
                       </Text>
                       <Text style={styles.memberRole}>{member.role}</Text>
                     </View>
-                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.email)}>
+                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.first_name ? `${member.caregiver.first_name} ${member.caregiver.last_name || ''}`.trim() : undefined)}>
                       <TrashIcon size={20} color={colors.error[500]} />
                     </Pressable>
                   </View>
@@ -314,11 +314,11 @@ export default function CareGroupDetailScreen() {
                     </View>
                     <View style={styles.memberInfo}>
                       <Text style={styles.memberName}>
-                        {member.caregiver?.full_name || member.caregiver?.email || 'Unknown'}
+                        {member.caregiver?.first_name ? `${member.caregiver.first_name} ${member.caregiver.last_name || ''}`.trim() : 'Unknown'}
                       </Text>
                       <Text style={styles.memberRole}>{member.role}</Text>
                     </View>
-                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.email)}>
+                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.first_name ? `${member.caregiver.first_name} ${member.caregiver.last_name || ''}`.trim() : undefined)}>
                       <TrashIcon size={20} color={colors.error[500]} />
                     </Pressable>
                   </View>
@@ -341,11 +341,11 @@ export default function CareGroupDetailScreen() {
                     </View>
                     <View style={styles.memberInfo}>
                       <Text style={styles.memberName}>
-                        {member.caregiver?.full_name || member.caregiver?.email || 'Unknown'}
+                        {member.caregiver?.first_name ? `${member.caregiver.first_name} ${member.caregiver.last_name || ''}`.trim() : 'Unknown'}
                       </Text>
                       <Text style={styles.memberRole}>{member.role}</Text>
                     </View>
-                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.email)}>
+                    <Pressable onPress={() => handleRemoveMember(member.id, member.caregiver?.first_name ? `${member.caregiver.first_name} ${member.caregiver.last_name || ''}`.trim() : undefined)}>
                       <TrashIcon size={20} color={colors.error[500]} />
                     </Pressable>
                   </View>

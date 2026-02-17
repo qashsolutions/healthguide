@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThumbsUpIcon, ThumbsDownIcon } from '@/components/icons';
 
 const AVAILABLE_TAGS = [
   'reliable',
@@ -190,7 +191,7 @@ export function RatingModal({
                 ]}
                 onPress={() => setIsPositive(true)}
               >
-                <Text style={styles.thumbEmoji}>👍</Text>
+                <ThumbsUpIcon size={32} color={isPositive === true ? '#059669' : '#6B7280'} />
                 <Text
                   style={[
                     styles.thumbLabel,
@@ -208,7 +209,7 @@ export function RatingModal({
                 ]}
                 onPress={() => setIsPositive(false)}
               >
-                <Text style={styles.thumbEmoji}>👎</Text>
+                <ThumbsDownIcon size={32} color={isPositive === false ? '#DC2626' : '#6B7280'} />
                 <Text
                   style={[
                     styles.thumbLabel,

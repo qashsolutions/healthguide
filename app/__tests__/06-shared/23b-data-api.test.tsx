@@ -250,9 +250,9 @@ describe('Batch 30: Game Stubs', () => {
 describe('Batch 30: Sync Components', () => {
   // Feature #333
   it('#333 - OfflineIndicator shows "Offline" when disconnected', () => {
-    render(<OfflineIndicator />);
+    const { container } = render(<OfflineIndicator />);
     expect(screen.getByText('Offline')).toBeTruthy();
-    expect(screen.getByText('📴')).toBeTruthy();
+    expect(container.querySelector('svg')).toBeTruthy();
   });
 
   // Feature #334 - SyncStatusBar (complex deps, test OfflineIndicator sizes)
@@ -263,8 +263,9 @@ describe('Batch 30: Sync Components', () => {
 
   // Feature #335 (ElderCache model - skip, no WatermelonDB)
   it('#335 - OfflineIndicator can hide text', () => {
-    render(<OfflineIndicator showText={false} />);
-    expect(screen.getByText('📴')).toBeTruthy();
+    const { container } = render(<OfflineIndicator showText={false} />);
+    // CloudIcon SVG renders but no text
+    expect(container.querySelector('svg')).toBeTruthy();
     expect(screen.queryByText('Offline')).toBeNull();
   });
 });

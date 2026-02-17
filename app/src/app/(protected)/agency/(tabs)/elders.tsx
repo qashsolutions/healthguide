@@ -24,7 +24,6 @@ import { PersonIcon, PlusIcon, HeartIcon, LocationIcon, AlertIcon, SearchIcon } 
 interface Elder {
   id: string;
   full_name: string;
-  preferred_name?: string;
   address: string;
   city: string;
   state: string;
@@ -58,8 +57,8 @@ export default function EldersScreen() {
         .from('elders')
         .select(`
           id,
-          full_name,
-          preferred_name,
+          first_name,
+          last_name,
           address,
           city,
           state,
@@ -70,7 +69,7 @@ export default function EldersScreen() {
           family_members (id)
         `)
         .eq('agency_id', user.agency_id)
-        .order('full_name');
+        .order('first_name');
 
       if (error) throw error;
 
@@ -83,7 +82,7 @@ export default function EldersScreen() {
 
         if (caregiverIds.length > 0) {
           const { data: caregivers } = await supabase
-            .from('caregivers')
+            .from('caregiver_profiles')
             .select('id, full_name')
             .in('id', caregiverIds);
 
@@ -94,8 +93,7 @@ export default function EldersScreen() {
 
         const formattedElders = eldersData.map((e: any) => ({
           id: e.id,
-          full_name: e.full_name,
-          preferred_name: e.preferred_name,
+          full_name: [e.first_name, e.last_name].filter(Boolean).join(' ') || 'Unknown',
           address: e.address,
           city: e.city,
           state: e.state,
@@ -124,14 +122,13 @@ export default function EldersScreen() {
   }
 
   const filteredElders = elders.filter((e) =>
-    (e.full_name?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (e.preferred_name?.toLowerCase() || '').includes(search.toLowerCase())
+    (e.full_name?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   const pendingHandshake = elders.filter((e) => !e.handshake_completed).length;
 
   const renderElder = ({ item }: { item: Elder }) => {
-    const displayName = item.preferred_name || item.full_name;
+    const displayName = item.full_name;
     const statusColors = {
       active: colors.success[500],
       inactive: colors.error[500],
@@ -241,9 +238,9 @@ export default function EldersScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>
-              {loading ? '' : ''}
-            </Text>
+            <View style={styles.emptyIcon}>
+              <PersonIcon size={48} color={colors.neutral[300]} />
+            </View>
             <Text style={styles.emptyText}>
               {loading ? 'Loading elders...' : 'No elders yet'}
             </Text>
@@ -385,8 +382,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[8],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

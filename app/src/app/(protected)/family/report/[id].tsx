@@ -16,7 +16,21 @@ import { format, isToday, isYesterday } from 'date-fns';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
 import { Card } from '@/components/ui/Card';
-import { ArrowLeftIcon } from '@/components/icons';
+import {
+  ArrowLeftIcon,
+  SmileFaceIcon,
+  UtensilsIcon,
+  WalkingIcon,
+  MoonIcon,
+  PillIcon,
+  ShowerIcon,
+  UsersIcon,
+  BandageIcon,
+  BrainIcon,
+  HeartIcon,
+  NoteIcon,
+  IconProps,
+} from '@/components/icons';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
@@ -88,21 +102,21 @@ function AlertTriangleIcon({ size = 20, color = colors.error[500] }) {
   );
 }
 
-function getCategoryEmoji(category: string): string {
-  const emojiMap: Record<string, string> = {
-    mood: '😊',
-    appetite: '🍽️',
-    mobility: '🚶',
-    sleep: '😴',
-    medication: '💊',
-    hygiene: '🚿',
-    social: '👥',
-    pain: '🩹',
-    cognitive: '🧠',
-    vital_signs: '❤️',
-    other: '📝',
+function getCategoryIcon(category: string): React.ComponentType<IconProps> {
+  const iconMap: Record<string, React.ComponentType<IconProps>> = {
+    mood: SmileFaceIcon,
+    appetite: UtensilsIcon,
+    mobility: WalkingIcon,
+    sleep: MoonIcon,
+    medication: PillIcon,
+    hygiene: ShowerIcon,
+    social: UsersIcon,
+    pain: BandageIcon,
+    cognitive: BrainIcon,
+    vital_signs: HeartIcon,
+    other: NoteIcon,
   };
-  return emojiMap[category] || '📝';
+  return iconMap[category] || NoteIcon;
 }
 
 function getFlaggedConfig(isFlagged: boolean) {
@@ -289,17 +303,21 @@ export default function FamilyReportDetailScreen() {
 
             {flaggedObservations.map((obs) => {
               const config = getFlaggedConfig(obs.is_flagged);
-              const Icon = config.icon;
+              const FlagIcon = config.icon;
+              const CategoryIcon = getCategoryIcon(obs.category);
               return (
                 <View
                   key={obs.id}
                   style={[styles.alertItem, { backgroundColor: config.bgColor }]}
                 >
-                  <Icon color={config.color} />
+                  <FlagIcon color={config.color} />
                   <View style={styles.alertContent}>
-                    <Text style={[styles.alertCategory, { color: config.color }]}>
-                      {getCategoryEmoji(obs.category)} {obs.category.replace('_', ' ')}
-                    </Text>
+                    <View style={styles.categoryRow}>
+                      <CategoryIcon size={16} color={config.color} />
+                      <Text style={[styles.alertCategory, { color: config.color }]}>
+                        {obs.category.replace('_', ' ')}
+                      </Text>
+                    </View>
                     <Text style={styles.alertText}>{obs.value}</Text>
                     {obs.note && (
                       <Text style={styles.alertNote}>{obs.note}</Text>
@@ -369,12 +387,17 @@ export default function FamilyReportDetailScreen() {
           <Card style={styles.cardSpacing}>
             <Text style={styles.cardTitle}>Observations</Text>
 
-            {normalObservations.map((obs) => (
+            {normalObservations.map((obs) => {
+              const CategoryIcon = getCategoryIcon(obs.category);
+              return (
               <View key={obs.id} style={styles.observationItem}>
                 <View style={styles.observationHeader}>
-                  <Text style={styles.observationCategory}>
-                    {getCategoryEmoji(obs.category)} {obs.category.replace('_', ' ')}
-                  </Text>
+                  <View style={styles.categoryRow}>
+                    <CategoryIcon size={16} color={colors.text.secondary} />
+                    <Text style={styles.observationCategory}>
+                      {obs.category.replace('_', ' ')}
+                    </Text>
+                  </View>
                   <Text style={styles.observationTime}>
                     {format(new Date(obs.created_at), 'h:mm a')}
                   </Text>
@@ -387,7 +410,8 @@ export default function FamilyReportDetailScreen() {
                   - {obs.caregiver.first_name}
                 </Text>
               </View>
-            ))}
+              );
+            })}
           </Card>
         )}
 
@@ -497,6 +521,11 @@ const styles = StyleSheet.create({
   },
   alertContent: {
     flex: 1,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1.5],
   },
   alertCategory: {
     ...typography.styles.bodySmall,

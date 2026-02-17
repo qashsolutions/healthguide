@@ -80,8 +80,6 @@ const mockSingle = jest.fn().mockResolvedValue({
     scheduled_end: '12:30',
     special_instructions: 'Please ring the doorbell twice.',
     scheduled_date: '2026-02-15',
-    start_time: '10:30',
-    end_time: '12:30',
     elder: {
       id: 'elder-1',
       first_name: 'John',
@@ -236,8 +234,8 @@ describe('Batch 13: Check-In', () => {
       data: {
         id: 'visit-1',
         scheduled_date: '2026-02-15',
-        start_time: '10:30',
-        end_time: '12:30',
+        scheduled_start: '10:30',
+        scheduled_end: '12:30',
         elder: {
           id: 'elder-1',
           first_name: 'John',

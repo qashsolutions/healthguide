@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { shadows } from '@/theme/spacing';
+import { ThumbsUpIcon, ThumbsDownIcon } from '@/components/icons';
 
 interface CaregiverRating {
   id: string;
@@ -114,9 +115,7 @@ export function ReviewsList({
     ({ item }: { item: CaregiverRating }) => (
       <View style={styles.reviewCard}>
         <View style={styles.reviewHeader}>
-          <Text style={styles.thumbIcon}>
-            {item.is_positive ? '👍' : '👎'}
-          </Text>
+          {item.is_positive ? <ThumbsUpIcon size={20} color="#059669" /> : <ThumbsDownIcon size={20} color="#DC2626" />}
           <Text style={styles.timestamp}>{getRelativeTime(item.created_at)}</Text>
         </View>
 

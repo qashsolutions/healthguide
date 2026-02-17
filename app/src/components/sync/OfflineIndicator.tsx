@@ -3,6 +3,7 @@
 
 import { View, Text, StyleSheet } from 'react-native';
 import { useConnectivity } from '@/lib/connectivity';
+import { CloudIcon } from '@/components/icons';
 
 interface OfflineIndicatorProps {
   size?: 'small' | 'medium' | 'large';
@@ -23,19 +24,19 @@ export function OfflineIndicator({
       case 'small':
         return {
           container: styles.containerSmall,
-          icon: styles.iconSmall,
+          iconSize: 12,
           text: styles.textSmall,
         };
       case 'large':
         return {
           container: styles.containerLarge,
-          icon: styles.iconLarge,
+          iconSize: 18,
           text: styles.textLarge,
         };
       default:
         return {
           container: styles.containerMedium,
-          icon: styles.iconMedium,
+          iconSize: 14,
           text: styles.textMedium,
         };
     }
@@ -45,7 +46,7 @@ export function OfflineIndicator({
 
   return (
     <View style={[styles.container, sizeStyles.container]}>
-      <Text style={sizeStyles.icon}>📴</Text>
+      <CloudIcon size={sizeStyles.iconSize} color="#DC2626" />
       {showText && <Text style={[styles.text, sizeStyles.text]}>Offline</Text>}
     </View>
   );
@@ -72,15 +73,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     gap: 8,
-  },
-  iconSmall: {
-    fontSize: 12,
-  },
-  iconMedium: {
-    fontSize: 14,
-  },
-  iconLarge: {
-    fontSize: 18,
   },
   text: {
     color: '#DC2626',

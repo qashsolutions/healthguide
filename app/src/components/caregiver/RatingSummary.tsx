@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { ThumbsUpIcon, ThumbsDownIcon } from '@/components/icons';
 
 interface RatingStats {
   rating_count: number;
@@ -87,7 +88,7 @@ export function RatingSummary({
         onPress={onViewReviews}
         disabled={!onViewReviews}
       >
-        <Text style={styles.thumbIcon}>{percentage >= 50 ? '👍' : '👎'}</Text>
+        {percentage >= 50 ? <ThumbsUpIcon size={14} color="#059669" /> : <ThumbsDownIcon size={14} color="#DC2626" />}
         <Text style={styles.compactText}>
           {percentage}%{' '}
           <Text style={styles.compactLight}>· {ratingCount} reviews</Text>
@@ -101,9 +102,7 @@ export function RatingSummary({
     <View style={styles.fullContainer}>
       <View style={styles.fullHeader}>
         <View style={styles.percentageRow}>
-          <Text style={styles.thumbIconLarge}>
-            {percentage >= 50 ? '👍' : '👎'}
-          </Text>
+          {percentage >= 50 ? <ThumbsUpIcon size={22} color="#059669" /> : <ThumbsDownIcon size={22} color="#DC2626" />}
           <Text style={styles.percentageText}>{percentage}%</Text>
           <Text style={styles.percentageLabel}>positive</Text>
         </View>

@@ -244,7 +244,7 @@ export default function CareGroupScreen() {
     try {
       await shareInvite({
         inviteCode: careGroup.invite_code,
-        elderName: elder?.full_name || 'the elder',
+        elderName: elder?.first_name ? `${elder.first_name} ${elder.last_name || ''}`.trim() : 'the elder',
       });
     } catch (error) {
       console.error('Error sharing invite:', error);
@@ -280,7 +280,7 @@ export default function CareGroupScreen() {
             <View style={styles.qrSection}>
               <QRInviteCard
                 inviteCode={careGroup.invite_code}
-                elderName={elder?.full_name || 'Elder'}
+                elderName={elder?.first_name ? `${elder.first_name} ${elder.last_name || ''}`.trim() : 'Elder'}
                 deepLink={buildDeepLink(careGroup.invite_code)}
                 onShare={handleShareInvite}
               />
@@ -318,7 +318,7 @@ export default function CareGroupScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Create Care Group</Text>
           <Text style={styles.subtitle}>
-            Set up care team for {elder?.full_name}
+            Set up care team for {elder?.first_name} {elder?.last_name}
           </Text>
         </View>
 

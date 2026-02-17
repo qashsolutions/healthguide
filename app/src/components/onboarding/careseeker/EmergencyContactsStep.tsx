@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Switch } from 'react-nat
 import Svg, { Path, Circle } from 'react-native-svg';
 import { LargeInput } from '@/components/ui/LargeInput';
 import { Button } from '@/components/ui/Button';
+import { FamilyIcon } from '@/components/icons';
 import * as Haptics from 'expo-haptics';
 
 interface Contact {
@@ -248,7 +249,7 @@ export function EmergencyContactsStep({ contacts, onUpdate, onNext, onBack }: Pr
 
       {contacts.length === 0 && (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>👨‍👩‍👧‍👦</Text>
+          <FamilyIcon size={48} color="#3B82F6" />
           <Text style={styles.emptyText}>No contacts added yet</Text>
           <Text style={styles.emptySubtext}>
             Family contacts will receive notifications about care visits
@@ -388,10 +389,6 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     padding: 32,
-  },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 16,
   },
   emptyText: {
     fontSize: 18,

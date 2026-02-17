@@ -30,7 +30,7 @@ export async function offlineCheckIn(
     assignmentId,
     {
       id: assignment.serverId,
-      actual_check_in: assignment.actualCheckIn,
+      actual_start: assignment.actualCheckIn,
       check_in_latitude: latitude,
       check_in_longitude: longitude,
       status: 'in_progress',
@@ -60,7 +60,7 @@ export async function offlineCheckOut(
     assignmentId,
     {
       id: assignment.serverId,
-      actual_check_out: assignment.actualCheckOut,
+      actual_end: assignment.actualCheckOut,
       check_out_latitude: latitude,
       check_out_longitude: longitude,
       status: 'completed',

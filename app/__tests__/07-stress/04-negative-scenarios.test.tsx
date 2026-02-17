@@ -182,7 +182,9 @@ describe('Batch 34: Negative Scenarios — XSS & SQL Injection', () => {
   it('#403 - XSS <script>alert("xss")</script> in elder name renders as text', async () => {
     const xssElders = [{
       ...generateElders(1)[0],
-      preferred_name: XSS_PAYLOADS[0],
+      first_name: XSS_PAYLOADS[0],
+      last_name: '',
+      full_name: XSS_PAYLOADS[0],
       address: '123 Main St',
       family_members: [],
     }];
@@ -204,7 +206,9 @@ describe('Batch 34: Negative Scenarios — XSS & SQL Injection', () => {
   it('#404 - XSS "><img src=x onerror=alert(1)> in elder name: no DOM injection', async () => {
     const xssElders = [{
       ...generateElders(1)[0],
-      preferred_name: XSS_PAYLOADS[1],
+      first_name: XSS_PAYLOADS[1],
+      last_name: '',
+      full_name: XSS_PAYLOADS[1],
       address: '123 Main St',
       family_members: [],
     }];
@@ -260,7 +264,7 @@ describe('Batch 34: Negative Scenarios — Overflow Text', () => {
   });
 
   // #407
-  it('#407 - 10000-char string in elder full_name: form renders without crash', async () => {
+  it('#407 - 10000-char string in elder first_name: form renders without crash', async () => {
     render(<ElderDetailScreen />);
     await waitFor(() => {
       expect(screen.getByText('Personal Information')).toBeTruthy();
@@ -360,7 +364,7 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
   it('#414 - Visit with null caregiver name: dashboard renders safely', async () => {
     const visits = [{
       ...generateVisits(1, generateElders(1), ['cg-1'])[0],
-      caregiver: { full_name: null, user: { first_name: null, last_name: null } },
+      caregiver: { full_name: null },
     }];
     let callCount = 0;
     mockChain.then.mockImplementation((resolve: any) => {
@@ -392,18 +396,18 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
       caregiver_id: 'cg-1',
       agency_id: 'agency-1',
       scheduled_date: new Date().toISOString().split('T')[0],
-      start_time: null,
-      end_time: null,
+      scheduled_start: null,
+      scheduled_end: null,
       status: 'scheduled',
       actual_start: null,
       actual_end: null,
       tasks_completed: null,
       tasks_total: null,
-      elder: { full_name: null, preferred_name: null, address_line1: null, city: null, state: null },
+      elder: { first_name: null, last_name: null, address_line1: null, city: null, state: null },
       caregiver: { full_name: null, user: null },
     };
-    expect(visit.start_time).toBeNull();
-    expect(visit.elder.full_name).toBeNull();
+    expect(visit.scheduled_start).toBeNull();
+    expect(visit.elder.first_name).toBeNull();
     expect(visit.caregiver.user).toBeNull();
   });
 
@@ -423,7 +427,7 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
     });
     render(<EldersScreen />);
     await waitFor(() => {
-      expect(screen.getByText(nullPhoneElders[0].preferred_name)).toBeTruthy();
+      expect(screen.getByText(nullPhoneElders[0].full_name)).toBeTruthy();
     });
   });
 

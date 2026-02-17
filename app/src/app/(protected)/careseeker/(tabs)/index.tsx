@@ -9,7 +9,7 @@ import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, touchTargets, borderRadius, shadows } from '@/theme/spacing';
 import { GradientHeader } from '@/components/ui/GradientHeader';
-import { PhoneIcon, HeartIcon, PersonIcon } from '@/components/icons';
+import { PhoneIcon, HeartIcon, PersonIcon, WaveIcon } from '@/components/icons';
 
 export default function ElderHomeScreen() {
   const { user } = useAuth();
@@ -70,7 +70,7 @@ export default function ElderHomeScreen() {
             ]}
             onPress={() => router.push('/(protected)/careseeker/daily-check-in')}
           >
-            <Text style={styles.checkinEmoji}>👋</Text>
+            <WaveIcon size={48} color={colors.white} />
             <Text style={styles.bigButtonText}>How are you?</Text>
           </Pressable>
         </View>
@@ -141,9 +141,6 @@ const styles = StyleSheet.create({
   bigButtonText: {
     ...typography.elder.button,
     color: colors.white,
-  },
-  checkinEmoji: {
-    fontSize: 48,
   },
   nextVisit: {
     flexDirection: 'row',

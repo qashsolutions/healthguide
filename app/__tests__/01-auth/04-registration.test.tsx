@@ -130,6 +130,8 @@ describe('Batch 4: Registration Screen', () => {
 
     await waitFor(() => {
       expect(mockSignUpWithEmail).toHaveBeenCalledWith('test@test.com', 'password123', {
+        first_name: 'Test',
+        last_name: 'User',
         full_name: 'Test User',
         role: 'agency_owner',
       });

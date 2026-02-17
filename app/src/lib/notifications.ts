@@ -27,6 +27,9 @@ export async function registerForPushNotifications(
   userId: string,
   userType: NotificationUserType = 'caregiver'
 ): Promise<string | null> {
+  // Push notifications not available on web
+  if (Platform.OS === 'web') return null;
+
   // Check if physical device
   if (!Device.isDevice) {
     console.log('Push notifications require a physical device');
@@ -125,6 +128,8 @@ async function saveDeviceToken(
  * Remove device token (for logout)
  */
 export async function removeDeviceToken(userId: string): Promise<void> {
+  if (Platform.OS === 'web') return;
+
   const tokenData = await Notifications.getExpoPushTokenAsync();
   const token = tokenData.data;
 
@@ -139,6 +144,9 @@ export async function removeDeviceToken(userId: string): Promise<void> {
  * Register notification categories for interactive actions
  */
 export async function registerNotificationCategories(): Promise<void> {
+  // Notification categories not available on web
+  if (Platform.OS === 'web') return;
+
   // Visit update category
   await Notifications.setNotificationCategoryAsync('visit_update', [
     {
@@ -244,6 +252,7 @@ export function setupForegroundHandler(): () => void {
  * Clear notification badge
  */
 export async function clearBadge(): Promise<void> {
+  if (Platform.OS === 'web') return;
   await Notifications.setBadgeCountAsync(0);
 }
 
@@ -251,6 +260,7 @@ export async function clearBadge(): Promise<void> {
  * Get pending notifications count
  */
 export async function getPendingNotificationsCount(): Promise<number> {
+  if (Platform.OS === 'web') return 0;
   const notifications = await Notifications.getPresentedNotificationsAsync();
   return notifications.length;
 }

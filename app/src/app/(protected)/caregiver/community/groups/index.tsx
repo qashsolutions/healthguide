@@ -317,7 +317,7 @@ export default function SupportGroupsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>🔍</Text>
+            <SearchIcon size={48} color={colors.neutral[300]} />
             <Text style={styles.emptyText}>
               {loading ? 'Loading groups...' : 'No groups found'}
             </Text>
@@ -447,8 +447,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[8],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

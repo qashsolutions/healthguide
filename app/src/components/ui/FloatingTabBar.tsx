@@ -26,6 +26,9 @@ export function createFloatingTabBar(options: FloatingTabBarOptions) {
         <View style={[styles.container, { height: tabHeight }]}>
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
+            // Skip routes hidden with href: null (sub-routes without icons)
+            if (!options.tabBarIcon || (options as any).href === null) return null;
+
             const label = (options.tabBarLabel ?? options.title ?? route.name) as string;
             const isFocused = state.index === index;
 

@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useConnectivity } from '@/lib/connectivity';
 import { syncQueueManager, SyncStatusInfo } from '@/lib/sync/SyncQueueManager';
+import { CloudIcon, SyncIcon, AlertIcon, HourglassIcon } from '@/components/icons';
 
 interface SyncStatusBarProps {
   onPress?: () => void;
@@ -88,7 +89,7 @@ export function SyncStatusBar({ onPress }: SyncStatusBarProps) {
   const getStatusContent = () => {
     if (!isOnline) {
       return {
-        icon: '☁️',
+        icon: <CloudIcon size={16} color="#FFFFFF" />,
         text: `Offline${syncStatus.pendingCount > 0 ? ` • ${syncStatus.pendingCount} pending` : ''}`,
         style: styles.offline,
       };
@@ -96,7 +97,7 @@ export function SyncStatusBar({ onPress }: SyncStatusBarProps) {
 
     if (syncStatus.isSyncing) {
       return {
-        icon: '🔄',
+        icon: <SyncIcon size={16} color="#FFFFFF" />,
         text: `Syncing ${syncStatus.pendingCount} change${syncStatus.pendingCount !== 1 ? 's' : ''}...`,
         style: styles.syncing,
         animated: true,
@@ -105,7 +106,7 @@ export function SyncStatusBar({ onPress }: SyncStatusBarProps) {
 
     if (syncStatus.failedCount > 0) {
       return {
-        icon: '⚠️',
+        icon: <AlertIcon size={16} color="#FFFFFF" />,
         text: `${syncStatus.failedCount} failed • Tap to retry`,
         style: styles.failed,
       };
@@ -113,7 +114,7 @@ export function SyncStatusBar({ onPress }: SyncStatusBarProps) {
 
     if (syncStatus.pendingCount > 0) {
       return {
-        icon: '⏳',
+        icon: <HourglassIcon size={16} color="#FFFFFF" />,
         text: `${syncStatus.pendingCount} change${syncStatus.pendingCount !== 1 ? 's' : ''} pending`,
         style: styles.pending,
       };
@@ -133,11 +134,11 @@ export function SyncStatusBar({ onPress }: SyncStatusBarProps) {
       accessibilityLabel={content.text}
     >
       {content.animated ? (
-        <Animated.Text style={[styles.icon, { transform: [{ rotate: spin }] }]}>
+        <Animated.View style={[styles.icon, { transform: [{ rotate: spin }] }]}>
           {content.icon}
-        </Animated.Text>
+        </Animated.View>
       ) : (
-        <Text style={styles.icon}>{content.icon}</Text>
+        <View style={styles.icon}>{content.icon}</View>
       )}
       <Text style={styles.text}>{content.text}</Text>
     </Pressable>
@@ -166,7 +167,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#DC2626', // Dark red for failed
   },
   icon: {
-    fontSize: 16,
+    width: 16,
+    height: 16,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   text: {
     color: '#FFFFFF',

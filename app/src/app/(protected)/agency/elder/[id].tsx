@@ -23,8 +23,8 @@ import { CareGroupCard } from '@/components/agency/CareGroupCard';
 import { shareInvite, buildDeepLink } from '@/lib/invite';
 
 interface ElderForm {
-  full_name: string;
-  preferred_name: string;
+  first_name: string;
+  last_name: string;
   phone: string;
   email: string;
   address: string;
@@ -85,8 +85,8 @@ export default function ElderDetailScreen() {
   const [careGroup, setCareGroup] = useState<any>(null);
   const [careGroupMembers, setCareGroupMembers] = useState<any[]>([]);
   const [form, setForm] = useState<ElderForm>({
-    full_name: '',
-    preferred_name: '',
+    first_name: '',
+    last_name: '',
     phone: '',
     email: '',
     address: '',
@@ -123,8 +123,8 @@ export default function ElderDetailScreen() {
 
       if (data) {
         setForm({
-          full_name: data.full_name || '',
-          preferred_name: data.preferred_name || '',
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
           phone: data.phone || '',
           email: data.email || '',
           address: data.address || '',
@@ -210,14 +210,14 @@ export default function ElderDetailScreen() {
   async function handleShareInvite() {
     if (!careGroup) return;
     await shareInvite({
-      elderName: form.full_name || form.preferred_name || 'your loved one',
+      elderName: `${form.first_name} ${form.last_name}`.trim() || 'your loved one',
       inviteCode: careGroup.invite_code,
     });
   }
 
   async function handleSave() {
-    if (!form.full_name || !form.address) {
-      Alert.alert('Error', 'Name and address are required');
+    if (!form.first_name || !form.address) {
+      Alert.alert('Error', 'First name and address are required');
       return;
     }
 
@@ -236,8 +236,8 @@ export default function ElderDetailScreen() {
       }
 
       const dataToSave = {
-        full_name: form.full_name,
-        preferred_name: form.preferred_name,
+        first_name: form.first_name,
+        last_name: form.last_name,
         phone: form.phone,
         email: form.email,
         address: form.address,
@@ -378,17 +378,17 @@ export default function ElderDetailScreen() {
             <Text style={styles.sectionTitle}>Personal Information</Text>
 
             <Input
-              label="Full Name"
-              value={form.full_name}
-              onChangeText={(text: string) => setForm({ ...form, full_name: text })}
-              placeholder="John Smith"
+              label="First Name"
+              value={form.first_name}
+              onChangeText={(text: string) => setForm({ ...form, first_name: text })}
+              placeholder="John"
             />
 
             <Input
-              label="Preferred Name"
-              value={form.preferred_name}
-              onChangeText={(text: string) => setForm({ ...form, preferred_name: text })}
-              placeholder="Johnny"
+              label="Last Name"
+              value={form.last_name}
+              onChangeText={(text: string) => setForm({ ...form, last_name: text })}
+              placeholder="Smith"
             />
 
             <Input
@@ -518,7 +518,7 @@ export default function ElderDetailScreen() {
                 variant="secondary"
                 onPress={() =>
                   router.push(
-                    `/(protected)/agency/elder/video-contacts?elder_id=${id}&elder_name=${encodeURIComponent(form.full_name || form.preferred_name || '')}`
+                    `/(protected)/agency/elder/video-contacts?elder_id=${id}&elder_name=${encodeURIComponent(`${form.first_name} ${form.last_name}`.trim())}`
                   )
                 }
                 fullWidth

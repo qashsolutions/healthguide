@@ -48,8 +48,8 @@ interface AssignmentData {
     longitude: number;
   };
   scheduled_date: string;
-  start_time: string;
-  end_time: string;
+  scheduled_start: string;
+  scheduled_end: string;
 }
 
 export default function CheckInScreen() {
@@ -71,8 +71,8 @@ export default function CheckInScreen() {
         .select(`
           id,
           scheduled_date,
-          start_time,
-          end_time,
+          scheduled_start,
+          scheduled_end,
           elder:elders (
             id,
             first_name,
@@ -159,7 +159,7 @@ export default function CheckInScreen() {
       .from('visits')
       .update({
         status: 'in_progress',
-        actual_check_in: new Date().toISOString(),
+        actual_start: new Date().toISOString(),
         check_in_latitude: location.latitude,
         check_in_longitude: location.longitude,
       })
@@ -233,7 +233,7 @@ export default function CheckInScreen() {
               </Text>
               <Text style={styles.clientAddress}>{assignment.elder.address}</Text>
               <Text style={styles.clientTime}>
-                {formatTime(assignment.start_time)} - {formatTime(assignment.end_time)}
+                {formatTime(assignment.scheduled_start)} - {formatTime(assignment.scheduled_end)}
               </Text>
             </View>
           </View>

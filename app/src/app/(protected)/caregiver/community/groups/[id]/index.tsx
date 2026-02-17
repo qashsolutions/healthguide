@@ -22,7 +22,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, shadows } from '@/theme/spacing';
-import { PersonIcon, SendIcon, HeartIcon, CommunityIcon } from '@/components/icons';
+import { PersonIcon, SendIcon, HeartIcon, CommunityIcon, MessageIcon } from '@/components/icons';
 
 interface GroupDetails {
   id: string;
@@ -434,7 +434,7 @@ export default function GroupDetailScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyEmoji}>💬</Text>
+              <MessageIcon size={48} color={colors.neutral[300]} />
               <Text style={styles.emptyText}>No messages yet</Text>
               <Text style={styles.emptySubtext}>
                 Be the first to start the conversation!
@@ -673,8 +673,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[8],
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIcon: {
     marginBottom: spacing[3],
   },
   emptyText: {

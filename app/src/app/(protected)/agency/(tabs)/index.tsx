@@ -45,10 +45,10 @@ interface DashboardStats {
 interface TodayVisit {
   id: string;
   scheduled_date: string;
-  start_time: string;
-  end_time: string;
+  scheduled_start: string;
+  scheduled_end: string;
   status: string;
-  caregiver: { first_name: string; last_name: string } | null;
+  caregiver: { full_name: string } | null;
   elder: { first_name: string; last_name: string } | null;
 }
 
@@ -94,7 +94,7 @@ export default function AgencyDashboard() {
       ] = await Promise.all([
         // Caregivers count
         supabase
-          .from('caregivers')
+          .from('caregiver_profiles')
           .select('id, is_active', { count: 'exact' })
           .eq('agency_id', agency.id),
 
@@ -110,17 +110,15 @@ export default function AgencyDashboard() {
           .select(`
             id,
             scheduled_date,
-            start_time,
-            end_time,
+            scheduled_start,
+            scheduled_end,
             status,
-            caregiver:caregivers (
-              user:user_profiles (first_name, last_name)
-            ),
+            caregiver:caregiver_profiles (full_name),
             elder:elders (first_name, last_name)
           `)
           .eq('agency_id', agency.id)
           .eq('scheduled_date', today)
-          .order('start_time', { ascending: true }),
+          .order('scheduled_start', { ascending: true }),
 
         // Recent activity (last 10 completed/in-progress visits)
         supabase
@@ -128,11 +126,9 @@ export default function AgencyDashboard() {
           .select(`
             id,
             status,
-            actual_check_in,
-            actual_check_out,
-            caregiver:caregivers (
-              user:user_profiles (first_name, last_name)
-            ),
+            actual_start,
+            actual_end,
+            caregiver:caregiver_profiles (full_name),
             elder:elders (first_name, last_name)
           `)
           .eq('agency_id', agency.id)
@@ -162,17 +158,15 @@ export default function AgencyDashboard() {
 
       // Transform visits for display
       const transformedVisits: TodayVisit[] = visits.map((v: any) => {
-        const caregiverUser = v.caregiver?.user;
-        const caregiverData = Array.isArray(caregiverUser) ? caregiverUser[0] : caregiverUser;
+        const caregiverData = v.caregiver;
         return {
           id: v.id,
           scheduled_date: v.scheduled_date,
-          start_time: v.start_time,
-          end_time: v.end_time,
+          scheduled_start: v.scheduled_start,
+          scheduled_end: v.scheduled_end,
           status: v.status,
           caregiver: caregiverData ? {
-            first_name: caregiverData.first_name || '',
-            last_name: caregiverData.last_name || '',
+            full_name: caregiverData.full_name || '',
           } : null,
           elder: v.elder ? {
             first_name: v.elder.first_name || '',
@@ -184,13 +178,9 @@ export default function AgencyDashboard() {
       // Process recent activity
       const activity: RecentActivity[] = (activityResult.data || []).slice(0, 5).map((a: any) => {
         const caregiverRaw = Array.isArray(a.caregiver) ? a.caregiver[0] : a.caregiver;
-        const caregiverUser = caregiverRaw?.user;
-        const caregiverData = Array.isArray(caregiverUser) ? caregiverUser[0] : caregiverUser;
         const elderRaw = Array.isArray(a.elder) ? a.elder[0] : a.elder;
 
-        const caregiverName = caregiverData
-          ? `${caregiverData.first_name} ${caregiverData.last_name?.charAt(0) || ''}.`
-          : 'Unknown';
+        const caregiverName = caregiverRaw?.full_name || 'Unknown';
         const elderName = elderRaw
           ? `${elderRaw.first_name} ${elderRaw.last_name?.charAt(0) || ''}.`
           : 'Unknown';
@@ -198,12 +188,12 @@ export default function AgencyDashboard() {
         let type: 'check_in' | 'check_out' | 'task_complete' = 'check_in';
         let time = '';
 
-        if (a.status === 'completed' && a.actual_check_out) {
+        if (a.status === 'completed' && a.actual_end) {
           type = 'check_out';
-          time = format(new Date(a.actual_check_out), 'h:mm a');
-        } else if (a.actual_check_in) {
+          time = format(new Date(a.actual_end), 'h:mm a');
+        } else if (a.actual_start) {
           type = 'check_in';
-          time = format(new Date(a.actual_check_in), 'h:mm a');
+          time = format(new Date(a.actual_start), 'h:mm a');
         }
 
         return {
@@ -237,7 +227,7 @@ export default function AgencyDashboard() {
       const now = new Date();
       visits.forEach((v: any) => {
         if (v.status === 'scheduled') {
-          const [hours, minutes] = v.start_time.split(':');
+          const [hours, minutes] = v.scheduled_start.split(':');
           const scheduledTime = new Date();
           scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0);
 
@@ -428,14 +418,14 @@ export default function AgencyDashboard() {
                   <View style={styles.visitTime}>
                     <ClockIcon size={14} color={colors.text.secondary} />
                     <Text style={styles.visitTimeText}>
-                      {formatTime(visit.start_time)} - {formatTime(visit.end_time)}
+                      {formatTime(visit.scheduled_start)} - {formatTime(visit.scheduled_end)}
                     </Text>
                   </View>
                   <Text style={styles.visitElder} numberOfLines={1}>
                     {visit.elder?.first_name} {visit.elder?.last_name}
                   </Text>
                   <Text style={styles.visitCaregiver} numberOfLines={1}>
-                    {visit.caregiver?.first_name} {visit.caregiver?.last_name}
+                    {visit.caregiver?.full_name}
                   </Text>
                   <View style={[styles.statusBadge, { backgroundColor: getStatusColor(visit.status) + '20' }]}>
                     <View style={[styles.statusDot, { backgroundColor: getStatusColor(visit.status) }]} />
