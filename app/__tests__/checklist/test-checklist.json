@@ -2789,5 +2789,981 @@
     "screen": "components/PaymentMethodCard",
     "feature": "PaymentMethodCard renders",
     "status": "pass"
+  },
+  {
+    "id": 338,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "100 caregivers: shows 100/15 Caregivers count",
+    "status": "pass"
+  },
+  {
+    "id": 339,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "First caregiver name renders in list",
+    "status": "pass"
+  },
+  {
+    "id": 340,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Last caregiver (#100) name renders",
+    "status": "pass"
+  },
+  {
+    "id": 341,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Search filters by name returns correct subset",
+    "status": "pass"
+  },
+  {
+    "id": 342,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Search by phone substring works",
+    "status": "pass"
+  },
+  {
+    "id": 343,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Search with no match does not show empty-data text",
+    "status": "pass"
+  },
+  {
+    "id": 344,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "At exactly 15 caregivers: shows 15/15 Caregivers",
+    "status": "pass"
+  },
+  {
+    "id": 345,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "At 15 caregivers: + Add button is disabled",
+    "status": "pass"
+  },
+  {
+    "id": 346,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "At 14 caregivers: + Add button is enabled",
+    "status": "pass"
+  },
+  {
+    "id": 347,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Mixed statuses render colored status dots",
+    "status": "pass"
+  },
+  {
+    "id": 348,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: Get Started empty state before search",
+    "status": "pass"
+  },
+  {
+    "id": 349,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: search returns 50 results — first card renders name",
+    "status": "pass"
+  },
+  {
+    "id": 350,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: caregiver with 8 capabilities shows first 3 chips",
+    "status": "pass"
+  },
+  {
+    "id": 351,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: hourly_rate=null shows Rate not specified",
+    "status": "pass"
+  },
+  {
+    "id": 352,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: hourly_rate=25 shows $25/hr",
+    "status": "pass"
+  },
+  {
+    "id": 353,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: NPI verified shows shield badge",
+    "status": "pass"
+  },
+  {
+    "id": 354,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: non-verified has no shield in name row",
+    "status": "pass"
+  },
+  {
+    "id": 355,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: Filter toggle shows Filters panel",
+    "status": "pass"
+  },
+  {
+    "id": 356,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: zip code filter input renders",
+    "status": "pass"
+  },
+  {
+    "id": 357,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: availability toggles (Morning/Afternoon/Evening) render",
+    "status": "pass"
+  },
+  {
+    "id": 358,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: Verified Only switch renders",
+    "status": "pass"
+  },
+  {
+    "id": 359,
+    "batch": 31,
+    "testFile": "07-stress/01-caregiver-volume.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "Directory: empty results shows No Caregivers Found",
+    "status": "pass"
+  },
+  {
+    "id": 360,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "15 elders: shows 15 elders count",
+    "status": "pass"
+  },
+  {
+    "id": 361,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "First elder name renders",
+    "status": "pass"
+  },
+  {
+    "id": 362,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Last elder (#15) exists in data set",
+    "status": "pass"
+  },
+  {
+    "id": 363,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Search filters by full_name",
+    "status": "pass"
+  },
+  {
+    "id": 364,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Search by preferred_name works",
+    "status": "pass"
+  },
+  {
+    "id": 365,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Each elder card shows city/state",
+    "status": "pass"
+  },
+  {
+    "id": 366,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Pending handshake elders have distinct status",
+    "status": "pass"
+  },
+  {
+    "id": 367,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "FlatList receives all 15 elders",
+    "status": "pass"
+  },
+  {
+    "id": 368,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "+ Add button renders with 15 elders",
+    "status": "pass"
+  },
+  {
+    "id": 369,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "New elder form: Personal Information section renders",
+    "status": "pass"
+  },
+  {
+    "id": 370,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "All care needs chips render",
+    "status": "pass"
+  },
+  {
+    "id": 371,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Emergency contact fields render",
+    "status": "pass"
+  },
+  {
+    "id": 372,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Save Elder button renders",
+    "status": "pass"
+  },
+  {
+    "id": 373,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Form with 500-char full_name does not crash",
+    "status": "pass"
+  },
+  {
+    "id": 374,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Form with unicode/accented characters works",
+    "status": "pass"
+  },
+  {
+    "id": 375,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Form with emoji in name renders safely",
+    "status": "pass"
+  },
+  {
+    "id": 376,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Elder with 3 emergency contacts mock loads correctly",
+    "status": "pass"
+  },
+  {
+    "id": 377,
+    "batch": 32,
+    "testFile": "07-stress/02-elder-capacity.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "Elder with 0 emergency contacts: empty array handled",
+    "status": "pass"
+  },
+  {
+    "id": 378,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Create Care Group title renders",
+    "status": "pass"
+  },
+  {
+    "id": 379,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Initially 1 family member card (Member 1)",
+    "status": "pass"
+  },
+  {
+    "id": 380,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Add Family Member adds 2nd card",
+    "status": "pass"
+  },
+  {
+    "id": 381,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Add Family Member adds 3rd card",
+    "status": "pass"
+  },
+  {
+    "id": 382,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "At 3 family members: Add Family Member disabled",
+    "status": "pass"
+  },
+  {
+    "id": 383,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Member count tracks additions",
+    "status": "pass"
+  },
+  {
+    "id": 384,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Add Family Member button exists after adding members",
+    "status": "pass"
+  },
+  {
+    "id": 385,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "All 7 relationship chips render",
+    "status": "pass"
+  },
+  {
+    "id": 386,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Clicking relationship chip updates selection",
+    "status": "pass"
+  },
+  {
+    "id": 387,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Only 1 caregiver section (no add button for caregivers)",
+    "status": "pass"
+  },
+  {
+    "id": 388,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Caregiver name input renders",
+    "status": "pass"
+  },
+  {
+    "id": 389,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Caregiver phone input renders",
+    "status": "pass"
+  },
+  {
+    "id": 390,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Create Care Group button renders",
+    "status": "pass"
+  },
+  {
+    "id": 391,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Family member Full Name input renders",
+    "status": "pass"
+  },
+  {
+    "id": 392,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Elder section is optional",
+    "status": "pass"
+  },
+  {
+    "id": 393,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Successful submission shows Care Group Created",
+    "status": "pass"
+  },
+  {
+    "id": 394,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Successful submission shows invite code",
+    "status": "pass"
+  },
+  {
+    "id": 395,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Back to Dashboard button renders after creation",
+    "status": "pass"
+  },
+  {
+    "id": 396,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "agency/elder/care-group.tsx",
+    "feature": "Cancel button renders",
+    "status": "pass"
+  },
+  {
+    "id": 397,
+    "batch": 33,
+    "testFile": "07-stress/03-care-group-limits.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "Data generators: 15 elders x 5 members per group",
+    "status": "pass"
+  },
+  {
+    "id": 398,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone 123 shows validation error",
+    "status": "pass"
+  },
+  {
+    "id": 399,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone abcdefghij gets cleaned, shows error",
+    "status": "pass"
+  },
+  {
+    "id": 400,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Empty phone shows error",
+    "status": "pass"
+  },
+  {
+    "id": 401,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone +1555!@#$%^& gets cleaned, shows error",
+    "status": "pass"
+  },
+  {
+    "id": 402,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "(auth)/caregiver-signup.tsx",
+    "feature": "Phone with spaces gets cleaned and formatted",
+    "status": "pass"
+  },
+  {
+    "id": 403,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "XSS script tag in elder name renders as text",
+    "status": "pass"
+  },
+  {
+    "id": 404,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "XSS img onerror in elder name: no DOM injection",
+    "status": "pass"
+  },
+  {
+    "id": 405,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "SQL injection in search: no crash",
+    "status": "pass"
+  },
+  {
+    "id": 406,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "XSS in search field: renders as text, no injection",
+    "status": "pass"
+  },
+  {
+    "id": 407,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/elder/[id].tsx",
+    "feature": "10000-char string in elder full_name: form renders without crash",
+    "status": "pass"
+  },
+  {
+    "id": 408,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "10000-char search query: search field accepts input",
+    "status": "pass"
+  },
+  {
+    "id": 409,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Supabase network error: dashboard shows empty state",
+    "status": "pass"
+  },
+  {
+    "id": 410,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Supabase error on elder fetch: shows No elders yet",
+    "status": "pass"
+  },
+  {
+    "id": 411,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Supabase error on caregiver fetch: shows No caregivers yet",
+    "status": "pass"
+  },
+  {
+    "id": 412,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/caregiver-directory.tsx",
+    "feature": "supabase.functions.invoke error: directory shows No Caregivers Found",
+    "status": "pass"
+  },
+  {
+    "id": 413,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Supabase chain throws exception: console.error called",
+    "status": "pass"
+  },
+  {
+    "id": 414,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Visit with null caregiver name: dashboard renders safely",
+    "status": "pass"
+  },
+  {
+    "id": 415,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "Visit with future date: status shows as scheduled",
+    "status": "pass"
+  },
+  {
+    "id": 416,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "Visit with all null optional fields: no crash",
+    "status": "pass"
+  },
+  {
+    "id": 417,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/elders.tsx",
+    "feature": "Elder with null phone: card renders without crash",
+    "status": "pass"
+  },
+  {
+    "id": 418,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/caregivers.tsx",
+    "feature": "Caregiver with null phone: card renders without crash",
+    "status": "pass"
+  },
+  {
+    "id": 419,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Empty agency: all empty states render",
+    "status": "pass"
+  },
+  {
+    "id": 420,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Rapid re-render: no duplicate state",
+    "status": "pass"
+  },
+  {
+    "id": 421,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Component unmount during async fetch: no warning",
+    "status": "pass"
+  },
+  {
+    "id": 422,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "INVALID_PHONES has 7 entries",
+    "status": "pass"
+  },
+  {
+    "id": 423,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "INVALID_ZIPS has 6 entries",
+    "status": "pass"
+  },
+  {
+    "id": 424,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "XSS_PAYLOADS has 4 entries",
+    "status": "pass"
+  },
+  {
+    "id": 425,
+    "batch": 34,
+    "testFile": "07-stress/04-negative-scenarios.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "SQL_INJECTION_PAYLOADS has 4 entries",
+    "status": "pass"
+  },
+  {
+    "id": 426,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Agency dashboard: Welcome back renders with full data",
+    "status": "pass"
+  },
+  {
+    "id": 427,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Stats show elders count",
+    "status": "pass"
+  },
+  {
+    "id": 428,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Stats show caregivers count",
+    "status": "pass"
+  },
+  {
+    "id": 429,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Stats show today's visits",
+    "status": "pass"
+  },
+  {
+    "id": 430,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Completion rate displays",
+    "status": "pass"
+  },
+  {
+    "id": 431,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Today's Schedule section renders",
+    "status": "pass"
+  },
+  {
+    "id": 432,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "View All link renders",
+    "status": "pass"
+  },
+  {
+    "id": 433,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Find Caregivers card renders amid full load",
+    "status": "pass"
+  },
+  {
+    "id": 434,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Today's Progress section renders",
+    "status": "pass"
+  },
+  {
+    "id": 435,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "agency/(tabs)/index.tsx",
+    "feature": "Completed/In Progress/Upcoming badges all render",
+    "status": "pass"
+  },
+  {
+    "id": 436,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Caregiver today: renders with visit data",
+    "status": "pass"
+  },
+  {
+    "id": 437,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Caregiver today: shows visit count",
+    "status": "pass"
+  },
+  {
+    "id": 438,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "caregiver/(tabs)/index.tsx",
+    "feature": "Caregiver today: elder name appears on visit card",
+    "status": "pass"
+  },
+  {
+    "id": 439,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Family dashboard: elder info renders",
+    "status": "pass"
+  },
+  {
+    "id": 440,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Family dashboard: elder name renders",
+    "status": "pass"
+  },
+  {
+    "id": 441,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Family dashboard: Quick Actions render",
+    "status": "pass"
+  },
+  {
+    "id": 442,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "family/dashboard.tsx",
+    "feature": "Family dashboard: empty visit state renders",
+    "status": "pass"
+  },
+  {
+    "id": 443,
+    "batch": 35,
+    "testFile": "07-stress/05-dashboard-stress.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "Data generators: 50 visits have correct status distribution",
+    "status": "pass"
+  },
+  {
+    "id": 444,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "Notification settings: Notification Settings title renders",
+    "status": "pass"
+  },
+  {
+    "id": 445,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "Caregiver Arrival switch renders",
+    "status": "pass"
+  },
+  {
+    "id": 446,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "Visit Completed switch renders",
+    "status": "pass"
+  },
+  {
+    "id": 447,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "Daily Care Summary switch renders",
+    "status": "pass"
+  },
+  {
+    "id": 448,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "Toggle daily_report on shows Include Caregiver Notes",
+    "status": "pass"
+  },
+  {
+    "id": 449,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "Save Preferences button renders",
+    "status": "pass"
+  },
+  {
+    "id": 450,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "family/settings/notifications.tsx",
+    "feature": "After toggling, save button is present",
+    "status": "pass"
+  },
+  {
+    "id": 451,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "agency/elder/video-contacts.tsx",
+    "feature": "Video contacts: subtitle includes elder name",
+    "status": "pass"
+  },
+  {
+    "id": 452,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "agency/elder/video-contacts.tsx",
+    "feature": "With 10 contacts: Maximum of 10 contacts reached shows",
+    "status": "pass"
+  },
+  {
+    "id": 453,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "agency/elder/video-contacts.tsx",
+    "feature": "With 10 contacts: Add Video Contact button hidden",
+    "status": "pass"
+  },
+  {
+    "id": 454,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "agency/elder/video-contacts.tsx",
+    "feature": "With 9 contacts: Add Video Contact button visible",
+    "status": "pass"
+  },
+  {
+    "id": 455,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "agency/elder/video-contacts.tsx",
+    "feature": "With 0 contacts: No video contacts added yet shows",
+    "status": "pass"
+  },
+  {
+    "id": 456,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "agency/elder/video-contacts.tsx",
+    "feature": "Add form: clicking Add Video Contact shows form fields",
+    "status": "pass"
+  },
+  {
+    "id": 457,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "15 elders x 3 family per group = 45 family members",
+    "status": "pass"
+  },
+  {
+    "id": 458,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "All 7 notification types represented",
+    "status": "pass"
+  },
+  {
+    "id": 459,
+    "batch": 36,
+    "testFile": "07-stress/06-notification-limits.test.tsx",
+    "screen": "stress-test-data.ts",
+    "feature": "Video contacts generator creates correct count",
+    "status": "pass"
   }
 ]

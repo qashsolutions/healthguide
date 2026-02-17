@@ -118,6 +118,9 @@ jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: jest.fn(),
   AndroidImportance: { MAX: 5, HIGH: 4, DEFAULT: 3 },
   setNotificationChannelAsync: jest.fn(),
+  setNotificationCategoryAsync: jest.fn().mockResolvedValue(null),
+  setBadgeCountAsync: jest.fn().mockResolvedValue(true),
+  getPresentedNotificationsAsync: jest.fn().mockResolvedValue([]),
 }));
 
 // --- expo-image-picker ---
@@ -313,6 +316,9 @@ jest.mock('@nozbe/watermelondb', () => ({
     take: jest.fn(),
   },
   tableName: jest.fn(),
+  appSchema: (schema: any) => schema,
+  tableSchema: (table: any) => table,
+  columnName: jest.fn((name: string) => name),
 }));
 
 jest.mock('@nozbe/watermelondb/adapters/sqlite', () => jest.fn());

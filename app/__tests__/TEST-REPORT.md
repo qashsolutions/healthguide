@@ -4,8 +4,8 @@
 
 | Metric | Count |
 |--------|-------|
-| Total Features | 337 |
-| Pass | 320 |
+| Total Features | 459 |
+| Pass | 442 |
 | Skip-native (GPS, camera, push) | 2 |
 | Skip-stub (not yet implemented) | 15 |
 | Fail | 0 |
@@ -16,8 +16,8 @@
 - Jest 30 with jest-expo/web preset
 - @testing-library/react (web/DOM-based)
 - maxWorkers: 1 (sequential execution)
-- 30 test files across 6 directories
-- 326 actual test functions, 337 tracked features
+- 36 test files across 7 directories
+- 448 actual test functions, 459 tracked features
 
 ## Results by Batch
 
@@ -478,6 +478,152 @@
 - [x] #336 SubscriptionCard renders
 - [x] #337 PaymentMethodCard renders
 
+### Batch 31 (07-stress/01-caregiver-volume.test.tsx)
+22 pass
+
+- [x] #338 100 caregivers: shows 100/15 Caregivers count
+- [x] #339 First caregiver name renders in list
+- [x] #340 Last caregiver (#100) name renders
+- [x] #341 Search filters by name returns correct subset
+- [x] #342 Search by phone substring works
+- [x] #343 Search with no match does not show empty-data text
+- [x] #344 At exactly 15 caregivers: shows 15/15 Caregivers
+- [x] #345 At 15 caregivers: + Add button is disabled
+- [x] #346 At 14 caregivers: + Add button is enabled
+- [x] #347 Mixed statuses render colored status dots
+- [x] #348 Directory: Get Started empty state before search
+- [x] #349 Directory: search returns 50 results — first card renders name
+- [x] #350 Directory: caregiver with 8 capabilities shows first 3 chips
+- [x] #351 Directory: hourly_rate=null shows Rate not specified
+- [x] #352 Directory: hourly_rate=25 shows $25/hr
+- [x] #353 Directory: NPI verified shows shield badge
+- [x] #354 Directory: non-verified has no shield in name row
+- [x] #355 Directory: Filter toggle shows Filters panel
+- [x] #356 Directory: zip code filter input renders
+- [x] #357 Directory: availability toggles (Morning/Afternoon/Evening) render
+- [x] #358 Directory: Verified Only switch renders
+- [x] #359 Directory: empty results shows No Caregivers Found
+
+### Batch 32 (07-stress/02-elder-capacity.test.tsx)
+18 pass
+
+- [x] #360 15 elders: shows 15 elders count
+- [x] #361 First elder name renders
+- [x] #362 Last elder (#15) exists in data set
+- [x] #363 Search filters by full_name
+- [x] #364 Search by preferred_name works
+- [x] #365 Each elder card shows city/state
+- [x] #366 Pending handshake elders have distinct status
+- [x] #367 FlatList receives all 15 elders
+- [x] #368 + Add button renders with 15 elders
+- [x] #369 New elder form: Personal Information section renders
+- [x] #370 All care needs chips render
+- [x] #371 Emergency contact fields render
+- [x] #372 Save Elder button renders
+- [x] #373 Form with 500-char full_name does not crash
+- [x] #374 Form with unicode/accented characters works
+- [x] #375 Form with emoji in name renders safely
+- [x] #376 Elder with 3 emergency contacts mock loads correctly
+- [x] #377 Elder with 0 emergency contacts: empty array handled
+
+### Batch 33 (07-stress/03-care-group-limits.test.tsx)
+20 pass
+
+- [x] #378 Create Care Group title renders
+- [x] #379 Initially 1 family member card (Member 1)
+- [x] #380 Add Family Member adds 2nd card
+- [x] #381 Add Family Member adds 3rd card
+- [x] #382 At 3 family members: Add Family Member disabled
+- [x] #383 Member count tracks additions
+- [x] #384 Add Family Member button exists after adding members
+- [x] #385 All 7 relationship chips render
+- [x] #386 Clicking relationship chip updates selection
+- [x] #387 Only 1 caregiver section (no add button for caregivers)
+- [x] #388 Caregiver name input renders
+- [x] #389 Caregiver phone input renders
+- [x] #390 Create Care Group button renders
+- [x] #391 Family member Full Name input renders
+- [x] #392 Elder section is optional
+- [x] #393 Successful submission shows Care Group Created
+- [x] #394 Successful submission shows invite code
+- [x] #395 Back to Dashboard button renders after creation
+- [x] #396 Cancel button renders
+- [x] #397 Data generators: 15 elders x 5 members per group
+
+### Batch 34 (07-stress/04-negative-scenarios.test.tsx)
+28 pass
+
+- [x] #398 Phone 123 shows validation error
+- [x] #399 Phone abcdefghij gets cleaned, shows error
+- [x] #400 Empty phone shows error
+- [x] #401 Phone +1555!@#$%^& gets cleaned, shows error
+- [x] #402 Phone with spaces gets cleaned and formatted
+- [x] #403 XSS script tag in elder name renders as text
+- [x] #404 XSS img onerror in elder name: no DOM injection
+- [x] #405 SQL injection in search: no crash
+- [x] #406 XSS in search field: renders as text, no injection
+- [x] #407 10000-char string in elder full_name: form renders without crash
+- [x] #408 10000-char search query: search field accepts input
+- [x] #409 Supabase network error: dashboard shows empty state
+- [x] #410 Supabase error on elder fetch: shows No elders yet
+- [x] #411 Supabase error on caregiver fetch: shows No caregivers yet
+- [x] #412 supabase.functions.invoke error: directory shows No Caregivers Found
+- [x] #413 Supabase chain throws exception: console.error called
+- [x] #414 Visit with null caregiver name: dashboard renders safely
+- [x] #415 Visit with future date: status shows as scheduled
+- [x] #416 Visit with all null optional fields: no crash
+- [x] #417 Elder with null phone: card renders without crash
+- [x] #418 Caregiver with null phone: card renders without crash
+- [x] #419 Empty agency: all empty states render
+- [x] #420 Rapid re-render: no duplicate state
+- [x] #421 Component unmount during async fetch: no warning
+- [x] #422 INVALID_PHONES has 7 entries
+- [x] #423 INVALID_ZIPS has 6 entries
+- [x] #424 XSS_PAYLOADS has 4 entries
+- [x] #425 SQL_INJECTION_PAYLOADS has 4 entries
+
+### Batch 35 (07-stress/05-dashboard-stress.test.tsx)
+18 pass
+
+- [x] #426 Agency dashboard: Welcome back renders with full data
+- [x] #427 Stats show elders count
+- [x] #428 Stats show caregivers count
+- [x] #429 Stats show today's visits
+- [x] #430 Completion rate displays
+- [x] #431 Today's Schedule section renders
+- [x] #432 View All link renders
+- [x] #433 Find Caregivers card renders amid full load
+- [x] #434 Today's Progress section renders
+- [x] #435 Completed/In Progress/Upcoming badges all render
+- [x] #436 Caregiver today: renders with visit data
+- [x] #437 Caregiver today: shows visit count
+- [x] #438 Caregiver today: elder name appears on visit card
+- [x] #439 Family dashboard: elder info renders
+- [x] #440 Family dashboard: elder name renders
+- [x] #441 Family dashboard: Quick Actions render
+- [x] #442 Family dashboard: empty visit state renders
+- [x] #443 Data generators: 50 visits have correct status distribution
+
+### Batch 36 (07-stress/06-notification-limits.test.tsx)
+16 pass
+
+- [x] #444 Notification settings: Notification Settings title renders
+- [x] #445 Caregiver Arrival switch renders
+- [x] #446 Visit Completed switch renders
+- [x] #447 Daily Care Summary switch renders
+- [x] #448 Toggle daily_report on shows Include Caregiver Notes
+- [x] #449 Save Preferences button renders
+- [x] #450 After toggling, save button is present
+- [x] #451 Video contacts: subtitle includes elder name
+- [x] #452 With 10 contacts: Maximum of 10 contacts reached shows
+- [x] #453 With 10 contacts: Add Video Contact button hidden
+- [x] #454 With 9 contacts: Add Video Contact button visible
+- [x] #455 With 0 contacts: No video contacts added yet shows
+- [x] #456 Add form: clicking Add Video Contact shows form fields
+- [x] #457 15 elders x 3 family per group = 45 family members
+- [x] #458 All 7 notification types represented
+- [x] #459 Video contacts generator creates correct count
+
 ## Test Directories
 
 ```
@@ -488,6 +634,7 @@ __tests__/
   04-careseeker/    3 files (batches 20-22)
   05-family/        3 files (batches 23-25)
   06-shared/        5 files (batches 26-30)
+  07-stress/        7 files (batches 31-36) — stress, limits, negative scenarios
   checklist/        test-checklist.json
   helpers/          renderWithProviders.tsx
 ```
