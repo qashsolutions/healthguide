@@ -9,6 +9,8 @@ export {
   borderRadius,
   shadows,
   createShadow,
+  createTintedShadow,
+  layout,
   type SpacingKey,
   type TouchTargetKey,
   type BorderRadiusKey,
@@ -24,4 +26,5 @@ export const theme = {
   touchTargets: require('./spacing').touchTargets,
   borderRadius: require('./spacing').borderRadius,
   shadows: require('./spacing').shadows,
+  layout: require('./spacing').layout,
 } as const;

@@ -3,6 +3,10 @@
 
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 
+import { colors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
+
 interface Step {
   id: string;
   title: string;
@@ -92,16 +96,16 @@ export function ProgressBar({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    backgroundColor: colors.surface,
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: layout.screenPadding,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   stepsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing[3],
   },
   stepWrapper: {
     alignItems: 'center',
@@ -111,45 +115,45 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.neutral[100],
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: spacing[1],
   },
   stepCircleCompleted: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success[500],
   },
   stepCircleCurrent: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary[500],
   },
   stepCircleUpcoming: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.neutral[100],
   },
   stepNumber: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '600',
-    color: '#9CA3AF',
+    color: colors.neutral[400],
   },
   stepNumberCompleted: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 16,
   },
   stepNumberCurrent: {
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   stepTitle: {
-    fontSize: 11,
+    ...typography.styles.caption,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     textAlign: 'center',
     maxWidth: 64,
   },
   stepTitleCurrent: {
-    color: '#3B82F6',
+    color: colors.primary[500],
     fontWeight: '600',
   },
   stepTitleUpcoming: {
-    color: '#9CA3AF',
+    color: colors.neutral[400],
   },
   progressBarContainer: {
     flexDirection: 'row',
@@ -159,19 +163,19 @@ const styles = StyleSheet.create({
   progressBarTrack: {
     flex: 1,
     height: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.neutral[200],
     borderRadius: 2,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary[500],
     borderRadius: 2,
   },
   progressText: {
-    fontSize: 12,
+    ...typography.styles.caption,
     fontWeight: '500',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     minWidth: 70,
     textAlign: 'right',
   },

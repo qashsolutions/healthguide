@@ -2,7 +2,9 @@
 // Shows all visits for the family member's elder
 
 import { useState, useEffect, useCallback } from 'react';
-import { createShadow } from '@/theme/spacing';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -16,7 +18,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import Svg, { Path, Circle } from 'react-native-svg';
+import { ClockIcon, CheckIcon } from '@/components/icons';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface Visit {
   id: string;
@@ -30,23 +34,6 @@ interface Visit {
   visit_tasks?: Array<{ status: string }>;
 }
 
-function ClockIcon({ size = 16, color = '#6B7280' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path d="M12 6v6l4 2" stroke={color} strokeWidth={2} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function CheckIcon({ size = 16, color = '#10B981' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="m20 6-11 11-5-5" stroke={color} strokeWidth={2} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
 function formatVisitDate(dateStr: string): string {
   const date = parseISO(dateStr);
   if (isToday(date)) return 'Today';
@@ -57,16 +44,16 @@ function formatVisitDate(dateStr: string): string {
 function getStatusColor(status: string) {
   switch (status) {
     case 'completed':
-      return { bg: '#D1FAE5', text: '#065F46' };
+      return { bg: colors.success[50], text: colors.success[800] };
     case 'in_progress':
     case 'checked_in':
-      return { bg: '#FEF3C7', text: '#92400E' };
+      return { bg: colors.warning[50], text: colors.warning[800] };
     case 'scheduled':
-      return { bg: '#DBEAFE', text: '#1E40AF' };
+      return { bg: colors.info[100], text: colors.info[800] };
     case 'missed':
-      return { bg: '#FEE2E2', text: '#991B1B' };
+      return { bg: colors.error[100], text: colors.error[800] };
     default:
-      return { bg: '#F3F4F6', text: '#374151' };
+      return { bg: colors.neutral[100], text: colors.text.primary };
   }
 }
 
@@ -140,9 +127,9 @@ export default function FamilyVisitsScreen() {
     const totalTasks = item.visit_tasks?.length || 0;
 
     return (
-      <Pressable
-        style={styles.visitCard}
+      <Card
         onPress={() => router.push(`/family/visit/${item.id}`)}
+        style={styles.visitCard}
       >
         <View style={styles.visitHeader}>
           <Text style={styles.visitDate}>{formatVisitDate(item.scheduled_date)}</Text>
@@ -159,7 +146,7 @@ export default function FamilyVisitsScreen() {
 
         {item.actual_start && (
           <View style={styles.timeRow}>
-            <ClockIcon size={14} color="#6B7280" />
+            <ClockIcon size={14} color={colors.text.tertiary} />
             <Text style={styles.timeText}>
               {format(parseISO(item.actual_start), 'h:mm a')}
               {item.actual_end && ` - ${format(parseISO(item.actual_end), 'h:mm a')}`}
@@ -168,12 +155,12 @@ export default function FamilyVisitsScreen() {
         )}
 
         <View style={styles.taskRow}>
-          <CheckIcon size={14} color="#10B981" />
+          <CheckIcon size={14} color={colors.success[500]} />
           <Text style={styles.taskText}>
             {tasksCompleted}/{totalTasks} tasks completed
           </Text>
         </View>
-      </Pressable>
+      </Card>
     );
   }
 
@@ -181,7 +168,7 @@ export default function FamilyVisitsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loading}>
-          <Text>Loading visits...</Text>
+          <Text style={styles.loadingText}>Loading visits...</Text>
         </View>
       </SafeAreaView>
     );
@@ -193,7 +180,7 @@ export default function FamilyVisitsScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
-        <Text style={styles.title}>All Visits</Text>
+        <Text style={styles.titleText}>All Visits</Text>
       </View>
 
       <FlatList
@@ -205,9 +192,11 @@ export default function FamilyVisitsScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No visits yet</Text>
-          </View>
+          <EmptyState
+            illustration="calendar"
+            title="No visits yet"
+            color={roleColors.family}
+          />
         }
       />
     </SafeAreaView>
@@ -217,80 +206,78 @@ export default function FamilyVisitsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: layout.screenPadding,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   backButton: {
-    padding: 8,
-    marginRight: 8,
+    padding: spacing[2],
+    marginRight: spacing[2],
   },
   backText: {
-    fontSize: 16,
-    color: '#3B82F6',
+    ...typography.styles.body,
+    color: roleColors.family,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+  titleText: {
+    ...typography.styles.h4,
+    color: colors.text.primary,
   },
   loading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    ...typography.styles.body,
+    color: colors.text.tertiary,
+  },
   list: {
-    padding: 16,
+    padding: layout.screenPadding,
   },
   visitCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    ...createShadow(1, 0.05, 4, 2),
+    marginBottom: layout.cardGap,
   },
   visitHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   visitDate: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
+    ...typography.styles.label,
+    color: colors.text.secondary,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.sm,
   },
   statusText: {
-    fontSize: 12,
+    ...typography.styles.caption,
     fontWeight: '500',
     textTransform: 'capitalize',
   },
   caregiverName: {
+    ...typography.styles.h4,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 4,
+    marginBottom: spacing[1],
   },
   timeText: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   taskRow: {
     flexDirection: 'row',
@@ -298,15 +285,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   taskText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#9CA3AF',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
 });

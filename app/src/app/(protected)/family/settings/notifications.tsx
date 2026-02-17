@@ -15,6 +15,9 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { TimePicker } from '@/components/ui/TimePicker';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
 
 interface NotificationPreferences {
   check_in: boolean;
@@ -96,7 +99,7 @@ export default function NotificationSettingsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loading}>
-          <Text>Loading...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -124,8 +127,8 @@ export default function NotificationSettingsScreen() {
             <Switch
               value={preferences.check_in}
               onValueChange={(val) => updatePreference('check_in', val)}
-              trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={preferences.check_in ? '#3B82F6' : '#F3F4F6'}
+              trackColor={{ false: colors.neutral[300], true: colors.info[300] }}
+              thumbColor={preferences.check_in ? roleColors.family : colors.neutral[100]}
             />
           </View>
 
@@ -139,8 +142,8 @@ export default function NotificationSettingsScreen() {
             <Switch
               value={preferences.check_out}
               onValueChange={(val) => updatePreference('check_out', val)}
-              trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={preferences.check_out ? '#3B82F6' : '#F3F4F6'}
+              trackColor={{ false: colors.neutral[300], true: colors.info[300] }}
+              thumbColor={preferences.check_out ? roleColors.family : colors.neutral[100]}
             />
           </View>
         </View>
@@ -159,8 +162,8 @@ export default function NotificationSettingsScreen() {
             <Switch
               value={preferences.daily_report}
               onValueChange={(val) => updatePreference('daily_report', val)}
-              trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-              thumbColor={preferences.daily_report ? '#3B82F6' : '#F3F4F6'}
+              trackColor={{ false: colors.neutral[300], true: colors.info[300] }}
+              thumbColor={preferences.daily_report ? roleColors.family : colors.neutral[100]}
             />
           </View>
 
@@ -184,8 +187,8 @@ export default function NotificationSettingsScreen() {
                 <Switch
                   value={preferences.include_observations}
                   onValueChange={(val) => updatePreference('include_observations', val)}
-                  trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-                  thumbColor={preferences.include_observations ? '#3B82F6' : '#F3F4F6'}
+                  trackColor={{ false: colors.neutral[300], true: colors.info[300] }}
+                  thumbColor={preferences.include_observations ? roleColors.family : colors.neutral[100]}
                 />
               </View>
             </>
@@ -217,99 +220,104 @@ export default function NotificationSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   scroll: {
     flex: 1,
-    padding: 16,
+    padding: layout.screenPadding,
   },
   loading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    ...typography.styles.body,
+    color: colors.text.tertiary,
+  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 8,
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
   },
   description: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 24,
+    ...typography.styles.body,
+    color: colors.text.tertiary,
+    marginBottom: layout.sectionGap,
     lineHeight: 22,
   },
   section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    marginBottom: layout.screenPadding,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.neutral[100],
   },
   sectionTitle: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    padding: 16,
-    paddingBottom: 8,
-    backgroundColor: '#F9FAFB',
+    padding: layout.screenPadding,
+    paddingBottom: spacing[2],
+    backgroundColor: colors.neutral[50],
   },
   option: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: layout.screenPadding,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.neutral[100],
   },
   optionInfo: {
     flex: 1,
-    marginRight: 16,
+    marginRight: layout.screenPadding,
   },
   optionLabel: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   optionDescription: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
     marginTop: 2,
   },
   subOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    paddingLeft: 32,
-    backgroundColor: '#F9FAFB',
+    padding: layout.screenPadding,
+    paddingLeft: spacing[8],
+    backgroundColor: colors.neutral[50],
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.neutral[100],
   },
   subOptionLabel: {
-    fontSize: 14,
-    color: '#374151',
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#EFF6FF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+    backgroundColor: colors.info[50],
+    borderRadius: borderRadius.lg,
+    padding: layout.screenPadding,
+    marginBottom: layout.sectionGap,
   },
   infoIcon: {
     fontSize: 20,
-    marginRight: 12,
+    marginRight: spacing[3],
   },
   infoText: {
     flex: 1,
-    fontSize: 14,
-    color: '#1E40AF',
+    ...typography.styles.bodySmall,
+    color: colors.info[800],
     lineHeight: 20,
   },
   saveButton: {
-    marginBottom: 32,
+    marginBottom: spacing[8],
   },
 });

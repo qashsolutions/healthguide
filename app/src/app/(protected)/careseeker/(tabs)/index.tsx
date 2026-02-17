@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, touchTargets, borderRadius, shadows } from '@/theme/spacing';
+import { GradientHeader } from '@/components/ui/GradientHeader';
 import { PhoneIcon, HeartIcon, PersonIcon } from '@/components/icons';
 
 export default function ElderHomeScreen() {
@@ -25,10 +26,12 @@ export default function ElderHomeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.name}>{user?.full_name?.split(' ')[0] || 'there'}!</Text>
-        </View>
+        <GradientHeader roleColor={roleColors.careseeker}>
+          <View style={styles.header}>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <Text style={styles.name}>{user?.full_name?.split(' ')[0] || 'there'}!</Text>
+          </View>
+        </GradientHeader>
 
         {/* Large Action Buttons */}
         <View style={styles.buttonsContainer}>

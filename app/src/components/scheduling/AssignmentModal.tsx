@@ -16,7 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
-import Svg, { Path } from 'react-native-svg';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
+import { XIcon, CheckIcon as CheckMarkIcon } from '@/components/icons';
 
 interface TimeSlot {
   id: string;
@@ -46,34 +49,6 @@ interface Props {
   onClose: () => void;
   slot: TimeSlot;
   onAssign: () => void;
-}
-
-function CloseIcon({ size = 24, color = '#6B7280' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M18 6 6 18M6 6l12 12"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function CheckIcon({ size = 20, color = '#10B981' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="m20 6-11 11-5-5"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
 }
 
 export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
@@ -198,7 +173,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
             {item.address}
           </Text>
         </View>
-        {isSelected && <CheckIcon />}
+        {isSelected && <CheckMarkIcon color={colors.success[500]} />}
       </Pressable>
     );
   }
@@ -239,7 +214,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
             {item.is_available ? 'Available' : 'Not available'}
           </Text>
         </View>
-        {isSelected && <CheckIcon />}
+        {isSelected && <CheckMarkIcon color={colors.success[500]} />}
       </Pressable>
     );
   }
@@ -258,7 +233,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
             {step === 'elder' ? 'Select Elder' : 'Select Caregiver'}
           </Text>
           <Pressable onPress={handleClose} style={styles.closeButton}>
-            <CloseIcon />
+            <XIcon color={colors.text.tertiary} />
           </Pressable>
         </View>
 
@@ -337,68 +312,67 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: layout.screenPadding,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    ...typography.styles.h3,
+    color: colors.text.primary,
   },
   closeButton: {
-    padding: 8,
+    padding: spacing[2],
   },
   steps: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    gap: 8,
+    padding: layout.screenPadding,
+    gap: spacing[2],
   },
   step: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    paddingVertical: spacing[2],
+    paddingHorizontal: layout.screenPadding,
+    borderRadius: borderRadius['2xl'],
+    backgroundColor: colors.neutral[100],
   },
   stepActive: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary[500],
   },
   stepCompleted: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.success[100],
   },
   stepText: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text.secondary,
   },
   stepDivider: {
     flex: 1,
     height: 2,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.neutral[200],
   },
   list: {
-    padding: 16,
+    padding: layout.screenPadding,
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    marginBottom: 8,
-    gap: 12,
+    padding: layout.screenPadding,
+    backgroundColor: colors.neutral[50],
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing[2],
+    gap: spacing[3],
   },
   listItemSelected: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.primary[100],
     borderWidth: 2,
-    borderColor: '#3B82F6',
+    borderColor: colors.primary[500],
   },
   listItemDisabled: {
     opacity: 0.5,
@@ -412,47 +386,47 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.neutral[200],
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitials: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
   },
   itemInfo: {
     flex: 1,
   },
   itemName: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   itemDetail: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
     marginTop: 2,
   },
   unavailableText: {
-    color: '#EF4444',
+    color: colors.error[500],
   },
   emptyContainer: {
-    padding: 40,
+    padding: spacing[10],
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    ...typography.styles.bodySmall,
+    color: colors.neutral[400],
   },
   actions: {
-    padding: 16,
+    padding: layout.screenPadding,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.neutral[200],
   },
   actionRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing[3],
   },
   backButton: {
     flex: 0.4,

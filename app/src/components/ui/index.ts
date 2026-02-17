@@ -8,3 +8,7 @@ export { Badge, CountBadge, type BadgeVariant, type BadgeSize, type BadgeProps }
 export { Input, OTPInput } from './Input';
 export { LargeInput } from './LargeInput';
 export { TimePicker } from './TimePicker';
+export { FloatingTabBar, createFloatingTabBar } from './FloatingTabBar';
+export { GradientHeader } from './GradientHeader';
+export { EmptyState } from './EmptyState';
+export { FadeIn } from './FadeIn';

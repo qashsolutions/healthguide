@@ -9,6 +9,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, touchTargets, borderRadius } from '@/theme/spacing';
+import { GradientHeader } from '@/components/ui/GradientHeader';
 import { ClockIcon, LocationIcon, PersonIcon, CheckIcon, AlertIcon } from '@/components/icons';
 import {
   MealIcon,
@@ -211,17 +212,19 @@ export default function CaregiverTodayScreen() {
         )}
 
         {/* Header - Large, easy to read */}
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <Text style={styles.greeting}>
-              {getGreeting()}, {user?.full_name?.split(' ')[0] || 'there'}!
+        <GradientHeader roleColor={roleColors.caregiver}>
+          <View style={styles.header}>
+            <View style={styles.headerRow}>
+              <Text style={styles.greeting}>
+                {getGreeting()}, {user?.full_name?.split(' ')[0] || 'there'}!
+              </Text>
+              <OfflineIndicator size="small" />
+            </View>
+            <Text style={styles.subtitle}>
+              You have {assignments.length} visit{assignments.length !== 1 ? 's' : ''} today
             </Text>
-            <OfflineIndicator size="small" />
           </View>
-          <Text style={styles.subtitle}>
-            You have {assignments.length} visit{assignments.length !== 1 ? 's' : ''} today
-          </Text>
-        </View>
+        </GradientHeader>
 
         {/* Today's Visits */}
         {assignments.map((visit) => (

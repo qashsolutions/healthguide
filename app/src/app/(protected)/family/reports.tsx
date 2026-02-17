@@ -1,8 +1,10 @@
 // HealthGuide Family Daily Reports List Screen
 // Shows all daily reports for the family member's elder
 
-import { useState, useEffect, useCallback } from 'react';
-import { createShadow } from '@/theme/spacing';
+import { useState, useCallback } from 'react';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -16,7 +18,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import { CalendarIcon, CheckIcon, NoteIcon, UsersIcon } from '@/components/icons';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface DailyReport {
   id: string;
@@ -26,48 +30,6 @@ interface DailyReport {
   total_tasks_assigned: number;
   observations: any[];
   missed_visits: number;
-}
-
-function CalendarIcon({ size = 20, color = '#3B82F6' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect x="3" y="4" width="18" height="18" rx="2" stroke={color} strokeWidth={2} />
-      <Path d="M16 2v4M8 2v4M3 10h18" stroke={color} strokeWidth={2} />
-    </Svg>
-  );
-}
-
-function CheckIcon({ size = 16, color = '#10B981' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="m20 6-11 11-5-5" stroke={color} strokeWidth={2} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function UsersIcon({ size = 16, color = '#6B7280' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
-        stroke={color}
-        strokeWidth={2}
-      />
-    </Svg>
-  );
-}
-
-function NoteIcon({ size = 16, color = '#6B7280' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-        stroke={color}
-        strokeWidth={2}
-      />
-      <Path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke={color} strokeWidth={2} />
-    </Svg>
-  );
 }
 
 export default function FamilyReportsScreen() {
@@ -130,13 +92,13 @@ export default function FamilyReportsScreen() {
     const hasWarning = item.missed_visits > 0;
 
     return (
-      <Pressable
-        style={styles.reportCard}
+      <Card
         onPress={() => router.push(`/family/report/${item.id}`)}
+        style={styles.reportCard}
       >
         <View style={styles.reportHeader}>
           <View style={styles.dateRow}>
-            <CalendarIcon size={18} color="#3B82F6" />
+            <CalendarIcon size={18} color={roleColors.family} />
             <Text style={styles.reportDate}>
               {format(parseISO(item.report_date), 'EEEE, MMMM d')}
             </Text>
@@ -152,19 +114,19 @@ export default function FamilyReportsScreen() {
 
         <View style={styles.statsRow}>
           <View style={styles.stat}>
-            <UsersIcon size={16} color="#6B7280" />
+            <UsersIcon size={16} color={colors.text.tertiary} />
             <Text style={styles.statText}>
               {item.visits?.length || 0} visit{item.visits?.length !== 1 ? 's' : ''}
             </Text>
           </View>
 
           <View style={styles.stat}>
-            <CheckIcon size={16} color="#10B981" />
+            <CheckIcon size={16} color={colors.success[500]} />
             <Text style={styles.statText}>{completionRate}% tasks</Text>
           </View>
 
           <View style={styles.stat}>
-            <NoteIcon size={16} color="#6B7280" />
+            <NoteIcon size={16} color={colors.text.tertiary} />
             <Text style={styles.statText}>
               {item.observations?.length || 0} note{item.observations?.length !== 1 ? 's' : ''}
             </Text>
@@ -179,13 +141,13 @@ export default function FamilyReportsScreen() {
                 styles.progressFill,
                 {
                   width: `${completionRate}%`,
-                  backgroundColor: completionRate >= 80 ? '#10B981' : '#F59E0B',
+                  backgroundColor: completionRate >= 80 ? colors.success[500] : colors.warning[500],
                 },
               ]}
             />
           </View>
         </View>
-      </Pressable>
+      </Card>
     );
   }
 
@@ -217,13 +179,12 @@ export default function FamilyReportsScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>📋</Text>
-            <Text style={styles.emptyText}>No reports yet</Text>
-            <Text style={styles.emptySubtext}>
-              Daily reports will appear here after care visits
-            </Text>
-          </View>
+          <EmptyState
+            illustration="clipboard"
+            title="No reports yet"
+            subtitle="Daily reports will appear here after care visits"
+            color={roleColors.family}
+          />
         }
       />
     </SafeAreaView>
@@ -233,28 +194,27 @@ export default function FamilyReportsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: layout.screenPadding,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   backButton: {
-    padding: 8,
-    marginRight: 8,
+    padding: spacing[2],
+    marginRight: spacing[2],
   },
   backText: {
-    fontSize: 16,
-    color: '#3B82F6',
+    ...typography.styles.body,
+    color: roleColors.family,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    ...typography.styles.h4,
+    color: colors.text.primary,
   },
   loading: {
     flex: 1,
@@ -262,86 +222,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
-    padding: 16,
+    padding: layout.screenPadding,
   },
   reportCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    ...createShadow(1, 0.05, 4, 2),
+    marginBottom: layout.cardGap,
   },
   reportHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing[3],
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing[2],
   },
   reportDate: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   warningBadge: {
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    backgroundColor: colors.error[100],
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.sm,
   },
   warningText: {
-    fontSize: 12,
+    ...typography.styles.caption,
     fontWeight: '500',
-    color: '#991B1B',
+    color: colors.error[800],
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing[3],
   },
   stat: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing[1.5],
   },
   statText: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   progressContainer: {
-    marginTop: 4,
+    marginTop: spacing[1],
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
+    backgroundColor: colors.neutral[200],
+    borderRadius: borderRadius.sm,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    borderRadius: 3,
-  },
-  emptyContainer: {
-    padding: 60,
-    alignItems: 'center',
-  },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+    borderRadius: borderRadius.sm,
   },
 });

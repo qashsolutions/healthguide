@@ -183,11 +183,11 @@ describe('Batch 23: Family Dashboard', () => {
     expect(screen.queryByText('Recent Visits')).toBeNull();
   });
 
-  // Feature #214: Calendar emoji in no-visit state
-  it('#214 - Calendar emoji in no-visit card', async () => {
+  // Feature #214: Empty state illustration in no-visit state
+  it('#214 - Calendar empty state in no-visit card', async () => {
     render(<FamilyDashboardScreen />);
     await waitFor(() => {
-      expect(screen.getByText('📅')).toBeTruthy();
+      expect(screen.getByText('No visit scheduled today')).toBeTruthy();
     });
   });
 

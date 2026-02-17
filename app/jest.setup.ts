@@ -158,6 +158,16 @@ jest.mock('expo-linking', () => ({
   parse: jest.fn(),
 }));
 
+// --- expo-linear-gradient ---
+jest.mock('expo-linear-gradient', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    LinearGradient: ({ children, ...props }: any) =>
+      React.createElement(View, { ...props, testID: 'linear-gradient' }, children),
+  };
+});
+
 // --- expo-splash-screen ---
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn().mockResolvedValue(undefined),
@@ -178,9 +188,55 @@ jest.mock('expo-font', () => ({
 
 // --- react-native-reanimated ---
 jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = () => {};
-  return Reanimated;
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: {
+      createAnimatedComponent: (Component: any) => Component,
+      call: () => {},
+      Value: jest.fn(),
+      event: jest.fn(),
+      add: jest.fn(),
+      eq: jest.fn(),
+      set: jest.fn(),
+      cond: jest.fn(),
+      interpolate: jest.fn(),
+      View: View,
+      ScrollView: View,
+      Text: require('react-native').Text,
+      Image: require('react-native').Image,
+      FlatList: require('react-native').FlatList,
+    },
+    useSharedValue: (init: any) => ({ value: init }),
+    useAnimatedStyle: (fn: any) => fn(),
+    useDerivedValue: (fn: any) => ({ value: fn() }),
+    useAnimatedScrollHandler: () => jest.fn(),
+    withTiming: (value: any) => value,
+    withSpring: (value: any) => value,
+    withDelay: (_: any, value: any) => value,
+    withSequence: (...args: any[]) => args[args.length - 1],
+    withRepeat: (value: any) => value,
+    cancelAnimation: jest.fn(),
+    Easing: {
+      linear: jest.fn(),
+      ease: jest.fn(),
+      out: jest.fn(() => jest.fn()),
+      in: jest.fn(() => jest.fn()),
+      inOut: jest.fn(() => jest.fn()),
+      bezier: jest.fn(),
+    },
+    Extrapolation: { CLAMP: 'clamp' },
+    interpolate: jest.fn(),
+    runOnJS: (fn: any) => fn,
+    runOnUI: (fn: any) => fn,
+    FadeIn: { duration: jest.fn().mockReturnThis() },
+    FadeOut: { duration: jest.fn().mockReturnThis() },
+    SlideInRight: {},
+    SlideOutLeft: {},
+    Layout: { springify: jest.fn().mockReturnThis() },
+    createAnimatedComponent: (Component: any) => Component,
+  };
 });
 
 // --- react-native-gesture-handler ---
@@ -337,6 +393,20 @@ jest.mock('@expo-google-fonts/plus-jakarta-sans', () => ({
   PlusJakartaSans_600SemiBold: 'PlusJakartaSans_600SemiBold',
   PlusJakartaSans_700Bold: 'PlusJakartaSans_700Bold',
 }));
+
+// --- ThemeContext ---
+jest.mock('@/contexts/ThemeContext', () => {
+  const React = require('react');
+  const { colors } = require('@/theme/colors');
+  return {
+    ThemeProvider: ({ children }: any) => children,
+    useTheme: () => ({
+      colors,
+      colorScheme: 'light',
+      isDark: false,
+    }),
+  };
+});
 
 // --- Silence noisy console.warn/error for cleaner test output ---
 const originalWarn = console.warn;

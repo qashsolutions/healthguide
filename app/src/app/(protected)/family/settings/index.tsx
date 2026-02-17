@@ -7,78 +7,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { removeDeviceToken } from '@/lib/notifications';
-import Svg, { Path, Circle } from 'react-native-svg';
-
-function BellIcon({ size = 24, color = '#1F2937' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function UserIcon({ size = 24, color = '#1F2937' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function HelpIcon({ size = 24, color = '#1F2937' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path
-        d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function LogOutIcon({ size = 24, color = '#EF4444' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function ChevronRightIcon({ size = 20, color = '#9CA3AF' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="m9 18 6-6-6-6"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
+import {
+  BellIcon,
+  ProfileIcon,
+  HelpIcon,
+  LogOutIcon,
+  ChevronRightIcon,
+} from '@/components/icons';
 
 interface SettingsItemProps {
   icon: React.ReactNode;
@@ -96,7 +34,7 @@ function SettingsItem({ icon, label, onPress, destructive = false }: SettingsIte
           {label}
         </Text>
       </View>
-      <ChevronRightIcon />
+      <ChevronRightIcon color={colors.neutral[400]} size={20} />
     </Pressable>
   );
 }
@@ -137,7 +75,7 @@ export default function FamilySettingsScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.titleText}>Settings</Text>
       </View>
 
       <View style={styles.content}>
@@ -146,7 +84,7 @@ export default function FamilySettingsScreen() {
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.sectionContent}>
             <SettingsItem
-              icon={<BellIcon />}
+              icon={<BellIcon color={colors.text.primary} />}
               label="Notification Settings"
               onPress={() => router.push('/family/settings/notifications')}
             />
@@ -158,12 +96,12 @@ export default function FamilySettingsScreen() {
           <Text style={styles.sectionTitle}>Account</Text>
           <View style={styles.sectionContent}>
             <SettingsItem
-              icon={<UserIcon />}
+              icon={<ProfileIcon color={colors.text.primary} />}
               label="Profile"
               onPress={() => router.push('/family/settings/profile' as any)}
             />
             <SettingsItem
-              icon={<HelpIcon />}
+              icon={<HelpIcon color={colors.text.primary} />}
               label="Help & Support"
               onPress={() => Linking.openURL('mailto:support@healthguide.app')}
             />
@@ -174,7 +112,7 @@ export default function FamilySettingsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionContent}>
             <SettingsItem
-              icon={<LogOutIcon />}
+              icon={<LogOutIcon color={colors.error[500]} />}
               label="Log Out"
               onPress={handleLogout}
               destructive
@@ -194,77 +132,78 @@ export default function FamilySettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: layout.screenPadding,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   backButton: {
-    padding: 8,
-    marginRight: 8,
+    padding: spacing[2],
+    marginRight: spacing[2],
   },
   backText: {
-    fontSize: 16,
-    color: '#3B82F6',
+    ...typography.styles.body,
+    color: roleColors.family,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+  titleText: {
+    ...typography.styles.h4,
+    color: colors.text.primary,
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: layout.screenPadding,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: layout.sectionGap,
   },
   sectionTitle: {
-    fontSize: 13,
+    ...typography.styles.caption,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
-    marginLeft: 4,
+    marginBottom: spacing[2],
+    marginLeft: spacing[1],
   },
   sectionContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.neutral[100],
   },
   settingsItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    padding: layout.screenPadding,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.neutral[100],
   },
   itemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing[3],
   },
   itemLabel: {
-    fontSize: 16,
-    color: '#1F2937',
+    ...typography.styles.body,
+    color: colors.text.primary,
   },
   destructiveText: {
-    color: '#EF4444',
+    color: colors.error[500],
   },
   version: {
     marginTop: 'auto',
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: layout.sectionGap,
   },
   versionText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    ...typography.styles.bodySmall,
+    color: colors.neutral[400],
   },
 });

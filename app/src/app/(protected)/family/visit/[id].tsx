@@ -2,7 +2,9 @@
 // Detailed view of a specific visit for family members
 
 import { useState, useEffect } from 'react';
-import { createShadow } from '@/theme/spacing';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -14,8 +16,10 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format, isToday, isYesterday } from 'date-fns';
-import Svg, { Path, Circle } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
+import { ArrowLeftIcon, CheckIcon, ClockIcon, XIcon, MapPinIcon, PhoneIcon } from '@/components/icons';
+import { Card } from '@/components/ui/Card';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 interface VisitDetail {
   id: string;
@@ -52,90 +56,20 @@ interface VisitTask {
   notes: string | null;
 }
 
-function BackIcon({ size = 24, color = '#1F2937' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 12H5M12 19l-7-7 7-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function CheckCircleIcon({ size = 20, color = '#10B981' }) {
+function CheckCircleIcon({ size = 20, color = '#10B981' }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path
-        d="M9 12l2 2 4-4"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function ClockIcon({ size = 20, color = '#6B7280' }) {
+function XCircleIcon({ size = 20, color = '#F59E0B' }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path
-        d="M12 6v6l4 2"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function XCircleIcon({ size = 20, color = '#F59E0B' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path
-        d="M15 9l-6 6M9 9l6 6"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function MapPinIcon({ size = 20, color = '#3B82F6' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx="12" cy="10" r="3" stroke={color} strokeWidth={2} />
-    </Svg>
-  );
-}
-
-function PhoneIcon({ size = 20, color = '#10B981' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <Path d="M15 9l-6 6M9 9l6 6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -214,26 +148,26 @@ export default function FamilyVisitDetailScreen() {
   function getStatusConfig(status: string) {
     switch (status) {
       case 'completed':
-        return { label: 'Completed', color: '#10B981', bgColor: '#ECFDF5' };
+        return { label: 'Completed', color: colors.success[500], bgColor: colors.success[50] };
       case 'in_progress':
-        return { label: 'In Progress', color: '#3B82F6', bgColor: '#EFF6FF' };
+        return { label: 'In Progress', color: roleColors.family, bgColor: colors.info[50] };
       case 'scheduled':
-        return { label: 'Scheduled', color: '#6B7280', bgColor: '#F3F4F6' };
+        return { label: 'Scheduled', color: colors.text.tertiary, bgColor: colors.neutral[100] };
       case 'missed':
-        return { label: 'Missed', color: '#EF4444', bgColor: '#FEF2F2' };
+        return { label: 'Missed', color: colors.error[500], bgColor: colors.error[50] };
       default:
-        return { label: status, color: '#6B7280', bgColor: '#F3F4F6' };
+        return { label: status, color: colors.text.tertiary, bgColor: colors.neutral[100] };
     }
   }
 
   function getTaskIcon(status: string) {
     switch (status) {
       case 'completed':
-        return <CheckCircleIcon color="#10B981" />;
+        return <CheckCircleIcon color={colors.success[500]} />;
       case 'skipped':
-        return <XCircleIcon color="#F59E0B" />;
+        return <XCircleIcon color={colors.warning[500]} />;
       default:
-        return <ClockIcon color="#9CA3AF" />;
+        return <ClockIcon color={colors.neutral[400]} />;
     }
   }
 
@@ -241,7 +175,7 @@ export default function FamilyVisitDetailScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={roleColors.family} />
         </View>
       </SafeAreaView>
     );
@@ -252,9 +186,9 @@ export default function FamilyVisitDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <BackIcon />
+            <ArrowLeftIcon color={colors.text.primary} />
           </Pressable>
-          <Text style={styles.title}>Visit Not Found</Text>
+          <Text style={styles.titleText}>Visit Not Found</Text>
         </View>
         <View style={styles.loading}>
           <Text style={styles.errorText}>This visit could not be found.</Text>
@@ -272,9 +206,9 @@ export default function FamilyVisitDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <BackIcon />
+          <ArrowLeftIcon color={colors.text.primary} />
         </Pressable>
-        <Text style={styles.title}>Visit Details</Text>
+        <Text style={styles.titleText}>Visit Details</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -283,14 +217,14 @@ export default function FamilyVisitDetailScreen() {
         <View style={styles.dateSection}>
           <Text style={styles.dateText}>{formatDate(visit.scheduled_date)}</Text>
           <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
-            <Text style={[styles.statusText, { color: statusConfig.color }]}>
+            <Text style={[styles.statusLabel, { color: statusConfig.color }]}>
               {statusConfig.label}
             </Text>
           </View>
         </View>
 
         {/* Caregiver Card */}
-        <View style={styles.card}>
+        <Card style={styles.cardSpacing}>
           <Text style={styles.cardTitle}>Caregiver</Text>
           <View style={styles.caregiverInfo}>
             <View style={styles.avatar}>
@@ -304,16 +238,16 @@ export default function FamilyVisitDetailScreen() {
               </Text>
               {visit.caregiver.phone && (
                 <View style={styles.phoneRow}>
-                  <PhoneIcon size={16} />
+                  <PhoneIcon size={16} color={colors.success[500]} />
                   <Text style={styles.phoneText}>{visit.caregiver.phone}</Text>
                 </View>
               )}
             </View>
           </View>
-        </View>
+        </Card>
 
         {/* Time Card */}
-        <View style={styles.card}>
+        <Card style={styles.cardSpacing}>
           <Text style={styles.cardTitle}>Visit Time</Text>
 
           <View style={styles.timeRow}>
@@ -344,14 +278,14 @@ export default function FamilyVisitDetailScreen() {
 
           {visit.check_in_location && (
             <View style={styles.locationRow}>
-              <MapPinIcon size={16} />
+              <MapPinIcon size={16} color={roleColors.family} />
               <Text style={styles.locationText}>Location verified at check-in</Text>
             </View>
           )}
-        </View>
+        </Card>
 
         {/* Tasks Card */}
-        <View style={styles.card}>
+        <Card style={styles.cardSpacing}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Tasks</Text>
             <Text style={styles.taskSummary}>
@@ -395,14 +329,14 @@ export default function FamilyVisitDetailScreen() {
           ) : (
             <Text style={styles.noTasks}>No tasks assigned for this visit</Text>
           )}
-        </View>
+        </Card>
 
         {/* Notes Card */}
         {visit.notes && (
-          <View style={styles.card}>
+          <Card style={styles.cardSpacing}>
             <Text style={styles.cardTitle}>Visit Notes</Text>
             <Text style={styles.notesText}>{visit.notes}</Text>
-          </View>
+          </Card>
         )}
 
         <View style={styles.bottomPadding} />
@@ -414,7 +348,7 @@ export default function FamilyVisitDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   loading: {
     flex: 1,
@@ -422,26 +356,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    fontSize: 16,
-    color: '#6B7280',
+    ...typography.styles.body,
+    color: colors.text.tertiary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: spacing[3],
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   backButton: {
-    padding: 8,
+    padding: spacing[2],
   },
-  title: {
+  titleText: {
+    ...typography.styles.h4,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   placeholder: {
     width: 40,
@@ -453,41 +387,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: layout.screenPadding,
   },
   dateText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    ...typography.styles.h4,
+    color: colors.text.primary,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1.5],
+    borderRadius: borderRadius.full,
   },
-  statusText: {
-    fontSize: 14,
+  statusLabel: {
+    ...typography.styles.bodySmall,
     fontWeight: '600',
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 16,
-    padding: 16,
-    ...createShadow(1, 0.05, 4, 1),
+  cardSpacing: {
+    marginHorizontal: layout.screenPadding,
+    marginBottom: layout.cardGap,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing[3],
   },
   cardTitle: {
-    fontSize: 16,
+    ...typography.styles.label,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 12,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
   },
   caregiverInfo: {
     flexDirection: 'row',
@@ -497,24 +426,23 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3B82F6',
+    backgroundColor: roleColors.family,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: spacing[4],
   },
   avatarText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typography.styles.h4,
+    color: colors.white,
   },
   caregiverDetails: {
     flex: 1,
   },
   caregiverName: {
+    ...typography.styles.h4,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
+    color: colors.text.primary,
+    marginBottom: spacing[1],
   },
   phoneRow: {
     flexDirection: 'row',
@@ -522,100 +450,105 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   phoneText: {
-    fontSize: 14,
-    color: '#10B981',
+    ...typography.styles.bodySmall,
+    color: colors.success[500],
   },
   timeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: spacing[2],
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.neutral[100],
   },
   timeLabel: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   timeValue: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '500',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   actualTime: {
-    color: '#10B981',
+    color: colors.success[500],
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    paddingTop: 12,
+    gap: spacing[2],
+    marginTop: spacing[3],
+    paddingTop: spacing[3],
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.neutral[100],
   },
   locationText: {
-    fontSize: 14,
-    color: '#3B82F6',
+    ...typography.styles.bodySmall,
+    color: roleColors.family,
   },
   taskSummary: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   taskList: {
-    gap: 8,
+    gap: spacing[2],
   },
   taskItem: {
     flexDirection: 'row',
-    paddingVertical: 8,
+    paddingVertical: spacing[2],
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.neutral[100],
   },
   taskIcon: {
-    marginRight: 12,
+    marginRight: spacing[3],
     marginTop: 2,
   },
   taskContent: {
     flex: 1,
   },
   taskName: {
+    ...typography.styles.body,
     fontSize: 15,
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   taskCompleted: {
-    color: '#10B981',
+    color: colors.success[500],
   },
   taskSkipped: {
-    color: '#F59E0B',
+    color: colors.warning[500],
   },
   taskTime: {
+    ...typography.styles.caption,
     fontSize: 13,
-    color: '#9CA3AF',
+    color: colors.neutral[400],
     marginTop: 2,
   },
   taskReason: {
+    ...typography.styles.caption,
     fontSize: 13,
-    color: '#F59E0B',
+    color: colors.warning[500],
     marginTop: 2,
     fontStyle: 'italic',
   },
   taskNotes: {
+    ...typography.styles.caption,
     fontSize: 13,
-    color: '#6B7280',
-    marginTop: 4,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
     fontStyle: 'italic',
   },
   noTasks: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    ...typography.styles.bodySmall,
+    color: colors.neutral[400],
     textAlign: 'center',
-    paddingVertical: 16,
+    paddingVertical: spacing[4],
   },
   notesText: {
+    ...typography.styles.body,
     fontSize: 15,
-    color: '#374151',
+    color: colors.text.secondary,
     lineHeight: 22,
   },
   bottomPadding: {
-    height: 24,
+    height: layout.sectionGap,
   },
 });

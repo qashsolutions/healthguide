@@ -2,7 +2,6 @@
 // Detailed view of a daily care report for family members
 
 import { useState, useEffect } from 'react';
-import { createShadow } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -16,6 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { format, isToday, isYesterday } from 'date-fns';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
+import { Card } from '@/components/ui/Card';
+import { ArrowLeftIcon } from '@/components/icons';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
 
 interface DailyReport {
   id: string;
@@ -55,21 +59,7 @@ interface Observation {
   };
 }
 
-function BackIcon({ size = 24, color = '#1F2937' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 12H5M12 19l-7-7 7-7"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function CheckCircleIcon({ size = 20, color = '#10B981' }) {
+function CheckCircleIcon({ size = 20, color = colors.success[500] }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
@@ -84,22 +74,7 @@ function CheckCircleIcon({ size = 20, color = '#10B981' }) {
   );
 }
 
-function AlertCircleIcon({ size = 20, color = '#F59E0B' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path
-        d="M12 8v4M12 16h.01"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function AlertTriangleIcon({ size = 20, color = '#EF4444' }) {
+function AlertTriangleIcon({ size = 20, color = colors.error[500] }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -132,9 +107,9 @@ function getCategoryEmoji(category: string): string {
 
 function getFlaggedConfig(isFlagged: boolean) {
   if (isFlagged) {
-    return { color: '#EF4444', bgColor: '#FEF2F2', icon: AlertTriangleIcon };
+    return { color: colors.error[500], bgColor: colors.error[50], icon: AlertTriangleIcon };
   }
-  return { color: '#10B981', bgColor: '#ECFDF5', icon: CheckCircleIcon };
+  return { color: colors.success[500], bgColor: colors.success[50], icon: CheckCircleIcon };
 }
 
 export default function FamilyReportDetailScreen() {
@@ -242,7 +217,7 @@ export default function FamilyReportDetailScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={roleColors.family} />
         </View>
       </SafeAreaView>
     );
@@ -253,7 +228,7 @@ export default function FamilyReportDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <BackIcon />
+            <ArrowLeftIcon color={colors.text.primary} />
           </Pressable>
           <Text style={styles.title}>Report Not Found</Text>
         </View>
@@ -274,7 +249,7 @@ export default function FamilyReportDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <BackIcon />
+          <ArrowLeftIcon color={colors.text.primary} />
         </Pressable>
         <Text style={styles.title}>Daily Report</Text>
         <View style={styles.placeholder} />
@@ -309,7 +284,7 @@ export default function FamilyReportDetailScreen() {
 
         {/* Alerts Section */}
         {flaggedObservations.length > 0 && (
-          <View style={styles.card}>
+          <Card style={styles.cardSpacing}>
             <Text style={styles.cardTitle}>Flagged Observations</Text>
 
             {flaggedObservations.map((obs) => {
@@ -333,11 +308,11 @@ export default function FamilyReportDetailScreen() {
                 </View>
               );
             })}
-          </View>
+          </Card>
         )}
 
         {/* Visits Section */}
-        <View style={styles.card}>
+        <Card style={styles.cardSpacing}>
           <Text style={styles.cardTitle}>Visits</Text>
 
           {report.visits.length > 0 ? (
@@ -387,11 +362,11 @@ export default function FamilyReportDetailScreen() {
           ) : (
             <Text style={styles.emptyText}>No visits recorded</Text>
           )}
-        </View>
+        </Card>
 
         {/* Observations Section */}
         {normalObservations.length > 0 && (
-          <View style={styles.card}>
+          <Card style={styles.cardSpacing}>
             <Text style={styles.cardTitle}>Observations</Text>
 
             {normalObservations.map((obs) => (
@@ -413,15 +388,15 @@ export default function FamilyReportDetailScreen() {
                 </Text>
               </View>
             ))}
-          </View>
+          </Card>
         )}
 
         {/* Summary */}
         {report.summary && (
-          <View style={styles.card}>
+          <Card style={styles.cardSpacing}>
             <Text style={styles.cardTitle}>Summary</Text>
             <Text style={styles.summaryText}>{report.summary}</Text>
-          </View>
+          </Card>
         )}
 
         <View style={styles.bottomPadding} />
@@ -433,7 +408,7 @@ export default function FamilyReportDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   loading: {
     flex: 1,
@@ -441,26 +416,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    fontSize: 16,
-    color: '#6B7280',
+    ...typography.styles.body,
+    color: colors.text.tertiary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: spacing[3],
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   backButton: {
-    padding: 8,
+    padding: spacing[2],
   },
   title: {
+    ...typography.styles.h4,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   placeholder: {
     width: 40,
@@ -469,101 +444,95 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dateSection: {
-    padding: 16,
-    backgroundColor: '#3B82F6',
+    padding: layout.screenPadding,
+    backgroundColor: roleColors.family,
   },
   dateText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    ...typography.styles.h3,
+    color: colors.white,
   },
   elderText: {
-    fontSize: 16,
+    ...typography.styles.body,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: 4,
+    marginTop: spacing[1],
   },
   statsRow: {
     flexDirection: 'row',
-    padding: 16,
-    gap: 12,
+    padding: layout.screenPadding,
+    gap: layout.cardGap,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: layout.screenPadding,
     alignItems: 'center',
-    ...createShadow(1, 0.05, 4, 1),
+    ...shadows.sm,
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
+    ...typography.styles.stat,
+    color: colors.text.primary,
   },
   statLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 16,
-    padding: 16,
-    ...createShadow(1, 0.05, 4, 1),
+  cardSpacing: {
+    marginHorizontal: layout.screenPadding,
+    marginBottom: layout.cardGap,
   },
   cardTitle: {
-    fontSize: 16,
+    ...typography.styles.label,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 12,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
   },
   alertItem: {
     flexDirection: 'row',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 8,
-    gap: 12,
+    padding: spacing[3],
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing[2],
+    gap: spacing[3],
   },
   alertContent: {
     flex: 1,
   },
   alertCategory: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '600',
     textTransform: 'capitalize',
-    marginBottom: 4,
+    marginBottom: spacing[1],
   },
   alertText: {
-    fontSize: 14,
-    color: '#374151',
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
     lineHeight: 20,
   },
   alertNote: {
-    fontSize: 13,
-    color: '#6B7280',
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
     fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: spacing[1],
   },
   visitItem: {
-    paddingVertical: 12,
+    paddingVertical: spacing[3],
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.neutral[100],
   },
   visitHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   visitCaregiver: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   visitTime: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   visitProgress: {
     flexDirection: 'row',
@@ -572,76 +541,77 @@ const styles = StyleSheet.create({
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.neutral[200],
     borderRadius: 3,
-    marginRight: 12,
+    marginRight: spacing[3],
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success[500],
     borderRadius: 3,
   },
   progressText: {
-    fontSize: 13,
-    color: '#6B7280',
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
     minWidth: 70,
   },
   visitNotes: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
     fontStyle: 'italic',
-    marginTop: 8,
+    marginTop: spacing[2],
   },
   emptyText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    ...typography.styles.bodySmall,
+    color: colors.neutral[400],
     textAlign: 'center',
-    paddingVertical: 16,
+    paddingVertical: layout.screenPadding,
   },
   observationItem: {
-    paddingVertical: 12,
+    paddingVertical: spacing[3],
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.neutral[100],
   },
   observationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: spacing[1.5],
   },
   observationCategory: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text.secondary,
     textTransform: 'capitalize',
   },
   observationTime: {
-    fontSize: 13,
-    color: '#9CA3AF',
+    ...typography.styles.caption,
+    color: colors.neutral[400],
   },
   observationText: {
-    fontSize: 14,
-    color: '#374151',
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
     lineHeight: 20,
   },
   observationNote: {
-    fontSize: 13,
-    color: '#6B7280',
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
     fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: spacing[1],
   },
   observationCaregiver: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 4,
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
     fontStyle: 'italic',
   },
   summaryText: {
+    ...typography.styles.body,
     fontSize: 15,
-    color: '#374151',
+    color: colors.text.secondary,
     lineHeight: 22,
   },
   bottomPadding: {
-    height: 24,
+    height: layout.sectionGap,
   },
 });

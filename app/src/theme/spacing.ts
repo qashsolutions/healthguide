@@ -94,14 +94,26 @@ export function createShadow(
   };
 }
 
-// Shadows
+// Shadows — softer, more refined
 export const shadows = {
   none: createShadow(0, 0, 0, 0),
-  sm: createShadow(1, 0.05, 2, 1),
-  md: createShadow(2, 0.1, 4, 3),
-  lg: createShadow(4, 0.15, 8, 5),
-  xl: createShadow(8, 0.2, 16, 8),
+  sm: createShadow(1, 0.04, 3, 1),
+  md: createShadow(2, 0.06, 8, 3),
+  lg: createShadow(4, 0.08, 16, 5),
+  xl: createShadow(8, 0.12, 24, 8),
 };
+
+// Tinted shadow — role-colored shadow for cards
+export function createTintedShadow(color: string): ViewStyle {
+  return createShadow(4, 0.12, 16, 5, color);
+}
+
+// Layout tokens — consistent section spacing
+export const layout = {
+  sectionGap: 24,
+  screenPadding: 16,
+  cardGap: 12,
+} as const;
 
 export type SpacingKey = keyof typeof spacing;
 export type TouchTargetKey = keyof typeof touchTargets;

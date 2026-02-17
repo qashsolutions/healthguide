@@ -76,7 +76,7 @@ export const colors = {
 
   // Neutral - Text & Backgrounds
   neutral: {
-    50: '#FAFAFA',
+    50: '#F8FAFC',
     100: '#F4F4F5',
     200: '#E4E4E7',
     300: '#D4D4D8',
@@ -91,7 +91,7 @@ export const colors = {
   // Semantic colors
   white: '#FFFFFF',
   black: '#000000',
-  background: '#FAFAFA',
+  background: '#F8FAFC',
   surface: '#FFFFFF',
   text: {
     primary: '#18181B',

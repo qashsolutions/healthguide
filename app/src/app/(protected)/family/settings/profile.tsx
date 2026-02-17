@@ -16,9 +16,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { colors } from '@/theme/colors';
+import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing } from '@/theme/spacing';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
 
 const RELATIONSHIPS = ['son', 'daughter', 'spouse', 'sibling', 'other'];
 
@@ -105,7 +105,7 @@ export default function FamilyProfileScreen() {
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ title: 'Edit Profile', headerBackTitle: 'Back' }} />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color={roleColors.family} />
         </View>
       </SafeAreaView>
     );
@@ -136,7 +136,7 @@ export default function FamilyProfileScreen() {
             value={name}
             onChangeText={setName}
             placeholder="Enter your full name"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.neutral[400]}
             autoCapitalize="words"
           />
         </View>
@@ -149,7 +149,7 @@ export default function FamilyProfileScreen() {
             value={phone}
             onChangeText={setPhone}
             placeholder="Enter your phone number"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.neutral[400]}
             keyboardType="phone-pad"
           />
         </View>
@@ -187,7 +187,7 @@ export default function FamilyProfileScreen() {
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color={colors.white} />
           ) : (
             <Text style={styles.saveButtonText}>Save Changes</Text>
           )}
@@ -200,7 +200,7 @@ export default function FamilyProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -220,35 +220,34 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#3B82F6',
+    backgroundColor: roleColors.family,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    ...typography.styles.h1,
+    color: colors.white,
   },
   field: {
     marginBottom: spacing[4],
   },
   label: {
-    fontSize: 13,
+    ...typography.styles.caption,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.text.tertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: spacing[2],
     marginLeft: spacing[1],
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#1F2937',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: layout.screenPadding,
+    ...typography.styles.body,
+    color: colors.text.primary,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.neutral[200],
   },
   relationshipOptions: {
     flexDirection: 'row',
@@ -258,27 +257,27 @@ const styles = StyleSheet.create({
   relationshipChip: {
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2.5],
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius['2xl'],
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.neutral[200],
   },
   relationshipChipSelected: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    backgroundColor: roleColors.family,
+    borderColor: roleColors.family,
   },
   relationshipText: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   relationshipTextSelected: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   saveButton: {
-    backgroundColor: '#3B82F6',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: roleColors.family,
+    borderRadius: borderRadius.lg,
+    paddingVertical: layout.screenPadding,
     alignItems: 'center',
     marginTop: spacing[4],
   },
@@ -286,8 +285,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typography.styles.button,
+    color: colors.white,
   },
 });

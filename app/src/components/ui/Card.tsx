@@ -3,8 +3,13 @@
 
 import React from 'react';
 import { View, StyleSheet, Pressable, ViewStyle, StyleProp } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { colors } from '@/theme/colors';
-import { spacing, borderRadius, shadows } from '@/theme/spacing';
+import { spacing, borderRadius, shadows, createTintedShadow } from '@/theme/spacing';
 
 interface CardProps {
   children: React.ReactNode;
@@ -12,6 +17,7 @@ interface CardProps {
   padding?: 'none' | 'sm' | 'md' | 'lg';
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  tintColor?: string;
 }
 
 const paddingMap = {
@@ -21,34 +27,54 @@ const paddingMap = {
   lg: spacing[6],
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function Card({
   children,
   variant = 'default',
   padding = 'md',
   onPress,
   style,
+  tintColor,
 }: CardProps) {
+  const scale = useSharedValue(1);
+
+  const shadow = tintColor
+    ? createTintedShadow(tintColor)
+    : variant === 'elevated'
+      ? shadows.lg
+      : variant === 'outlined'
+        ? shadows.none
+        : shadows.sm;
+
   const cardStyle: ViewStyle = {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     padding: paddingMap[padding],
-    ...(variant === 'elevated' ? shadows.lg : variant === 'outlined' ? {} : shadows.sm),
-    ...(variant === 'outlined' ? { borderWidth: 1, borderColor: colors.neutral[200] } : {}),
+    borderWidth: variant === 'outlined' ? 1 : 1,
+    borderColor: variant === 'outlined' ? colors.neutral[200] : colors.neutral[100],
+    ...shadow,
   };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   if (onPress) {
     return (
-      <Pressable
+      <AnimatedPressable
         onPress={onPress}
-        style={({ pressed }) => [
-          cardStyle,
-          pressed && styles.pressed,
-          style,
-        ]}
+        onPressIn={() => {
+          scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+        }}
+        style={[cardStyle, animatedStyle, style]}
         accessibilityRole="button"
       >
         {children}
-      </Pressable>
+      </AnimatedPressable>
     );
   }
 

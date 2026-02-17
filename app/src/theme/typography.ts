@@ -45,25 +45,43 @@ export const typography = {
 
   // Pre-built text styles
   styles: {
-    // Headings
+    // Headings - use Fraunces display font
     h1: {
       fontSize: 36,
+      fontFamily: 'Fraunces-Bold',
       fontWeight: '700' as const,
       lineHeight: 44,
     },
     h2: {
       fontSize: 30,
+      fontFamily: 'Fraunces-SemiBold',
       fontWeight: '600' as const,
       lineHeight: 38,
     },
     h3: {
       fontSize: 24,
+      fontFamily: 'Fraunces-SemiBold',
       fontWeight: '600' as const,
       lineHeight: 32,
     },
     h4: {
       fontSize: 20,
+      fontFamily: 'Fraunces-SemiBold',
       fontWeight: '600' as const,
+      lineHeight: 28,
+    },
+
+    // Stats - use JetBrains Mono for data
+    stat: {
+      fontSize: 28,
+      fontFamily: 'JetBrainsMono-Bold',
+      fontWeight: '700' as const,
+      lineHeight: 36,
+    },
+    statSmall: {
+      fontSize: 20,
+      fontFamily: 'JetBrainsMono-Regular',
+      fontWeight: '400' as const,
       lineHeight: 28,
     },
 
@@ -113,6 +131,7 @@ export const typography = {
   caregiver: {
     heading: {
       fontSize: 28,
+      fontFamily: 'Fraunces-Bold',
       fontWeight: '700' as const,
       lineHeight: 36,
     },
@@ -137,6 +156,7 @@ export const typography = {
   elder: {
     heading: {
       fontSize: 32,
+      fontFamily: 'Fraunces-Bold',
       fontWeight: '700' as const,
       lineHeight: 40,
     },

@@ -2,7 +2,9 @@
 // Overview of elder care with recent visits and notifications
 
 import { useState, useEffect, useCallback } from 'react';
-import { createShadow } from '@/theme/spacing';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
 import {
   View,
   Text,
@@ -16,6 +18,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { format, isToday, isYesterday } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { GradientHeader } from '@/components/ui/GradientHeader';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   registerForPushNotifications,
   registerNotificationCategories,
@@ -173,21 +178,22 @@ export default function FamilyDashboardScreen() {
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        <GradientHeader roleColor={roleColors.family} opacity={0.14}>
           <Text style={styles.greeting}>Caring for</Text>
           <Text style={styles.elderName}>
             {elder?.first_name} {elder?.last_name}
           </Text>
-        </View>
+        </GradientHeader>
 
         {/* Today's Visit Status */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Today's Care</Text>
 
           {todayVisit ? (
-            <Pressable
-              style={styles.todayCard}
+            <Card
               onPress={() => router.push(`/family/visit/${todayVisit.id}`)}
+              tintColor={roleColors.family}
+              padding="lg"
             >
               <View style={styles.todayStatus}>
                 {todayVisit.status === 'in_progress' ? (
@@ -234,40 +240,41 @@ export default function FamilyDashboardScreen() {
                   {todayVisit.tasks_completed}/{todayVisit.tasks_total} tasks
                 </Text>
               </View>
-            </Pressable>
+            </Card>
           ) : (
-            <View style={styles.noVisitCard}>
-              <Text style={styles.noVisitEmoji}>📅</Text>
-              <Text style={styles.noVisitText}>No visit scheduled today</Text>
-            </View>
+            <EmptyState
+              illustration="calendar"
+              title="No visit scheduled today"
+              color={roleColors.family}
+            />
           )}
         </View>
 
         {/* Quick Actions */}
         <View style={styles.actions}>
-          <Pressable
-            style={styles.actionButton}
+          <Card
             onPress={() => router.push('/family/reports')}
+            style={styles.actionCard}
           >
             <Text style={styles.actionEmoji}>📋</Text>
             <Text style={styles.actionLabel}>Reports</Text>
-          </Pressable>
+          </Card>
 
-          <Pressable
-            style={styles.actionButton}
+          <Card
             onPress={() => router.push('/family/visits')}
+            style={styles.actionCard}
           >
             <Text style={styles.actionEmoji}>📆</Text>
             <Text style={styles.actionLabel}>All Visits</Text>
-          </Pressable>
+          </Card>
 
-          <Pressable
-            style={styles.actionButton}
+          <Card
             onPress={() => router.push('/family/settings')}
+            style={styles.actionCard}
           >
             <Text style={styles.actionEmoji}>⚙️</Text>
             <Text style={styles.actionLabel}>Settings</Text>
-          </Pressable>
+          </Card>
         </View>
 
         {/* Recent Visits */}
@@ -276,10 +283,10 @@ export default function FamilyDashboardScreen() {
             <Text style={styles.sectionTitle}>Recent Visits</Text>
 
             {recentVisits.map((visit) => (
-              <Pressable
+              <Card
                 key={visit.id}
-                style={styles.visitCard}
                 onPress={() => router.push(`/family/visit/${visit.id}`)}
+                style={styles.visitCard}
               >
                 <View style={styles.visitHeader}>
                   <Text style={styles.visitDate}>
@@ -301,7 +308,7 @@ export default function FamilyDashboardScreen() {
                     </Text>
                   )}
                 </View>
-              </Pressable>
+              </Card>
             ))}
 
             <Pressable
@@ -320,7 +327,7 @@ export default function FamilyDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background,
   },
   scroll: {
     flex: 1,
@@ -331,71 +338,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  header: {
-    backgroundColor: '#3B82F6',
-    padding: 24,
-    paddingTop: 16,
+    ...typography.styles.body,
+    color: colors.text.tertiary,
   },
   greeting: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    ...typography.styles.body,
+    color: colors.text.secondary,
   },
   elderName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 4,
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    marginTop: spacing[1],
   },
   section: {
-    padding: 16,
+    padding: layout.screenPadding,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  todayCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    ...createShadow(2, 0.05, 8, 2),
+    ...typography.styles.h4,
+    color: colors.text.primary,
+    marginBottom: layout.cardGap,
   },
   todayStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   statusDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    marginRight: 8,
+    marginRight: spacing[2],
   },
   inProgress: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success[500],
   },
   completed: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: roleColors.family,
   },
   statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    ...typography.styles.label,
+    color: colors.text.primary,
   },
   caregiverName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 4,
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    marginBottom: spacing[1],
   },
   visitTime: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 16,
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    marginBottom: spacing[4],
   },
   taskProgress: {
     flexDirection: 'row',
@@ -404,93 +396,70 @@ const styles = StyleSheet.create({
   progressBar: {
     flex: 1,
     height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    marginRight: 12,
+    backgroundColor: colors.neutral[200],
+    borderRadius: borderRadius.full,
+    marginRight: spacing[3],
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#10B981',
-    borderRadius: 4,
+    backgroundColor: colors.success[500],
+    borderRadius: borderRadius.full,
   },
   taskCount: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
     minWidth: 80,
-  },
-  noVisitCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-  },
-  noVisitEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  noVisitText: {
-    fontSize: 16,
-    color: '#6B7280',
   },
   actions: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 12,
-    marginBottom: 8,
+    paddingHorizontal: layout.screenPadding,
+    gap: layout.cardGap,
+    marginBottom: spacing[2],
   },
-  actionButton: {
+  actionCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
     alignItems: 'center',
-    ...createShadow(1, 0.05, 4, 1),
   },
   actionEmoji: {
     fontSize: 28,
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   actionLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+    ...typography.styles.label,
+    color: colors.text.primary,
   },
   visitCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   visitHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: spacing[2],
   },
   visitDate: {
-    fontSize: 16,
+    ...typography.styles.label,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   visitCaregiver: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   visitStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   visitStat: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
   },
   viewAllButton: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[3],
   },
   viewAllText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#3B82F6',
+    ...typography.styles.label,
+    color: roleColors.family,
   },
 });

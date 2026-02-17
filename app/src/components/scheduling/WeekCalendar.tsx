@@ -4,7 +4,10 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { format, startOfWeek, addDays, isSameDay, isToday } from 'date-fns';
 import * as Haptics from 'expo-haptics';
-import Svg, { Path } from 'react-native-svg';
+import { colors, roleColors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
+import { ChevronLeftIcon as ChevronLeft, ChevronRightIcon as ChevronRight } from '@/components/icons';
 
 interface TimeSlot {
   id: string;
@@ -16,34 +19,6 @@ interface Props {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
   slots?: TimeSlot[];
-}
-
-function ChevronLeftIcon({ size = 20, color = '#3B82F6' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="m15 18-6-6 6-6"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function ChevronRightIcon({ size = 20, color = '#3B82F6' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="m9 18 6-6-6-6"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
 }
 
 export function WeekCalendar({ selectedDate, onSelectDate, slots = [] }: Props) {
@@ -75,13 +50,13 @@ export function WeekCalendar({ selectedDate, onSelectDate, slots = [] }: Props) 
       {/* Week Navigation */}
       <View style={styles.weekNav}>
         <Pressable onPress={handlePrevWeek} style={styles.navButton}>
-          <ChevronLeftIcon />
+          <ChevronLeft color={colors.primary[500]} size={20} />
         </Pressable>
         <Text style={styles.weekLabel}>
           {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d, yyyy')}
         </Text>
         <Pressable onPress={handleNextWeek} style={styles.navButton}>
-          <ChevronRightIcon />
+          <ChevronRight color={colors.primary[500]} size={20} />
         </Pressable>
       </View>
 
@@ -146,80 +121,80 @@ export function WeekCalendar({ selectedDate, onSelectDate, slots = [] }: Props) 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    backgroundColor: colors.surface,
+    paddingVertical: spacing[3],
     borderBottomWidth: 1,
-    borderBottomColor: '#E4E4E7',
+    borderBottomColor: colors.neutral[200],
   },
   weekNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: layout.screenPadding,
+    marginBottom: spacing[3],
   },
   navButton: {
-    padding: 8,
+    padding: spacing[2],
   },
   weekLabel: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '600',
-    color: '#1F2937',
+    color: colors.text.primary,
   },
   days: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing[2],
   },
   day: {
     alignItems: 'center',
-    padding: 8,
-    borderRadius: 12,
+    padding: spacing[2],
+    borderRadius: borderRadius.lg,
     minWidth: 44,
   },
   daySelected: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary[500],
   },
   dayToday: {
     borderWidth: 2,
-    borderColor: '#3B82F6',
+    borderColor: colors.primary[500],
   },
   dayName: {
-    fontSize: 11,
-    color: '#6B7280',
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
     fontWeight: '500',
   },
   dayNameSelected: {
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   dayNumber: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '600',
-    color: '#1F2937',
-    marginTop: 4,
+    color: colors.text.primary,
+    marginTop: spacing[1],
   },
   dayNumberSelected: {
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   dayNumberToday: {
-    color: '#3B82F6',
+    color: colors.primary[500],
   },
   slotIndicator: {
-    backgroundColor: '#10B981',
-    borderRadius: 8,
-    paddingHorizontal: 6,
+    backgroundColor: colors.success[500],
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing[1.5],
     paddingVertical: 2,
-    marginTop: 4,
+    marginTop: spacing[1],
   },
   slotIndicatorSelected: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   slotCount: {
     fontSize: 10,
-    color: '#FFFFFF',
+    color: colors.surface,
     fontWeight: '600',
   },
   slotCountSelected: {
-    color: '#3B82F6',
+    color: colors.primary[500],
   },
 });

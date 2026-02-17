@@ -187,11 +187,11 @@ describe('Batch 24: Family Reports', () => {
     });
   });
 
-  // Feature #229: Reports emoji renders
-  it('#229 - Reports clipboard emoji in empty state', async () => {
+  // Feature #229: Reports empty state renders
+  it('#229 - Reports empty state renders', async () => {
     render(<FamilyReportsScreen />);
     await waitFor(() => {
-      expect(screen.getByText('📋')).toBeTruthy();
+      expect(screen.getByText('No reports yet')).toBeTruthy();
     });
   });
 });

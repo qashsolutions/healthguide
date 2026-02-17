@@ -10,24 +10,21 @@ import {
   CalendarIcon,
   SettingsIcon,
 } from '@/components/icons';
+import { createFloatingTabBar } from '@/components/ui/FloatingTabBar';
+
+const FloatingTabBar = createFloatingTabBar({
+  roleColor: roleColors.agency_owner,
+  tabHeight: 60,
+});
 
 export default function AgencyTabsLayout() {
   return (
     <Tabs
+      tabBar={(props) => <FloatingTabBar {...props} />}
+      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
         tabBarActiveTintColor: roleColors.agency_owner,
         tabBarInactiveTintColor: colors.neutral[400],
-        tabBarStyle: {
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: colors.surface,
-          borderTopColor: colors.neutral[200],
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
         headerStyle: {
           backgroundColor: roleColors.agency_owner,
         },

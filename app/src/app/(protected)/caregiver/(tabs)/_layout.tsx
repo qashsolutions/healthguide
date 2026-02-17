@@ -5,28 +5,24 @@ import { Tabs } from 'expo-router';
 import { colors, roleColors } from '@/theme/colors';
 import { touchTargets } from '@/theme/spacing';
 import { TodayIcon, CalendarIcon, CommunityIcon, ProfileIcon } from '@/components/icons';
+import { createFloatingTabBar } from '@/components/ui/FloatingTabBar';
+
+const FloatingTabBar = createFloatingTabBar({
+  roleColor: roleColors.caregiver,
+  tabHeight: touchTargets.caregiver + 16,
+  iconSize: 32,
+  labelSize: 14,
+});
 
 export default function CaregiverTabsLayout() {
   return (
     <Tabs
+      tabBar={(props) => <FloatingTabBar {...props} />}
+      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
         tabBarActiveTintColor: roleColors.caregiver,
         tabBarInactiveTintColor: colors.neutral[400],
-        tabBarStyle: {
-          height: touchTargets.caregiver + 16, // Extra tall for easy tapping
-          paddingBottom: 12,
-          paddingTop: 8,
-          backgroundColor: colors.surface,
-          borderTopColor: colors.neutral[200],
-        },
-        tabBarLabelStyle: {
-          fontSize: 14,
-          fontWeight: '600',
-        },
-        tabBarIconStyle: {
-          marginBottom: 4,
-        },
-        headerShown: false, // Minimal UI for caregivers
+        headerShown: false,
       }}
     >
       <Tabs.Screen

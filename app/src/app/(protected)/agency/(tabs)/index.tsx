@@ -19,7 +19,8 @@ import { supabase } from '@/lib/supabase';
 import { Card, Badge } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius, shadows } from '@/theme/spacing';
+import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
+import { GradientHeader } from '@/components/ui/GradientHeader';
 import {
   UsersIcon,
   PersonIcon,
@@ -320,14 +321,16 @@ export default function AgencyDashboard() {
         }
       >
         {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>
-            Welcome back, {user?.full_name?.split(' ')[0] || 'there'}!
-          </Text>
-          <Text style={styles.agencyName}>
-            {agency?.name || 'Your Agency'}
-          </Text>
-        </View>
+        <GradientHeader roleColor={roleColors.agency_owner}>
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeText}>
+              Welcome back, {user?.full_name?.split(' ')[0] || 'there'}!
+            </Text>
+            <Text style={styles.agencyName}>
+              {agency?.name || 'Your Agency'}
+            </Text>
+          </View>
+        </GradientHeader>
 
         {/* Alerts */}
         {alerts.length > 0 && (

@@ -17,7 +17,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
-import Svg, { Path } from 'react-native-svg';
+import { colors } from '@/theme/colors';
+import { typography } from '@/theme/typography';
+import { spacing, borderRadius, layout } from '@/theme/spacing';
+import { XIcon } from '@/components/icons';
 
 interface Props {
   visible: boolean;
@@ -43,20 +46,6 @@ const DAYS_OF_WEEK = [
   { value: 6, label: 'Sat' },
   { value: 0, label: 'Sun' },
 ];
-
-function CloseIcon({ size = 24, color = '#6B7280' }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M18 6 6 18M6 6l12 12"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
 
 function formatTimeForDisplay(time: string): string {
   const [hours, minutes] = time.split(':');
@@ -166,7 +155,7 @@ export function SlotForm({ visible, onClose, date, onSave }: Props) {
         <View style={styles.header}>
           <Text style={styles.title}>Create Time Slot</Text>
           <Pressable onPress={onClose} style={styles.closeButton}>
-            <CloseIcon />
+            <XIcon color={colors.text.tertiary} />
           </Pressable>
         </View>
 
@@ -265,8 +254,8 @@ export function SlotForm({ visible, onClose, date, onSave }: Props) {
                 onValueChange={(value) =>
                   setForm({ ...form, is_recurring: value })
                 }
-                trackColor={{ false: '#D1D5DB', true: '#93C5FD' }}
-                thumbColor={form.is_recurring ? '#3B82F6' : '#F3F4F6'}
+                trackColor={{ false: colors.neutral[300], true: colors.primary[300] }}
+                thumbColor={form.is_recurring ? colors.primary[500] : colors.neutral[100]}
               />
             </View>
 
@@ -323,92 +312,91 @@ export function SlotForm({ visible, onClose, date, onSave }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: layout.screenPadding,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
+    ...typography.styles.h3,
+    color: colors.text.primary,
   },
   closeButton: {
-    padding: 8,
+    padding: spacing[2],
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: layout.screenPadding,
   },
   dateLabel: {
-    fontSize: 16,
-    color: '#3B82F6',
+    ...typography.styles.body,
+    color: colors.primary[500],
     fontWeight: '600',
-    marginBottom: 24,
+    marginBottom: spacing[6],
   },
   section: {
-    marginBottom: 24,
+    marginBottom: spacing[6],
   },
   sectionTitle: {
-    fontSize: 16,
+    ...typography.styles.body,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 12,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: spacing[3],
   },
   timeColumn: {
     flex: 1,
   },
   timeLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    marginBottom: spacing[2],
   },
   timePicker: {
     height: 180,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
+    backgroundColor: colors.neutral[50],
+    borderRadius: borderRadius.lg,
   },
   timeOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing[3],
+    paddingHorizontal: layout.screenPadding,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: colors.neutral[200],
   },
   timeOptionSelected: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary[500],
   },
   timeOptionText: {
-    fontSize: 14,
-    color: '#374151',
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   timeOptionTextSelected: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontWeight: '600',
   },
   timeDivider: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 40,
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    marginTop: spacing[10],
   },
   durationText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 12,
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    marginTop: spacing[3],
     textAlign: 'center',
   },
   durationTextError: {
-    color: '#EF4444',
+    color: colors.error[500],
   },
   switchRow: {
     flexDirection: 'row',
@@ -416,41 +404,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   switchDescription: {
-    fontSize: 14,
-    color: '#6B7280',
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
     marginTop: 2,
   },
   daysContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 16,
+    gap: spacing[2],
+    marginTop: layout.screenPadding,
   },
   dayButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    paddingHorizontal: layout.screenPadding,
+    paddingVertical: spacing[2.5],
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.neutral[100],
     minWidth: 48,
     alignItems: 'center',
   },
   dayButtonSelected: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: colors.primary[500],
   },
   dayButtonText: {
-    fontSize: 14,
+    ...typography.styles.bodySmall,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text.secondary,
   },
   dayButtonTextSelected: {
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
-    padding: 16,
+    gap: spacing[3],
+    padding: layout.screenPadding,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.neutral[200],
   },
   actionButton: {
     flex: 1,
