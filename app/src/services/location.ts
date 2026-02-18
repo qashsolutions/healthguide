@@ -102,5 +102,45 @@ export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km`;
 }
 
+/**
+ * Watch location with real-time updates (balanced accuracy for battery saving)
+ * Returns a subscription that must be removed on cleanup
+ */
+export async function watchLocation(
+  onUpdate: (location: LocationData) => void,
+  onError?: (error: Error) => void
+): Promise<Location.LocationSubscription> {
+  try {
+    const hasPermission = await hasLocationPermission();
+    if (!hasPermission) {
+      const granted = await requestLocationPermission();
+      if (!granted) {
+        throw new Error('Location permission not granted');
+      }
+    }
+
+    return await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Balanced,
+        distanceInterval: 10,
+        timeInterval: 5000,
+      },
+      (loc) =>
+        onUpdate({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+          accuracy: loc.coords.accuracy,
+          timestamp: loc.timestamp,
+        })
+    );
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error('Failed to watch location');
+    if (onError) {
+      onError(err);
+    }
+    throw err;
+  }
+}
+
 // EVV Constants
 export const EVV_RADIUS_METERS = 150; // Acceptable check-in radius

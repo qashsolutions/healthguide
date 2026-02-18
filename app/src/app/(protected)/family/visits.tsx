@@ -70,7 +70,10 @@ export default function FamilyVisitsScreen() {
   );
 
   async function loadVisits() {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       // Get family member's elder ID

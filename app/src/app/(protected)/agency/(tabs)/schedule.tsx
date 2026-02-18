@@ -29,7 +29,6 @@ interface ScheduledVisit {
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'missed';
   caregiver_name: string;
   elder_name: string;
-  tasks: string[];
 }
 
 export default function ScheduleScreen() {
@@ -49,7 +48,10 @@ export default function ScheduleScreen() {
   );
 
   async function fetchVisits() {
-    if (!user?.agency_id) return;
+    if (!user?.agency_id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const weekEnd = addDays(weekStart, 6);
@@ -62,9 +64,9 @@ export default function ScheduleScreen() {
           scheduled_start,
           scheduled_end,
           status,
-          tasks,
-          caregiver:caregiver_profiles (
-            full_name
+          caregiver:user_profiles!caregiver_id (
+            first_name,
+            last_name
           ),
           elder:elders (
             first_name,
@@ -83,7 +85,9 @@ export default function ScheduleScreen() {
         const formattedVisits = data.map((v: any) => {
           // Transform caregiver join
           const caregiverRaw = Array.isArray(v.caregiver) ? v.caregiver[0] : v.caregiver;
-          const caregiverName = caregiverRaw?.full_name || 'Unassigned';
+          const caregiverName = caregiverRaw
+            ? [caregiverRaw.first_name, caregiverRaw.last_name].filter(Boolean).join(' ') || 'Unassigned'
+            : 'Unassigned';
 
           // Transform elder join
           const elderRaw = Array.isArray(v.elder) ? v.elder[0] : v.elder;
@@ -99,7 +103,6 @@ export default function ScheduleScreen() {
             status: v.status || 'scheduled',
             caregiver_name: caregiverName,
             elder_name: elderName,
-            tasks: v.tasks || [],
           };
         });
 
@@ -318,20 +321,6 @@ export default function ScheduleScreen() {
                     <Text style={styles.personText}>{visit.elder_name}</Text>
                   </View>
 
-                  {visit.tasks.length > 0 && (
-                    <View style={styles.tasksRow}>
-                      {visit.tasks.slice(0, 3).map((task, index) => (
-                        <View key={index} style={styles.taskChip}>
-                          <Text style={styles.taskText}>{task}</Text>
-                        </View>
-                      ))}
-                      {visit.tasks.length > 3 && (
-                        <View style={styles.taskChip}>
-                          <Text style={styles.taskText}>+{visit.tasks.length - 3}</Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
                 </View>
 
                 {/* Status indicator bar */}

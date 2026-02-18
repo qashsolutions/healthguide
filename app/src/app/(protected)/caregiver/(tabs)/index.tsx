@@ -233,7 +233,6 @@ export default function CaregiverTodayScreen() {
             variant="elevated"
             padding="lg"
             style={styles.visitCard}
-            onPress={() => router.push(getVisitRoute(visit.status, visit.id) as any)}
           >
             {/* Status Badge for in-progress visits */}
             {visit.status === 'in_progress' && (

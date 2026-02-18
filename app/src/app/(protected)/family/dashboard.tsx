@@ -84,7 +84,10 @@ export default function FamilyDashboardScreen() {
   );
 
   async function loadData() {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       // Get family member's elder

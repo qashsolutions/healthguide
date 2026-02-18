@@ -59,6 +59,10 @@ jest.mock('@/components/icons/TaskIcons', () => ({
 jest.mock('@/services/location', () => ({
   requestLocationPermission: jest.fn().mockResolvedValue(true),
   getCurrentLocation: jest.fn().mockResolvedValue({ latitude: 34.05, longitude: -118.25 }),
+  watchLocation: jest.fn().mockImplementation((onUpdate: any) => {
+    setTimeout(() => onUpdate({ latitude: 34.05, longitude: -118.25, accuracy: 10, timestamp: Date.now() }), 0);
+    return Promise.resolve({ remove: jest.fn() });
+  }),
   isWithinRadius: jest.fn().mockReturnValue(true),
   EVV_RADIUS_METERS: 150,
   formatDistance: jest.fn(() => '50 meters'),

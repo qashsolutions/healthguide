@@ -64,7 +64,10 @@ export default function CaregiverScheduleScreen() {
 
   // Fetch assignments for selected date
   const fetchAssignments = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 

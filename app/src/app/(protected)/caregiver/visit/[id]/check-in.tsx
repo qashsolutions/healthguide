@@ -1,15 +1,18 @@
 // HealthGuide Check-In Screen
-// Per healthguide-caregiver/evv skill - GPS verification with QR fallback
+// Per healthguide-caregiver/evv skill - GPS-gated check-in with real-time proximity tracking
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Location from 'expo-location';
 import { TapButton, Button, Card } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -25,6 +28,7 @@ import {
 import {
   requestLocationPermission,
   getCurrentLocation,
+  watchLocation,
   isWithinRadius,
   EVV_RADIUS_METERS,
   formatDistance,
@@ -35,7 +39,15 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 
-type CheckInStatus = 'loading' | 'idle' | 'locating' | 'verifying' | 'success' | 'error';
+type CheckInStatus =
+  | 'loading'
+  | 'checking'
+  | 'too_far'
+  | 'within_range'
+  | 'locating'
+  | 'verifying'
+  | 'success'
+  | 'error';
 
 interface AssignmentData {
   id: string;
@@ -59,7 +71,33 @@ export default function CheckInScreen() {
   const [status, setStatus] = useState<CheckInStatus>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [assignment, setAssignment] = useState<AssignmentData | null>(null);
-  const [distance, setDistance] = useState<number | null>(null);
+  const [currentDistance, setCurrentDistance] = useState<number | null>(null);
+  const watcherRef = useRef<Location.LocationSubscription | null>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Pulse animation for the tracking ring
+  useEffect(() => {
+    if (status === 'checking' || status === 'too_far') {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.3,
+            duration: 1200,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1200,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    }
+  }, [status, pulseAnim]);
 
   // Fetch assignment data
   useEffect(() => {
@@ -98,11 +136,75 @@ export default function CheckInScreen() {
         elder: Array.isArray(data.elder) ? data.elder[0] : data.elder,
       };
       setAssignment(transformed);
-      setStatus('idle');
     }
 
     fetchAssignment();
   }, [id]);
+
+  // Start location watching once assignment is loaded
+  useEffect(() => {
+    if (!assignment) return;
+
+    let cancelled = false;
+
+    async function startWatching() {
+      setStatus('checking');
+
+      try {
+        const sub = await watchLocation(
+          (loc) => {
+            if (cancelled) return;
+            const dist = calculateDistance(
+              loc.latitude,
+              loc.longitude,
+              assignment!.elder.latitude,
+              assignment!.elder.longitude
+            );
+            setCurrentDistance(dist);
+
+            const within = dist <= EVV_RADIUS_METERS;
+            setStatus((prev) => {
+              // Don't override locating/verifying/success/error states
+              if (prev === 'locating' || prev === 'verifying' || prev === 'success') {
+                return prev;
+              }
+              return within ? 'within_range' : 'too_far';
+            });
+          },
+          (err) => {
+            if (cancelled) return;
+            console.error('Location watch error:', err);
+            setStatus('error');
+            setErrorMessage(
+              'Could not access your location. Please enable location services or use QR code.'
+            );
+          }
+        );
+        if (!cancelled) {
+          watcherRef.current = sub;
+        } else {
+          sub.remove();
+        }
+      } catch {
+        if (!cancelled) {
+          setStatus('error');
+          setErrorMessage(
+            'Location permission is required for check-in. Please enable it in settings or use QR code.'
+          );
+        }
+      }
+    }
+
+    startWatching();
+
+    return () => {
+      cancelled = true;
+      if (watcherRef.current) {
+        watcherRef.current.remove();
+        watcherRef.current = null;
+      }
+    };
+  }, [assignment]);
 
   const handleCheckIn = async () => {
     if (!assignment) return;
@@ -110,34 +212,25 @@ export default function CheckInScreen() {
     setStatus('locating');
     setErrorMessage('');
 
-    // Request permission
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) {
-      setStatus('error');
-      setErrorMessage('Location permission is required for check-in. Please enable it in settings.');
-      return;
-    }
-
-    // Get current location
+    // Get a final high-accuracy fix for the check-in record
     const location = await getCurrentLocation();
     if (!location) {
       setStatus('error');
-      setErrorMessage('Could not get your location. Please try again or use QR code.');
+      setErrorMessage('Could not get precise location. Please try again or use QR code.');
       return;
     }
 
     setStatus('verifying');
 
-    // Calculate distance to elder's location
+    // Final distance check with high-accuracy position
     const dist = calculateDistance(
       location.latitude,
       location.longitude,
       assignment.elder.latitude,
       assignment.elder.longitude
     );
-    setDistance(dist);
+    setCurrentDistance(dist);
 
-    // Verify within radius
     const withinRadius = isWithinRadius(
       location.latitude,
       location.longitude,
@@ -172,6 +265,12 @@ export default function CheckInScreen() {
       return;
     }
 
+    // Stop watching
+    if (watcherRef.current) {
+      watcherRef.current.remove();
+      watcherRef.current = null;
+    }
+
     // Success!
     await hapticFeedback('success');
     vibrate(200);
@@ -181,6 +280,43 @@ export default function CheckInScreen() {
     setTimeout(() => {
       router.replace(`/(protected)/caregiver/visit/${id}/tasks`);
     }, 1500);
+  };
+
+  const handleRetry = () => {
+    if (!assignment) return;
+    // Reset to checking and restart watching will happen via the assignment effect
+    setStatus('checking');
+    setErrorMessage('');
+    setCurrentDistance(null);
+
+    // Restart watcher
+    watchLocation(
+      (loc) => {
+        const dist = calculateDistance(
+          loc.latitude,
+          loc.longitude,
+          assignment.elder.latitude,
+          assignment.elder.longitude
+        );
+        setCurrentDistance(dist);
+        const within = dist <= EVV_RADIUS_METERS;
+        setStatus((prev) => {
+          if (prev === 'locating' || prev === 'verifying' || prev === 'success') return prev;
+          return within ? 'within_range' : 'too_far';
+        });
+      },
+      (err) => {
+        console.error('Location watch error:', err);
+        setStatus('error');
+        setErrorMessage('Could not access your location. Please use QR code.');
+      }
+    ).then((sub) => {
+      if (watcherRef.current) watcherRef.current.remove();
+      watcherRef.current = sub;
+    }).catch(() => {
+      setStatus('error');
+      setErrorMessage('Location permission denied. Please use QR code.');
+    });
   };
 
   const handleQRFallback = () => {
@@ -193,6 +329,8 @@ export default function CheckInScreen() {
     date.setHours(parseInt(hours), parseInt(minutes));
     return format(date, 'h:mm a');
   };
+
+  const isProximityTracking = status === 'checking' || status === 'too_far' || status === 'within_range';
 
   if (status === 'loading') {
     return (
@@ -240,20 +378,74 @@ export default function CheckInScreen() {
         </Card>
       )}
 
+      {/* Distance Indicator */}
+      {isProximityTracking && (
+        <View style={styles.distanceBar}>
+          {status === 'checking' && (
+            <>
+              <ActivityIndicator size="small" color={roleColors.caregiver} />
+              <Text style={styles.distanceText}>Locating you...</Text>
+            </>
+          )}
+          {status === 'too_far' && currentDistance !== null && (
+            <>
+              <LocationIcon size={18} color={colors.warning[500]} />
+              <Text style={[styles.distanceText, { color: colors.warning[600] }]}>
+                You are {formatDistance(currentDistance)} away
+              </Text>
+            </>
+          )}
+          {status === 'within_range' && (
+            <>
+              <CheckIcon size={18} color={colors.success[500]} />
+              <Text style={[styles.distanceText, { color: colors.success[600] }]}>
+                You're at the location!
+              </Text>
+            </>
+          )}
+        </View>
+      )}
+
       {/* Main Check-In Area */}
       <View style={styles.content}>
-        {status === 'idle' && (
+        {/* Proximity tracking states: show button (disabled or enabled) */}
+        {isProximityTracking && (
           <>
+            {/* Pulsing ring behind button when tracking */}
+            {(status === 'checking' || status === 'too_far') && (
+              <View style={styles.pulseWrapper}>
+                <Animated.View
+                  style={[
+                    styles.pulseRing,
+                    { transform: [{ scale: pulseAnim }] },
+                  ]}
+                />
+              </View>
+            )}
             <TapButton
-              icon={<LocationIcon size={72} color={colors.white} />}
-              label="TAP TO CHECK IN"
-              variant="success"
+              icon={
+                status === 'within_range' ? (
+                  <LocationIcon size={72} color={colors.white} />
+                ) : (
+                  <LocationIcon size={72} color={colors.neutral[400]} />
+                )
+              }
+              label={status === 'within_range' ? 'TAP TO CHECK IN' : 'WAITING FOR LOCATION'}
+              variant={status === 'within_range' ? 'success' : 'neutral'}
               size="xlarge"
               onPress={handleCheckIn}
+              disabled={status !== 'within_range'}
             />
-            <Text style={styles.instruction}>
-              Make sure you're at the client's location
-            </Text>
+            {status !== 'within_range' && (
+              <Text style={styles.instruction}>
+                Move closer to the client's location to check in
+              </Text>
+            )}
+            {status === 'within_range' && (
+              <Text style={[styles.instruction, { color: colors.success[600] }]}>
+                You're close enough - tap the button to check in!
+              </Text>
+            )}
           </>
         )}
 
@@ -262,7 +454,7 @@ export default function CheckInScreen() {
             <View style={styles.loadingCircle}>
               <ActivityIndicator size="large" color={roleColors.caregiver} />
             </View>
-            <Text style={styles.statusText}>Getting your location...</Text>
+            <Text style={styles.statusText}>Getting precise location...</Text>
           </View>
         )}
 
@@ -297,7 +489,7 @@ export default function CheckInScreen() {
                 label="Try Again"
                 variant="primary"
                 size="medium"
-                onPress={handleCheckIn}
+                onPress={handleRetry}
               />
               <TapButton
                 icon={<QRCodeIcon size={32} color={roleColors.caregiver} />}
@@ -311,10 +503,10 @@ export default function CheckInScreen() {
         )}
       </View>
 
-      {/* QR Fallback (always visible when idle) */}
-      {status === 'idle' && (
+      {/* QR Fallback (always visible during proximity tracking) */}
+      {isProximityTracking && (
         <View style={styles.fallback}>
-          <Text style={styles.fallbackText}>Having trouble?</Text>
+          <Text style={styles.fallbackText}>Having trouble with GPS?</Text>
           <Button
             title="Use QR Code Instead"
             variant="secondary"
@@ -392,11 +584,42 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
     marginTop: spacing[1],
   },
+  distanceBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    marginHorizontal: spacing[4],
+    marginTop: spacing[3],
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  distanceText: {
+    ...typography.caregiver.body,
+    color: colors.text.secondary,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing[6],
+  },
+  pulseWrapper: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pulseRing: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 2,
+    borderColor: colors.primary[300],
+    backgroundColor: 'transparent',
   },
   instruction: {
     ...typography.caregiver.body,
