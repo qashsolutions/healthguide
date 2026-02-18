@@ -93,13 +93,15 @@ export function isWithinRadius(
 }
 
 /**
- * Format distance for display
+ * Format distance for display (US units: feet and miles)
  */
 export function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)}m`;
+  const feet = meters * 3.28084;
+  if (feet < 1000) {
+    return `${Math.round(feet)} ft`;
   }
-  return `${(meters / 1000).toFixed(1)}km`;
+  const miles = meters / 1609.344;
+  return `${miles.toFixed(1)} mi`;
 }
 
 /**
