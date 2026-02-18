@@ -37,7 +37,8 @@ export function Input({
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
-  const inputHeight = size === 'caregiver' ? touchTargets.caregiver : size === 'large' ? 56 : 48;
+  const isMultiline = !!props.multiline;
+  const inputHeight = isMultiline ? undefined : size === 'caregiver' ? touchTargets.caregiver : size === 'large' ? 56 : 48;
   const fontSize = size === 'caregiver' ? 20 : size === 'large' ? 18 : 16;
 
   const borderColor = error
@@ -60,6 +61,7 @@ export function Input({
             height: inputHeight,
             borderColor,
           },
+          isMultiline && styles.inputContainerMultiline,
           isFocused && styles.inputFocused,
           error && styles.inputError,
         ]}
@@ -70,6 +72,7 @@ export function Input({
           style={[
             styles.input,
             { fontSize },
+            isMultiline && styles.inputMultiline,
             leftIcon ? styles.inputWithLeftIcon : undefined,
             rightIcon ? styles.inputWithRightIcon : undefined,
             style,
@@ -168,6 +171,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing[3],
   },
+  inputContainerMultiline: {
+    alignItems: 'flex-start',
+    minHeight: 100,
+    paddingVertical: spacing[2],
+  },
   inputFocused: {
     borderColor: colors.primary[500],
   },
@@ -178,6 +186,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.text.primary,
     paddingVertical: spacing[2],
+  },
+  inputMultiline: {
+    textAlignVertical: 'top',
+    paddingTop: 0,
   },
   inputWithLeftIcon: {
     paddingLeft: spacing[2],

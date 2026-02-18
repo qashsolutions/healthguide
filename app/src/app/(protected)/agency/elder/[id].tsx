@@ -431,6 +431,14 @@ export default function ElderDetailScreen() {
                 );
               })}
             </View>
+
+            {/* Due diligence disclaimer */}
+            <View style={styles.disclaimerBanner}>
+              <AlertIcon size={18} color={colors.warning[600]} />
+              <Text style={styles.disclaimerText}>
+                HealthGuide does not verify or validate caregiver skills, certifications, or qualifications. It is the responsibility of the agency and the elder's family to perform their own due diligence before assigning care.
+              </Text>
+            </View>
           </Card>
 
           {/* Special Instructions */}
@@ -639,6 +647,23 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: colors.white,
+  },
+  disclaimerBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+    marginTop: spacing[4],
+    padding: spacing[3],
+    backgroundColor: colors.warning[50],
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.warning[200],
+  },
+  disclaimerText: {
+    ...typography.styles.caption,
+    color: colors.warning[700],
+    flex: 1,
+    lineHeight: 18,
   },
   contactCount: {
     ...typography.styles.caption,

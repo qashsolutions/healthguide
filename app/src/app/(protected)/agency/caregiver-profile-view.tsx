@@ -23,6 +23,7 @@ import {
   ChevronLeftIcon,
   PhoneIcon,
   MessageIcon,
+  AlertIcon,
 } from '@/components/icons';
 import { RatingModal } from '@/components/caregiver/RatingModal';
 import { RatingSummary } from '@/components/caregiver/RatingSummary';
@@ -237,6 +238,14 @@ export default function CaregiverProfileViewScreen() {
           ) : (
             <Text style={styles.placeholderText}>No capabilities listed</Text>
           )}
+
+          {/* Due diligence disclaimer */}
+          <View style={styles.disclaimerBanner}>
+            <AlertIcon size={16} color={colors.warning[600]} />
+            <Text style={styles.disclaimerText}>
+              Skills and certifications listed here are self-reported and have not been verified by HealthGuide. Please conduct your own due diligence before assigning care.
+            </Text>
+          </View>
         </View>
 
         {/* Ratings Section */}
@@ -559,6 +568,23 @@ const styles = StyleSheet.create({
   },
   availabilityCellActive: {
     backgroundColor: colors.success[600],
+  },
+  disclaimerBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+    marginTop: spacing[3],
+    padding: spacing[3],
+    backgroundColor: colors.warning[50],
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.warning[200],
+  },
+  disclaimerText: {
+    ...typography.styles.caption,
+    color: colors.warning[700],
+    flex: 1,
+    lineHeight: 18,
   },
   aboutItem: {
     marginBottom: spacing[3],
