@@ -456,110 +456,105 @@ export function ChevronDownIcon({ size = 24, color = colors.neutral[500] }: Icon
 // ROLE ICONS (for Welcome Screen 2x2 Grid)
 // ==========================================
 
-// Agency Owner - Building with management dashboard
+// Agency Owner - Professional figure with tie and org badge
 export function AgencyOwnerIcon({ size = 24, color = colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Head */}
+      <Circle cx="12" cy="5" r="3" stroke={color} strokeWidth={1.8} />
+      {/* Torso / blazer */}
       <Path
-        d="M3 21H21"
+        d="M6 21V17C6 14.24 8.24 12 11 12H13C15.76 12 18 14.24 18 17V21"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Blazer lapels */}
       <Path
-        d="M5 21V7L12 3L19 7V21"
+        d="M10.5 12L9 16.5"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.3}
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
       <Path
-        d="M9 21V15H15V21"
+        d="M13.5 12L15 16.5"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.3}
         strokeLinecap="round"
+      />
+      {/* Tie */}
+      <Path
+        d="M12 12L11.3 14.8L12 17L12.7 14.8L12 12Z"
+        fill={color}
+      />
+      {/* Shield badge on chest — authority symbol */}
+      <Path
+        d="M19.5 3L22 4.5V7.5C22 9.5 21 11 19.5 12C18 11 17 9.5 17 7.5V4.5L19.5 3Z"
+        stroke={color}
+        strokeWidth={1.4}
         strokeLinejoin="round"
       />
-      <Rect x="9" y="9" width="2" height="2" fill={color} />
-      <Rect x="13" y="9" width="2" height="2" fill={color} />
+      {/* Star inside badge */}
+      <Path
+        d="M19.5 5.8L20 7L21.2 7L20.3 7.8L20.6 9L19.5 8.3L18.4 9L18.7 7.8L17.8 7L19 7L19.5 5.8Z"
+        fill={color}
+        opacity={0.85}
+      />
     </Svg>
   );
 }
 
-// Caregiver - Hands holding heart (care symbol)
+// Caregiver - Person in scrubs with stethoscope and heart
 export function CaregiverIcon({ size = 24, color = colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Head */}
+      <Circle cx="10.5" cy="5" r="3" stroke={color} strokeWidth={1.8} />
+      {/* Torso — scrubs silhouette */}
       <Path
-        d="M12 8C12 8 14.5 5.5 17 5.5C19 5.5 20.5 7 20.5 9C20.5 12 12 17 12 17C12 17 3.5 12 3.5 9C3.5 7 5 5.5 7 5.5C9.5 5.5 12 8 12 8Z"
+        d="M5 21V17.5C5 14.46 7.24 12 10 12H11C13.76 12 16 14.46 16 17.5V21"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* V-neck scrub collar */}
       <Path
-        d="M4.5 14C3 15.5 2 17.5 2 19C2 19 4 21 7 21"
+        d="M9 12L10.5 14.8L12 12"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.3}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Stethoscope tube */}
       <Path
-        d="M19.5 14C21 15.5 22 17.5 22 19C22 19 20 21 17 21"
+        d="M13 13.5C14.5 14 15.5 15 15.5 16.5C15.5 17.88 14.38 19 13 19"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.3}
         strokeLinecap="round"
-        strokeLinejoin="round"
+      />
+      {/* Stethoscope chest piece */}
+      <Circle cx="13" cy="19.5" r="1.2" stroke={color} strokeWidth={1.2} />
+      <Circle cx="13" cy="19.5" r="0.4" fill={color} />
+      {/* Heart accent — top right */}
+      <Path
+        d="M20 4.2C20 4.2 20.8 3.2 21.6 3.2C22.3 3.2 22.8 3.8 22.8 4.5C22.8 5.8 20 7.8 20 7.8C20 7.8 17.2 5.8 17.2 4.5C17.2 3.8 17.7 3.2 18.4 3.2C19.2 3.2 20 4.2 20 4.2Z"
+        fill={color}
       />
     </Svg>
   );
 }
 
-// Elder - Seated person with care symbol
+// Elder - Clean person silhouette (circle head + shoulder arc)
 export function ElderIcon({ size = 24, color = colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       {/* Head */}
-      <Circle cx="11" cy="4" r="2.5" stroke={color} strokeWidth={1.8} />
-      {/* Body leaning slightly forward */}
+      <Circle cx="12" cy="7" r="3.5" stroke={color} strokeWidth={1.8} />
+      {/* Shoulders / upper body arc */}
       <Path
-        d="M11 6.5L10 12L9 17"
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Arm reaching to cane */}
-      <Path
-        d="M10.5 9L14 11"
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-      />
-      {/* Left leg */}
-      <Path
-        d="M9 17L7 22"
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-      />
-      {/* Right leg */}
-      <Path
-        d="M9 17L11 22"
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-      />
-      {/* Walking cane */}
-      <Path
-        d="M16 8C16 7 15.5 6.5 14.5 6.5"
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-      />
-      <Path
-        d="M16 8V22"
+        d="M4 21C4 17.13 7.58 14 12 14C16.42 14 20 17.13 20 21"
         stroke={color}
         strokeWidth={1.8}
         strokeLinecap="round"
