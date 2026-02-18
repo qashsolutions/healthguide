@@ -19,7 +19,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { CalendarIcon, ClockIcon, PersonIcon, PlusIcon, ChevronRightIcon } from '@/components/icons';
+import { CalendarIcon, ClockIcon, CaregiverIcon, ElderIcon, PlusIcon, ChevronRightIcon } from '@/components/icons';
 
 interface ScheduledVisit {
   id: string;
@@ -314,13 +314,12 @@ export default function ScheduleScreen() {
 
                 <View style={styles.visitBody}>
                   <View style={styles.personRow}>
-                    <PersonIcon size={20} color={roleColors.caregiver} />
+                    <CaregiverIcon size={20} color={roleColors.caregiver} />
                     <Text style={styles.personText}>{visit.caregiver_name}</Text>
-                    <Text style={styles.arrow}></Text>
-                    <PersonIcon size={20} color={roleColors.careseeker} />
+                    <ChevronRightIcon size={16} color={colors.text.tertiary} />
+                    <ElderIcon size={20} color={roleColors.careseeker} />
                     <Text style={styles.personText}>{visit.elder_name}</Text>
                   </View>
-
                 </View>
 
                 {/* Status indicator bar */}
@@ -485,9 +484,8 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     color: colors.text.primary,
   },
-  arrow: {
-    ...typography.styles.body,
-    color: colors.text.secondary,
+  arrowIcon: {
+    marginHorizontal: spacing[1],
   },
   tasksRow: {
     flexDirection: 'row',
