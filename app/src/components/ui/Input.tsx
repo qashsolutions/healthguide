@@ -186,6 +186,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.text.primary,
     paddingVertical: spacing[2],
+    outlineStyle: 'none' as any, // Suppress browser focus outline (custom border handles it)
   },
   inputMultiline: {
     textAlignVertical: 'top',

@@ -22,7 +22,7 @@ export interface MockAgency {
   owner_id: string;
   subscription_status: string;
   max_caregivers: number;
-  max_careseekers: number;
+  max_elders: number;
   created_at: string;
 }
 
@@ -79,7 +79,7 @@ export const mockAgency: MockAgency = {
   owner_id: 'user-agency-owner-1',
   subscription_status: 'active',
   max_caregivers: 10,
-  max_careseekers: 20,
+  max_elders: 20,
   created_at: '2025-01-01T00:00:00Z',
 };
 

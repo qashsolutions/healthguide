@@ -9,7 +9,7 @@ import { darkColors } from '@/theme/darkColors';
 type ColorScheme = 'light' | 'dark';
 
 interface ThemeContextValue {
-  colors: typeof lightColors;
+  colors: typeof lightColors | typeof darkColors;
   colorScheme: ColorScheme;
   isDark: boolean;
 }

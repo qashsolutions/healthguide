@@ -211,7 +211,8 @@ test.describe('Caregiver E2E', () => {
   // BATCH 13 — Community / Support tab
   // ---------------------------------------------------------------------------
 
-  test('B13-F1: shows Support heading', { timeout: 15000 }, async () => {
+  test('B13-F1: shows Support heading', async () => {
+    test.setTimeout(15000);
     // "Support" appears in the page header and in the tab label; use first()
     await expect(
       page.getByText('Support').first()
@@ -296,7 +297,8 @@ test.describe('Caregiver E2E', () => {
   // BATCH 14 — Profile / Me tab
   // ---------------------------------------------------------------------------
 
-  test('B14-F1: shows caregiver name', { timeout: 15000 }, async () => {
+  test('B14-F1: shows caregiver name', async () => {
+    test.setTimeout(15000);
     await expect(
       page.getByText('Test Caregiver').first()
     ).toBeVisible();

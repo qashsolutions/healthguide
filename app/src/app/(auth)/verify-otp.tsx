@@ -1,4 +1,5 @@
 // HealthGuide OTP Verification Screen
+// Supports both email OTP and phone OTP flows
 // Per healthguide-core/auth skill - Large touch targets for caregivers
 // Per frontend-design skill - Role-based theming
 
@@ -21,12 +22,10 @@ import { ArrowLeftIcon, CheckIcon, CaregiverIcon, ElderIcon } from '@/components
 // Role configuration for consistent theming
 const ROLE_CONFIG = {
   caregiver: {
-    title: 'Verify Your Phone',
     color: roleColors.caregiver,
     icon: CaregiverIcon,
   },
   careseeker: {
-    title: 'Verify Your Phone',
     color: roleColors.careseeker,
     icon: ElderIcon,
   },
@@ -34,16 +33,22 @@ const ROLE_CONFIG = {
 
 export default function VerifyOTPScreen() {
   const router = useRouter();
-  const { phone, role } = useLocalSearchParams<{ phone: string; role: string }>();
-  const { verifyOTP, signInWithPhone, loading } = useAuth();
+  const { phone, email, role } = useLocalSearchParams<{ phone?: string; email?: string; role: string }>();
+  const { verifyOTP, verifyEmailOTP, signInWithPhone, signInWithEmailOTP, loading } = useAuth();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(60);
+
+  // Detect flow type
+  const isEmailFlow = Boolean(email);
+  const identifier = isEmailFlow ? email! : phone!;
 
   // Get role config (default to caregiver)
   const roleKey = (role === 'careseeker' ? 'careseeker' : 'caregiver') as keyof typeof ROLE_CONFIG;
   const config = ROLE_CONFIG[roleKey];
   const RoleIcon = config.icon;
+
+  const title = isEmailFlow ? 'Verify Your Email' : 'Verify Your Phone';
 
   // Countdown timer for resend
   useEffect(() => {
@@ -68,7 +73,11 @@ export default function VerifyOTPScreen() {
 
     try {
       setError('');
-      await verifyOTP(phone, code);
+      if (isEmailFlow) {
+        await verifyEmailOTP(identifier, code);
+      } else {
+        await verifyOTP(identifier, code);
+      }
       // Navigation happens automatically via AuthContext
     } catch (err: any) {
       setError(err.message || 'Invalid verification code');
@@ -80,7 +89,11 @@ export default function VerifyOTPScreen() {
     if (resendTimer > 0) return;
 
     try {
-      await signInWithPhone(phone);
+      if (isEmailFlow) {
+        await signInWithEmailOTP(identifier);
+      } else {
+        await signInWithPhone(identifier);
+      }
       setResendTimer(60);
       setError('');
     } catch (err: any) {
@@ -95,6 +108,8 @@ export default function VerifyOTPScreen() {
     }
     return p;
   };
+
+  const displayIdentifier = isEmailFlow ? identifier : formatPhone(identifier);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -114,11 +129,11 @@ export default function VerifyOTPScreen() {
           <View style={[styles.iconContainer, { backgroundColor: config.color + '20' }]}>
             <RoleIcon size={48} color={config.color} />
           </View>
-          <Text style={styles.title}>{config.title}</Text>
+          <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>
             We sent a 6-digit code to
           </Text>
-          <Text style={[styles.phoneNumber, { color: config.color }]}>{formatPhone(phone)}</Text>
+          <Text style={[styles.identifier, { color: config.color }]}>{displayIdentifier}</Text>
         </View>
 
         {/* OTP Input */}
@@ -204,7 +219,7 @@ const styles = StyleSheet.create({
     ...typography.caregiver.body,
     color: colors.text.secondary,
   },
-  phoneNumber: {
+  identifier: {
     ...typography.caregiver.body,
     fontWeight: '700',
     marginTop: spacing[1],

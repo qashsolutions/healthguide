@@ -30,7 +30,7 @@ export interface Agency {
   subscription_status: 'trial' | 'active' | 'past_due' | 'canceled';
   subscription_id?: string;
   max_caregivers: number;
-  max_careseekers: number;
+  max_elders: number;
   created_at: string;
 }
 
@@ -44,7 +44,7 @@ export interface AuthState {
 // Auth method by role
 export const AUTH_METHODS: Record<UserRole, 'email' | 'phone' | 'none'> = {
   agency_owner: 'email',
-  caregiver: 'phone',
+  caregiver: 'email',
   careseeker: 'email',
   volunteer: 'phone',
   family_member: 'none', // SMS notifications only

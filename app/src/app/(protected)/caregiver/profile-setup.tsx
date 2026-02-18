@@ -149,6 +149,7 @@ export default function CaregiverProfileSetupScreen() {
 
   const [dbTasks, setDbTasks] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [rateError, setRateError] = useState('');
 
   // Platform-aware feedback: inline toast instead of window.alert on web
   const showToast = (message: string, type: 'success' | 'error', onDismiss?: () => void) => {
@@ -203,7 +204,7 @@ export default function CaregiverProfileSetupScreen() {
   const handlePickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -301,8 +302,9 @@ export default function CaregiverProfileSetupScreen() {
     if (formData.hourlyRateMin && formData.hourlyRateMax) {
       const min = parseFloat(formData.hourlyRateMin);
       const max = parseFloat(formData.hourlyRateMax);
-      if (min > max) {
-        showToast('Minimum rate cannot be greater than maximum rate', 'error');
+      if (max < min) {
+        setRateError(`Must be ≥ $${formData.hourlyRateMin}`);
+        setStep(2); // Jump back to step 2 if submitting from step 3
         return;
       }
     }
@@ -516,13 +518,15 @@ export default function CaregiverProfileSetupScreen() {
                   <View style={s.rateRangeRow}>
                     <View style={s.rateInputWrapper}>
                       <Input
-                        placeholder="15"
+                        placeholder="Min"
                         value={formData.hourlyRateMin}
                         onChangeText={text => {
-                          const cleaned = text.replace(/[^\d.]/g, '');
+                          const cleaned = text.replace(/[^\d.]/g, '').slice(0, 3);
                           setFormData({ ...formData, hourlyRateMin: cleaned });
+                          if (rateError) setRateError('');
                         }}
                         keyboardType="decimal-pad"
+                        maxLength={3}
                         size="caregiver"
                         leftIcon={<Text style={s.currencyIcon}>$</Text>}
                       />
@@ -530,15 +534,28 @@ export default function CaregiverProfileSetupScreen() {
                     <Text style={s.rateDash}>—</Text>
                     <View style={s.rateInputWrapper}>
                       <Input
-                        placeholder="25"
+                        placeholder="Max"
                         value={formData.hourlyRateMax}
                         onChangeText={text => {
-                          const cleaned = text.replace(/[^\d.]/g, '');
+                          const cleaned = text.replace(/[^\d.]/g, '').slice(0, 3);
                           setFormData({ ...formData, hourlyRateMax: cleaned });
+                          // Inline validation: max must be ≥ min
+                          if (cleaned && formData.hourlyRateMin) {
+                            const min = parseFloat(formData.hourlyRateMin);
+                            const max = parseFloat(cleaned);
+                            if (max < min) {
+                              setRateError(`Must be ≥ $${formData.hourlyRateMin}`);
+                            } else {
+                              setRateError('');
+                            }
+                          } else {
+                            setRateError('');
+                          }
                         }}
                         keyboardType="decimal-pad"
                         size="caregiver"
                         leftIcon={<Text style={s.currencyIcon}>$</Text>}
+                        error={rateError || undefined}
                       />
                     </View>
                     <Text style={s.rateUnit}>/hr</Text>

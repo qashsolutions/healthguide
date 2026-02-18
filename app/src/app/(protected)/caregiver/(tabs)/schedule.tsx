@@ -2,7 +2,7 @@
 // Per healthguide-caregiver/schedule-view skill
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Pressable, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Card, Badge } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
@@ -20,7 +20,7 @@ interface Assignment {
   scheduled_date: string;
   scheduled_start: string;
   scheduled_end: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending_acceptance' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'declined';
   elder: {
     id: string;
     first_name: string;
@@ -44,8 +44,10 @@ export default function CaregiverScheduleScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [weekCounts, setWeekCounts] = useState<WeekCounts>({});
+  const [pendingVisits, setPendingVisits] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
   const todayIndex = new Date().getDay();
 
   const getWeekDates = useCallback(() => {
@@ -128,15 +130,80 @@ export default function CaregiverScheduleScreen() {
     }
   }, [user?.id]);
 
+  // Fetch all pending visits (not date-filtered)
+  const fetchPendingVisits = useCallback(async () => {
+    if (!user?.id) return;
+
+    const { data, error } = await supabase
+      .from('visits')
+      .select(`
+        id,
+        scheduled_date,
+        scheduled_start,
+        scheduled_end,
+        status,
+        elder:elders (
+          id,
+          first_name,
+          last_name,
+          photo_url,
+          address
+        )
+      `)
+      .eq('caregiver_id', user.id)
+      .eq('status', 'pending_acceptance')
+      .order('scheduled_date', { ascending: true })
+      .order('scheduled_start', { ascending: true });
+
+    if (!error && data) {
+      const transformed = (data || []).map((item: any) => ({
+        ...item,
+        elder: Array.isArray(item.elder) ? item.elder[0] : item.elder,
+      }));
+      setPendingVisits(transformed);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
-    fetchAssignments();
-    fetchWeekCounts();
-  }, [fetchAssignments, fetchWeekCounts]);
+    Promise.all([fetchAssignments(), fetchWeekCounts(), fetchPendingVisits()]).then(() => {});
+  }, [fetchAssignments, fetchWeekCounts, fetchPendingVisits]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchAssignments(), fetchWeekCounts()]);
+    await Promise.all([fetchAssignments(), fetchWeekCounts(), fetchPendingVisits()]);
     setRefreshing(false);
+  };
+
+  const handleAcceptVisit = async (visitId: string) => {
+    setRespondingId(visitId);
+    const { error } = await supabase
+      .from('visits')
+      .update({ status: 'scheduled' })
+      .eq('id', visitId);
+
+    if (error) {
+      Alert.alert('Error', 'Could not accept visit: ' + error.message);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await Promise.all([fetchAssignments(), fetchWeekCounts(), fetchPendingVisits()]);
+    }
+    setRespondingId(null);
+  };
+
+  const handleDeclineVisit = async (visitId: string) => {
+    setRespondingId(visitId);
+    const { error } = await supabase
+      .from('visits')
+      .update({ status: 'declined' })
+      .eq('id', visitId);
+
+    if (error) {
+      Alert.alert('Error', 'Could not decline visit: ' + error.message);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      await Promise.all([fetchAssignments(), fetchWeekCounts(), fetchPendingVisits()]);
+    }
+    setRespondingId(null);
   };
 
   const handleDaySelect = (dayIndex: number, date: Date) => {
@@ -165,6 +232,8 @@ export default function CaregiverScheduleScreen() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'pending_acceptance':
+        return <Badge label="Accept or Decline" variant="warning" size="md" />;
       case 'scheduled':
         return <Badge label="Tap to Check In" variant="info" size="md" />;
       case 'in_progress':
@@ -252,6 +321,69 @@ export default function CaregiverScheduleScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Pending Visits Section */}
+        {pendingVisits.length > 0 && (
+          <View style={styles.pendingSection}>
+            <Text style={styles.pendingSectionTitle}>
+              Pending Visits ({pendingVisits.length})
+            </Text>
+            <Text style={styles.pendingSectionSubtitle}>
+              Accept or decline these visit requests
+            </Text>
+            {pendingVisits.map((visit) => (
+              <Card key={visit.id} variant="default" padding="lg" style={styles.pendingCard}>
+                <View style={styles.visitRow}>
+                  <View style={styles.avatarSmall}>
+                    <PersonIcon size={28} color={roleColors.careseeker} />
+                  </View>
+                  <View style={styles.visitInfo}>
+                    <Text style={styles.elderName}>
+                      {visit.elder.first_name} {visit.elder.last_name}
+                    </Text>
+                    <Text style={styles.pendingDate}>
+                      {format(parseISO(visit.scheduled_date), 'EEE, MMM d')}
+                    </Text>
+                    <View style={styles.timeRow}>
+                      <ClockIcon size={18} color={colors.text.secondary} />
+                      <Text style={styles.timeText}>
+                        {formatTime(visit.scheduled_start)} - {formatTime(visit.scheduled_end)}
+                      </Text>
+                    </View>
+                    {visit.elder.address && (
+                      <View style={styles.addressRow}>
+                        <LocationIcon size={16} color={colors.text.tertiary} />
+                        <Text style={styles.addressText} numberOfLines={1}>
+                          {visit.elder.address}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <View style={styles.pendingActions}>
+                  <Pressable
+                    style={styles.declineButton}
+                    onPress={() => handleDeclineVisit(visit.id)}
+                    disabled={respondingId === visit.id}
+                  >
+                    <Text style={styles.declineButtonText}>Decline</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.acceptButton}
+                    onPress={() => handleAcceptVisit(visit.id)}
+                    disabled={respondingId === visit.id}
+                  >
+                    {respondingId === visit.id ? (
+                      <ActivityIndicator size="small" color={colors.white} />
+                    ) : (
+                      <Text style={styles.acceptButtonText}>Accept</Text>
+                    )}
+                  </Pressable>
+                </View>
+              </Card>
+            ))}
+          </View>
+        )}
+
         <Text style={styles.dayTitle}>
           {selectedDay === todayIndex ? 'Today' : fullDays[selectedDay]}
         </Text>
@@ -464,5 +596,67 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.neutral[100],
     alignItems: 'flex-end',
+  },
+  pendingSection: {
+    marginBottom: spacing[6],
+    paddingBottom: spacing[4],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[200],
+  },
+  pendingSectionTitle: {
+    ...typography.caregiver.heading,
+    color: colors.warning[700],
+    marginBottom: spacing[1],
+  },
+  pendingSectionSubtitle: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[3],
+  },
+  pendingCard: {
+    marginBottom: spacing[3],
+    borderLeftWidth: 4,
+    borderLeftColor: colors.warning[400],
+  },
+  pendingDate: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontWeight: '600',
+    marginTop: spacing[0.5],
+  },
+  pendingActions: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    marginTop: spacing[3],
+    paddingTop: spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[100],
+  },
+  declineButton: {
+    flex: 1,
+    paddingVertical: spacing[2.5],
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.error[400],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  declineButtonText: {
+    ...typography.styles.body,
+    color: colors.error[600],
+    fontWeight: '600',
+  },
+  acceptButton: {
+    flex: 1,
+    paddingVertical: spacing[2.5],
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.success[500],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acceptButtonText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

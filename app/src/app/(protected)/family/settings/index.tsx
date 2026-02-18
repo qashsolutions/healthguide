@@ -1,7 +1,7 @@
 // HealthGuide Family Settings Screen
 // Settings menu for family members
 
-import { View, Text, StyleSheet, Pressable, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Platform, Linking } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
@@ -43,30 +43,32 @@ export default function FamilySettingsScreen() {
   const { user } = useAuth();
 
   async function handleLogout() {
-    Alert.alert(
-      'Log Out',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Remove push token
-              if (user?.id) {
-                await removeDeviceToken(user.id);
-              }
-              // Sign out
-              await supabase.auth.signOut();
-              router.replace('/');
-            } catch (error) {
-              console.error('Logout error:', error);
-            }
-          },
-        },
-      ]
-    );
+    const doLogout = async () => {
+      try {
+        if (user?.id) {
+          await removeDeviceToken(user.id);
+        }
+        await supabase.auth.signOut();
+        router.replace('/');
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to log out?')) {
+        await doLogout();
+      }
+    } else {
+      Alert.alert(
+        'Log Out',
+        'Are you sure you want to log out?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log Out', style: 'destructive', onPress: doLogout },
+        ]
+      );
+    }
   }
 
   return (

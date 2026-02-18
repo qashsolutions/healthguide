@@ -74,7 +74,8 @@ test.describe('Careseeker E2E', () => {
   // BATCH 15 continued — Daily Check-In
   // =========================================================================
 
-  test('B15-F6: check-in screen shows question text', { timeout: 15000 }, async () => {
+  test('B15-F6: check-in screen shows question text', async () => {
+    test.setTimeout(15000);
     await expect(
       page.getByText('How are you feeling today?').or(page.getByText('How are you feeling')).first(),
     ).toBeVisible();
@@ -123,7 +124,8 @@ test.describe('Careseeker E2E', () => {
   // BATCH 16 — Activities tab
   // =========================================================================
 
-  test('B16-F1: shows Activities title', { timeout: 15000 }, async () => {
+  test('B16-F1: shows Activities title', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Activities').first()).toBeVisible();
   });
 
@@ -157,7 +159,8 @@ test.describe('Careseeker E2E', () => {
   // BATCH 16 continued — Memory Game
   // =========================================================================
 
-  test('B16-F5: game screen shows Matches and Moves counters', { timeout: 15000 }, async () => {
+  test('B16-F5: game screen shows Matches and Moves counters', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Matches').first()).toBeVisible();
     await expect(page.getByText('Moves').first()).toBeVisible();
   });

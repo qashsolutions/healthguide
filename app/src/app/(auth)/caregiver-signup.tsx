@@ -1,5 +1,5 @@
 // HealthGuide Caregiver Signup Screen
-// Phone OTP verification entry point for caregiver signup
+// Email OTP verification entry point for caregiver signup
 // Per healthguide-core/auth skill - Large touch targets for caregivers
 // Per frontend-design skill - Role-based theming with emerald
 
@@ -26,8 +26,8 @@ const CAREGIVER_COLOR = roleColors.caregiver; // Emerald #059669
 
 export default function CaregiverSignupScreen() {
   const router = useRouter();
-  const { signInWithPhone, loading } = useAuth();
-  const [phone, setPhone] = useState('');
+  const { signInWithEmailOTP, loading } = useAuth();
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
   // BUG-3 fix: Clear any stale session so OTP flow doesn't redirect to
@@ -43,24 +43,19 @@ export default function CaregiverSignupScreen() {
   }, []);
 
   const handleSendOTP = async () => {
-    // Basic phone validation
-    const cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length < 10) {
-      setError('Please enter a valid phone number');
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
 
     try {
       setError('');
-      const formattedPhone = cleanPhone.startsWith('1')
-        ? `+${cleanPhone}`
-        : `+1${cleanPhone}`;
-
-      await signInWithPhone(formattedPhone);
+      await signInWithEmailOTP(trimmedEmail, 'caregiver');
       router.push({
         pathname: '/(auth)/verify-otp',
         params: {
-          phone: formattedPhone,
+          email: trimmedEmail,
           role: 'caregiver',
           signup: 'true',
         },
@@ -68,23 +63,6 @@ export default function CaregiverSignupScreen() {
     } catch (err: any) {
       setError(err.message || 'Failed to send verification code');
     }
-  };
-
-  const formatPhoneNumber = (text: string) => {
-    const cleaned = text.replace(/\D/g, '');
-    let formatted = '';
-
-    if (cleaned.length > 0) {
-      formatted = '(' + cleaned.substring(0, 3);
-    }
-    if (cleaned.length > 3) {
-      formatted += ') ' + cleaned.substring(3, 6);
-    }
-    if (cleaned.length > 6) {
-      formatted += '-' + cleaned.substring(6, 10);
-    }
-
-    return formatted;
   };
 
   return (
@@ -114,20 +92,20 @@ export default function CaregiverSignupScreen() {
           </Text>
         </View>
 
-        {/* Phone Input - Large for easy typing */}
+        {/* Email Input - Large for easy typing */}
         <View style={styles.form}>
           <Input
-            label="Phone Number"
-            placeholder="(555) 123-4567"
-            value={formatPhoneNumber(phone)}
+            label="Email Address"
+            placeholder="you@example.com"
+            value={email}
             onChangeText={(text) => {
               setError('');
-              setPhone(text.replace(/\D/g, ''));
+              setEmail(text);
             }}
-            keyboardType="phone-pad"
-            autoComplete="tel"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
             size="caregiver"
-            leftIcon={<Text style={styles.countryCode}>+1</Text>}
             error={error || undefined}
           />
 
@@ -145,7 +123,7 @@ export default function CaregiverSignupScreen() {
         {/* Help Text */}
         <View style={styles.helpSection}>
           <Text style={styles.helpText}>
-            We'll send a 6-digit code to verify your phone number. Standard messaging rates may apply.
+            We'll send a 6-digit code to your email to verify your identity.
           </Text>
         </View>
 
@@ -154,7 +132,7 @@ export default function CaregiverSignupScreen() {
           <Text style={styles.footerText}>
             Already have an account?{' '}
           </Text>
-          <Pressable onPress={() => router.push('/(auth)/phone-login?role=caregiver')}>
+          <Pressable onPress={() => router.push('/(auth)/login')}>
             <Text style={[styles.footerText, styles.link]}>
               Sign In
             </Text>
@@ -204,10 +182,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing[6],
-  },
-  countryCode: {
-    ...typography.caregiver.body,
-    color: colors.text.secondary,
   },
   submitButton: {
     marginTop: spacing[4],

@@ -38,6 +38,7 @@ interface DashboardStats {
   completedToday: number;
   inProgressToday: number;
   upcomingToday: number;
+  pendingToday: number;
   completionRate: number;
 }
 
@@ -163,6 +164,7 @@ export default function AgencyDashboard() {
       const completedToday = visits.filter((v: any) => v.status === 'completed').length;
       const inProgressToday = visits.filter((v: any) => v.status === 'in_progress').length;
       const upcomingToday = visits.filter((v: any) => v.status === 'scheduled').length;
+      const pendingToday = visits.filter((v: any) => v.status === 'pending_acceptance').length;
 
       // Transform visits for display
       const transformedVisits: TodayVisit[] = visits.map((v: any) => {
@@ -226,6 +228,7 @@ export default function AgencyDashboard() {
         completedToday,
         inProgressToday,
         upcomingToday,
+        pendingToday,
         completionRate: visits.length > 0
           ? Math.round((completedToday / visits.length) * 100)
           : 0,
@@ -309,6 +312,8 @@ export default function AgencyDashboard() {
       case 'completed': return colors.success[500];
       case 'in_progress': return colors.warning[500];
       case 'scheduled': return colors.primary[500];
+      case 'pending_acceptance': return roleColors.caregiver;
+      case 'declined': return colors.error[500];
       default: return colors.neutral[400];
     }
   };
@@ -428,13 +433,13 @@ export default function AgencyDashboard() {
             />
             <StatCard
               title="Caregivers"
-              value={`${stats.activeCaregivers}/${stats.totalCaregivers}`}
+              value={stats.totalCaregivers}
               icon={<UsersIcon size={24} color={roleColors.caregiver} />}
               color={roleColors.caregiver}
             />
             <StatCard
-              title="Elders"
-              value={`${stats.activeElders}/${stats.totalElders}`}
+              title="Elders (max 20)"
+              value={`${stats.activeElders} / 20`}
               icon={<PersonIcon size={24} color={roleColors.careseeker} />}
               color={roleColors.careseeker}
             />
@@ -540,6 +545,12 @@ export default function AgencyDashboard() {
                   <Badge label="Upcoming" variant="info" size="sm" />
                   <Text style={styles.progressStatValue}>{stats.upcomingToday}</Text>
                 </View>
+                {stats.pendingToday > 0 && (
+                  <View style={styles.progressStat}>
+                    <Badge label="Pending" variant="neutral" size="sm" />
+                    <Text style={styles.progressStatValue}>{stats.pendingToday}</Text>
+                  </View>
+                )}
               </View>
             </Card>
           </View>

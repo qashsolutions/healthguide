@@ -73,7 +73,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
     const { data, error } = await supabase
       .from('elders')
       .select('id, first_name, last_name, photo_url, address')
-      .eq('agency_id', user?.user_metadata?.agency_id)
+      .eq('agency_id', user?.agency_id)
       .eq('is_active', true)
       .order('first_name');
 
@@ -85,7 +85,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('id, first_name, last_name, photo_url')
-      .eq('agency_id', user?.user_metadata?.agency_id)
+      .eq('agency_id', user?.agency_id)
       .eq('role', 'caregiver')
       .eq('is_active', true)
       .order('first_name');
@@ -120,7 +120,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
 
       // Create visit record
       const { error: visitError } = await supabase.from('visits').insert({
-        agency_id: user?.user_metadata?.agency_id,
+        agency_id: user?.agency_id,
         elder_id: selectedElder,
         caregiver_id: selectedCaregiver,
         scheduled_date: slot.date,

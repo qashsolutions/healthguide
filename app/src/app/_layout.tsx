@@ -3,7 +3,7 @@
 // Per frontend-design skill - loads distinctive fonts
 
 import { useCallback, useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -47,9 +47,21 @@ function LoadingScreen() {
   );
 }
 
+function getRoleRoute(role: string): string {
+  switch (role) {
+    case 'agency_owner': return 'agency';
+    case 'caregiver': return 'caregiver';
+    case 'careseeker': return 'careseeker';
+    case 'family_member': return 'family';
+    default: return 'agency';
+  }
+}
+
 function RootLayoutNav() {
   const { user, loading, initialized } = useAuth();
   const { fontsLoaded, fontError } = useHealthGuideFonts();
+  const router = useRouter();
+  const segments = useSegments();
 
   // Hide splash screen once fonts are loaded and auth is initialized
   const onLayoutRootView = useCallback(async () => {
@@ -61,6 +73,22 @@ function RootLayoutNav() {
   useEffect(() => {
     onLayoutRootView();
   }, [onLayoutRootView]);
+
+  // Auth-based redirect (critical for web where URL doesn't auto-switch)
+  useEffect(() => {
+    if (!initialized || !fontsLoaded) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (user && inAuthGroup) {
+      // Authenticated user on an auth page → redirect to their dashboard
+      const roleRoute = getRoleRoute(user.role);
+      router.replace(`/(protected)/${roleRoute}` as any);
+    } else if (!user && !inAuthGroup && segments[0] === '(protected)') {
+      // Unauthenticated user on a protected page → redirect to login
+      router.replace('/(auth)' as any);
+    }
+  }, [user, initialized, fontsLoaded, segments]);
 
   // Show loading while fonts load or auth initializes
   // NOTE: `loading` intentionally excluded — setting it unmounts the entire

@@ -21,8 +21,8 @@ export default function AgencyTabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
-      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
+        sceneStyle: { backgroundColor: colors.background },
         tabBarActiveTintColor: roleColors.agency_owner,
         tabBarInactiveTintColor: colors.neutral[400],
         headerStyle: {

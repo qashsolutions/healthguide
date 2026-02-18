@@ -2,7 +2,7 @@
 // Per healthguide-agency/payments skill
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, Pressable, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, Platform, Pressable, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, Badge, Button } from '@/components/ui';
@@ -16,20 +16,26 @@ export default function SettingsScreen() {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to sign out?')) {
+        await signOut();
+      }
+    } else {
+      Alert.alert(
+        'Sign Out',
+        'Are you sure you want to sign out?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign Out',
+            style: 'destructive',
+            onPress: async () => {
+              await signOut();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (

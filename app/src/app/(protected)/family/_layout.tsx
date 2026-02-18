@@ -15,8 +15,8 @@ export default function FamilyLayout() {
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
-      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
+        sceneStyle: { backgroundColor: colors.background },
         headerShown: false,
         tabBarActiveTintColor: roleColors.family,
         tabBarInactiveTintColor: colors.neutral[400],

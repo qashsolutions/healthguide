@@ -7,7 +7,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Alert,
   RefreshControl,
   TextInput,
 } from 'react-native';
@@ -20,8 +19,6 @@ import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
 import { PersonIcon, PlusIcon, PhoneIcon, SearchIcon, UsersIcon } from '@/components/icons';
-
-const MAX_CAREGIVERS = 15;
 
 interface Caregiver {
   id: string;
@@ -119,13 +116,6 @@ export default function CaregiversScreen() {
   }
 
   function handleAddCaregiver() {
-    if (caregivers.length >= MAX_CAREGIVERS) {
-      Alert.alert(
-        'Limit Reached',
-        `You can have up to ${MAX_CAREGIVERS} caregivers per agency.`
-      );
-      return;
-    }
     router.push('/(protected)/agency/caregiver/new');
   }
 
@@ -179,14 +169,13 @@ export default function CaregiversScreen() {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <Text style={styles.count}>
-          {caregivers.length} / {MAX_CAREGIVERS} Caregivers
+          {caregivers.length} Available Caregivers
         </Text>
         <Button
           title="+ Add"
           variant="primary"
           size="sm"
           onPress={handleAddCaregiver}
-          disabled={caregivers.length >= MAX_CAREGIVERS}
         />
       </View>
 
@@ -271,6 +260,7 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: spacing[4],
+    paddingBottom: 100,
   },
   separator: {
     height: spacing[3],

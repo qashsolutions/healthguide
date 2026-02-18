@@ -34,7 +34,7 @@ interface ScheduledVisit {
   scheduled_date: string;
   scheduled_start: string;
   scheduled_end: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'missed';
+  status: 'pending_acceptance' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'missed' | 'declined';
   caregiver_name: string;
   elder_name: string;
 }
@@ -177,6 +177,10 @@ export default function ScheduleScreen() {
         return { label: 'Completed', variant: 'success' as const };
       case 'in_progress':
         return { label: 'In Progress', variant: 'warning' as const };
+      case 'pending_acceptance':
+        return { label: 'Pending', variant: 'info' as const };
+      case 'declined':
+        return { label: 'Declined', variant: 'error' as const };
       case 'cancelled':
         return { label: 'Cancelled', variant: 'error' as const };
       case 'missed':
@@ -192,6 +196,9 @@ export default function ScheduleScreen() {
         return colors.success[500];
       case 'in_progress':
         return colors.warning[500];
+      case 'pending_acceptance':
+        return roleColors.caregiver;
+      case 'declined':
       case 'cancelled':
       case 'missed':
         return colors.error[500];

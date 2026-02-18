@@ -9,8 +9,10 @@ interface AuthContextType extends AuthState {
   // Auth methods
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, profile: Partial<UserProfile>) => Promise<void>;
-  signInWithPhone: (phone: string) => Promise<void>;
+  signInWithPhone: (phone: string, role?: string) => Promise<void>;
+  signInWithEmailOTP: (email: string, role?: string) => Promise<void>;
   verifyOTP: (phone: string, token: string) => Promise<void>;
+  verifyEmailOTP: (email: string, token: string) => Promise<void>;
   signOut: () => Promise<void>;
   // Helpers
   refreshProfile: () => Promise<void>;
@@ -85,7 +87,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     async function loadSession(userId: string) {
-      const profile = await fetchUserProfile(userId);
+      let profile = await fetchUserProfile(userId);
+
+      // No user_profiles record — likely a new phone OTP signup.
+      // Create a minimal profile from auth metadata so routing works.
+      if (!profile) {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            const role = authUser.user_metadata?.role || 'caregiver';
+            await supabase.from('user_profiles').insert({
+              id: userId,
+              phone: authUser.phone || null,
+              email: authUser.email || null,
+              role,
+              first_name: '',
+              last_name: '',
+            });
+            profile = await fetchUserProfile(userId);
+          }
+        } catch (err) {
+          console.warn('[Auth] Could not auto-create profile:', err);
+        }
+      }
+
       let agency: Agency | null = null;
       if (profile?.agency_id) {
         agency = await fetchAgency(profile.agency_id);
@@ -215,13 +240,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Sign in with phone (Caregivers, volunteers)
-  const signInWithPhone = async (phone: string) => {
+  const signInWithPhone = async (phone: string, role?: string) => {
     setState(prev => ({ ...prev, loading: true }));
 
     const { error } = await supabase.auth.signInWithOtp({
       phone,
       options: {
         channel: 'sms',
+        ...(role ? { data: { role } } : {}),
       },
     });
 
@@ -232,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Verify OTP
+  // Verify OTP (phone/SMS)
   const verifyOTP = async (phone: string, token: string) => {
     setState(prev => ({ ...prev, loading: true }));
 
@@ -240,6 +266,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       phone,
       token,
       type: 'sms',
+    });
+
+    if (error) {
+      setState(prev => ({ ...prev, loading: false }));
+      throw error;
+    }
+  };
+
+  // Sign in with email OTP (Caregivers — no password needed)
+  const signInWithEmailOTP = async (email: string, role?: string) => {
+    setState(prev => ({ ...prev, loading: true }));
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        ...(role ? { data: { role } } : {}),
+      },
+    });
+
+    setState(prev => ({ ...prev, loading: false }));
+
+    if (error) {
+      throw error;
+    }
+  };
+
+  // Verify email OTP
+  const verifyEmailOTP = async (email: string, token: string) => {
+    setState(prev => ({ ...prev, loading: true }));
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
     });
 
     if (error) {
@@ -288,7 +348,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithEmail,
         signUpWithEmail,
         signInWithPhone,
+        signInWithEmailOTP,
         verifyOTP,
+        verifyEmailOTP,
         signOut,
         refreshProfile,
         isRole,

@@ -76,8 +76,8 @@ describe('Batch 29: Auth Types', () => {
   });
 
   // Feature #295
-  it('#295 - AUTH_METHODS maps caregiver to phone', () => {
-    expect(AUTH_METHODS.caregiver).toBe('phone');
+  it('#295 - AUTH_METHODS maps caregiver to email', () => {
+    expect(AUTH_METHODS.caregiver).toBe('email');
   });
 
   // Feature #296
@@ -135,6 +135,8 @@ describe('Batch 29: Supabase Config', () => {
       id: 'user-1',
       email: 'test@test.com',
       role: 'agency_owner',
+      first_name: 'Test',
+      last_name: 'User',
       full_name: 'Test User',
       created_at: '2026-01-01',
       updated_at: '2026-01-01',
@@ -152,12 +154,13 @@ describe('Batch 29: Supabase Config', () => {
       owner_id: 'user-1',
       subscription_status: 'trial',
       max_caregivers: 10,
-      max_careseekers: 20,
+      max_elders: 20,
       created_at: '2026-01-01',
     };
     expect(agency.name).toBe('Test Agency');
     expect(agency.subscription_status).toBe('trial');
     expect(agency.max_caregivers).toBe(10);
+    expect(agency.max_elders).toBe(20);
   });
 
   // Feature #305

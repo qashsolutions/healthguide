@@ -10,6 +10,8 @@ import {
   RefreshControl,
   TextInput,
   Pressable,
+  Alert,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -20,6 +22,8 @@ import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
 import { PersonIcon, PlusIcon, HeartIcon, LocationIcon, SearchIcon } from '@/components/icons';
+
+const MAX_ACTIVE_ELDERS = 20;
 
 interface Elder {
   id: string;
@@ -39,6 +43,7 @@ export default function EldersScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,7 +58,6 @@ export default function EldersScreen() {
     }
 
     try {
-      // Get elders with family contact counts
       const { data: eldersData, error } = await supabase
         .from('elders')
         .select(`
@@ -68,6 +72,7 @@ export default function EldersScreen() {
           family_members (id)
         `)
         .eq('agency_id', user.agency_id)
+        .order('is_active', { ascending: false })
         .order('first_name');
 
       if (error) throw error;
@@ -99,28 +104,100 @@ export default function EldersScreen() {
     setRefreshing(false);
   }
 
+  const activeElders = elders.filter((e) => e.is_active);
+  const activeCount = activeElders.length;
+
   const filteredElders = elders.filter((e) =>
     (e.full_name?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   const inactiveCount = elders.filter((e) => !e.is_active).length;
 
+  async function handleToggleActive(elder: Elder) {
+    const newActive = !elder.is_active;
+
+    // If re-enabling, check the limit
+    if (newActive && activeCount >= MAX_ACTIVE_ELDERS) {
+      Alert.alert(
+        'Limit Reached',
+        `You can have at most ${MAX_ACTIVE_ELDERS} active elders. Please disable another elder first.`,
+      );
+      return;
+    }
+
+    setTogglingId(elder.id);
+    try {
+      const { error } = await supabase
+        .from('elders')
+        .update({ is_active: newActive })
+        .eq('id', elder.id);
+
+      if (error) {
+        Alert.alert('Error', error.message);
+      } else {
+        // Optimistic update
+        setElders((prev) =>
+          prev.map((e) => (e.id === elder.id ? { ...e, is_active: newActive } : e)),
+        );
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update elder status');
+    }
+    setTogglingId(null);
+  }
+
+  function handleDeleteElder(elder: Elder) {
+    Alert.alert(
+      'Delete Elder',
+      `Are you sure you want to permanently delete ${elder.full_name}? This will remove all their visit history, care plans, and family connections. This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('elders')
+                .delete()
+                .eq('id', elder.id);
+
+              if (error) {
+                Alert.alert('Error', error.message);
+              } else {
+                setElders((prev) => prev.filter((e) => e.id !== elder.id));
+              }
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to delete elder');
+            }
+          },
+        },
+      ],
+    );
+  }
+
   const renderElder = ({ item }: { item: Elder }) => {
-    const displayName = item.full_name;
+    const isToggling = togglingId === item.id;
 
     return (
       <Card
         variant="default"
         padding="md"
-        onPress={() => router.push(`/(protected)/agency/elder/${item.id}`)}
-        style={styles.elderCard}
+        onPress={() => {
+          if (!item.is_active) {
+            Alert.alert('Elder Disabled', `${item.full_name} is currently inactive. Re-enable them to view their data.`);
+            return;
+          }
+          router.push(`/(protected)/agency/elder/${item.id}`);
+        }}
+        style={[styles.elderCard, !item.is_active && styles.elderCardInactive]}
       >
         <View style={styles.cardHeader}>
-          <View style={styles.avatarContainer}>
-            <PersonIcon size={32} color={roleColors.careseeker} />
+          <View style={[styles.avatarContainer, !item.is_active && styles.avatarInactive]}>
+            <PersonIcon size={32} color={item.is_active ? roleColors.careseeker : colors.neutral[400]} />
           </View>
           <View style={styles.cardInfo}>
-            <Text style={styles.elderName}>{displayName}</Text>
+            <Text style={[styles.elderName, !item.is_active && styles.textInactive]}>{item.full_name}</Text>
             <View style={styles.addressRow}>
               <LocationIcon size={14} color={colors.text.secondary} />
               <Text style={styles.addressText}>
@@ -133,11 +210,10 @@ export default function EldersScreen() {
               </Text>
             )}
           </View>
-          <View
-            style={[
-              styles.statusDot,
-              { backgroundColor: item.is_active ? colors.success[500] : colors.neutral[400] },
-            ]}
+          <Badge
+            label={item.is_active ? 'Active' : 'Inactive'}
+            variant={item.is_active ? 'success' : 'neutral'}
+            size="sm"
           />
         </View>
 
@@ -149,6 +225,26 @@ export default function EldersScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Toggle & Delete Controls */}
+        <View style={styles.controls}>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>{item.is_active ? 'Active' : 'Disabled'}</Text>
+            <Switch
+              value={item.is_active}
+              onValueChange={() => handleToggleActive(item)}
+              disabled={isToggling}
+              trackColor={{ false: colors.neutral[300], true: colors.success[400] }}
+              thumbColor={item.is_active ? colors.success[600] : colors.neutral[100]}
+            />
+          </View>
+          <Pressable
+            style={styles.deleteButton}
+            onPress={() => handleDeleteElder(item)}
+          >
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </Pressable>
+        </View>
       </Card>
     );
   };
@@ -158,7 +254,7 @@ export default function EldersScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.count}>
-            {elders.length} elders
+            {activeCount} Active Elders (max {MAX_ACTIVE_ELDERS})
           </Text>
           {inactiveCount > 0 && (
             <Text style={styles.pendingText}>
@@ -171,6 +267,7 @@ export default function EldersScreen() {
           variant="primary"
           size="sm"
           onPress={() => router.push('/(protected)/agency/elder/new')}
+          disabled={activeCount >= MAX_ACTIVE_ELDERS}
         />
       </View>
 
@@ -260,12 +357,17 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: spacing[4],
+    paddingBottom: 100,
   },
   separator: {
     height: spacing[3],
   },
   elderCard: {
     backgroundColor: colors.surface,
+  },
+  elderCardInactive: {
+    opacity: 0.6,
+    backgroundColor: colors.neutral[50],
   },
   cardHeader: {
     flexDirection: 'row',
@@ -281,6 +383,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing[3],
   },
+  avatarInactive: {
+    backgroundColor: colors.neutral[200],
+  },
   cardInfo: {
     flex: 1,
   },
@@ -289,6 +394,9 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontSize: 16,
     marginBottom: 4,
+  },
+  textInactive: {
+    color: colors.text.secondary,
   },
   addressRow: {
     flexDirection: 'row',
@@ -304,11 +412,6 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: 4,
   },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
   cardDetails: {
     paddingTop: spacing[3],
     borderTopWidth: 1,
@@ -320,14 +423,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[2],
   },
-  detailLabel: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-  },
   detailValue: {
     ...typography.styles.body,
     color: colors.text.primary,
     fontWeight: '500',
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing[3],
+    paddingTop: spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[100],
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  toggleLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.error[300],
+    backgroundColor: colors.error[50],
+  },
+  deleteButtonText: {
+    ...typography.styles.caption,
+    color: colors.error[600],
+    fontWeight: '600',
   },
   emptyContainer: {
     alignItems: 'center',

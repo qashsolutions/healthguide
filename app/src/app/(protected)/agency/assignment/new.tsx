@@ -253,7 +253,7 @@ export default function NewAssignmentScreen() {
 
     const { data: capData } = await supabase
       .from('caregiver_agency_links')
-      .select('caregiver_id, caregiver_profiles!inner(user_id, capabilities, zip_code)')
+      .select('caregiver_profile_id, caregiver_profiles!inner(user_id, capabilities, zip_code)')
       .eq('agency_id', user!.agency_id);
 
     const capMap = new Map<string, string[]>();
@@ -424,7 +424,7 @@ export default function NewAssignmentScreen() {
           scheduled_date: selectedDate,
           scheduled_start: startTime,
           scheduled_end: endTime,
-          status: 'scheduled',
+          status: 'pending_acceptance',
         })
         .select('id')
         .single();

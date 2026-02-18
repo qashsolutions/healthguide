@@ -94,15 +94,14 @@ import { ReviewsList } from '@/components/caregiver/ReviewsList';
 import { WeekCalendar } from '@/components/scheduling/WeekCalendar';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 
-const mockTask = {
+const mockTask: import('@/types/visit').VisitTask = {
   id: 'task-1',
   visit_id: 'visit-1',
   task_id: 'taskdef-1',
-  status: 'pending' as const,
-  skipped_reason: null,
-  completed_at: null,
+  status: 'pending',
   task: {
     id: 'taskdef-1',
+    agency_id: 'agency-1',
     name: 'Prepare Lunch',
     description: 'Make a healthy meal',
     category: 'meal_prep',

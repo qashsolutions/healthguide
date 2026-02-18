@@ -305,7 +305,7 @@ jest.mock('@nozbe/watermelondb', () => ({
   Database: jest.fn(),
   Model: class MockModel {
     static table = '';
-    static associations = {};
+    static associations: Record<string, unknown> = {};
   },
   Q: {
     where: jest.fn(),

@@ -95,7 +95,8 @@ test.describe('Family Member E2E', () => {
   // BATCH 18a — Visits tab
   // =========================================================================
 
-  test('B18-F1: shows "All Visits" title', { timeout: 15000 }, async () => {
+  test('B18-F1: shows "All Visits" title', async () => {
+    test.setTimeout(15000);
     await expect(
       page.getByText('All Visits').or(page.getByText('Visits')).first(),
     ).toBeVisible();
@@ -137,7 +138,8 @@ test.describe('Family Member E2E', () => {
   // BATCH 18b — Reports tab
   // =========================================================================
 
-  test('B18-F4: shows "Daily Reports" title', { timeout: 15000 }, async () => {
+  test('B18-F4: shows "Daily Reports" title', async () => {
+    test.setTimeout(15000);
     await expect(
       page.getByText('Daily Reports').or(page.getByText('Reports')).first(),
     ).toBeVisible();
@@ -172,7 +174,8 @@ test.describe('Family Member E2E', () => {
   // BATCH 19 — Settings tab
   // =========================================================================
 
-  test('B19-F1: shows "Settings" title', { timeout: 15000 }, async () => {
+  test('B19-F1: shows "Settings" title', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Settings').first()).toBeVisible();
   });
 

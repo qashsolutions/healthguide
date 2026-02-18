@@ -141,7 +141,7 @@ export default function CaregiverDirectoryScreen() {
         .select('task_id, task_library(name, category)')
         .eq('elder_id', selectedElderId)
         .limit(3);
-      if (data) setElderTasks(data as ElderTask[]);
+      if (data) setElderTasks(data as unknown as ElderTask[]);
     })();
   }, [selectedElderId]);
 

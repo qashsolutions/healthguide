@@ -100,7 +100,7 @@ export function SlotForm({ visible, onClose, date, onSave }: Props) {
         // Create recurring slots via Edge Function
         const { error } = await supabase.functions.invoke('create-recurring-slots', {
           body: {
-            agency_id: user?.user_metadata?.agency_id,
+            agency_id: user?.agency_id,
             start_date: format(date, 'yyyy-MM-dd'),
             start_time: form.start_time,
             end_time: form.end_time,
@@ -113,7 +113,7 @@ export function SlotForm({ visible, onClose, date, onSave }: Props) {
       } else {
         // Create single slot
         const { error } = await supabase.from('time_slots').insert({
-          agency_id: user?.user_metadata?.agency_id,
+          agency_id: user?.agency_id,
           date: format(date, 'yyyy-MM-dd'),
           start_time: form.start_time,
           end_time: form.end_time,

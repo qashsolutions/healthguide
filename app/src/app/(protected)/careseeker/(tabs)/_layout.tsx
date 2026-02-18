@@ -18,8 +18,8 @@ export default function CareseekerTabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
-      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
+        sceneStyle: { backgroundColor: colors.background },
         tabBarActiveTintColor: roleColors.careseeker,
         tabBarInactiveTintColor: colors.neutral[400],
         headerShown: false,

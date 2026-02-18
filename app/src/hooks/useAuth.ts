@@ -64,9 +64,11 @@ export function useAuth(): UseAuthResult {
           email: profile.email,
           phone: profile.phone || authUser.user.phone || '',
           role: profile.role as UserRole,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
           full_name: `${profile.first_name} ${profile.last_name}`,
           agency_id: profile.agency_id,
-          avatar_url: profile.photo_url,
+          photo_url: profile.photo_url,
           created_at: profile.created_at,
           updated_at: profile.updated_at || profile.created_at,
         });

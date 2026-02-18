@@ -88,7 +88,8 @@ test.describe('Agency Owner E2E', () => {
   // BATCH 8 — Elders tab
   // =========================================================================
 
-  test('B8-F1: displays Manage Elders header', { timeout: 15000 }, async () => {
+  test('B8-F1: displays Manage Elders header', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Manage Elders')).toBeVisible();
   });
 
@@ -158,7 +159,8 @@ test.describe('Agency Owner E2E', () => {
   // BATCH 9a — Caregivers tab
   // =========================================================================
 
-  test('B9-F1: displays Manage Caregivers header', { timeout: 15000 }, async () => {
+  test('B9-F1: displays Manage Caregivers header', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Manage Caregivers')).toBeVisible();
   });
 
@@ -196,7 +198,8 @@ test.describe('Agency Owner E2E', () => {
   // BATCH 9b — Schedule tab
   // =========================================================================
 
-  test('B9-F6: shows Scheduling header', { timeout: 15000 }, async () => {
+  test('B9-F6: shows Scheduling header', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Scheduling').first()).toBeVisible();
   });
 
@@ -236,7 +239,8 @@ test.describe('Agency Owner E2E', () => {
   // BATCH 10 — Settings tab
   // =========================================================================
 
-  test('B10-F1: displays Agency Settings header', { timeout: 15000 }, async () => {
+  test('B10-F1: displays Agency Settings header', async () => {
+    test.setTimeout(15000);
     await expect(page.getByText('Agency Settings').first()).toBeVisible();
   });
 

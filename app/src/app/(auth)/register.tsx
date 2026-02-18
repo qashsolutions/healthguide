@@ -81,7 +81,6 @@ export default function RegisterScreen() {
             name: agencyName,
             subscription_status: 'trial',
             elder_count: 0,
-            max_caregivers: 15,
           });
 
         if (agencyError) {
@@ -193,7 +192,7 @@ export default function RegisterScreen() {
           <View style={styles.pricingSection}>
             <Text style={styles.pricingTitle}>Simple Pricing</Text>
             <Text style={styles.pricingText}>
-              $15/elder/month • Up to 15 caregivers • 14-day free trial
+              $15/elder/month • Up to 20 elders • 14-day free trial
             </Text>
           </View>
 

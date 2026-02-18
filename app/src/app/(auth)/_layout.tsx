@@ -19,7 +19,6 @@ export default function AuthLayout() {
       <Stack.Screen name="phone-login" />
       <Stack.Screen name="verify-otp" />
       <Stack.Screen name="caregiver-signup" />
-      <Stack.Screen name="caregiver-profile-setup" />
       <Stack.Screen name="join-group" />
       <Stack.Screen name="family-signup" />
       <Stack.Screen name="privacy-policy" />
