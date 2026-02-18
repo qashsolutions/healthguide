@@ -520,18 +520,48 @@ export function CaregiverIcon({ size = 24, color = colors.white }: IconProps) {
 export function ElderIcon({ size = 24, color = colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="5" r="3" stroke={color} strokeWidth={2} />
+      {/* Head */}
+      <Circle cx="11" cy="4" r="2.5" stroke={color} strokeWidth={1.8} />
+      {/* Body leaning slightly forward */}
       <Path
-        d="M8 11H16C17.1 11 18 11.9 18 13V15C18 16.1 17.1 17 16 17H14L12 21L10 17H8C6.9 17 6 16.1 6 15V13C6 11.9 6.9 11 8 11Z"
+        d="M11 6.5L10 12L9 17"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.8}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Arm reaching to cane */}
       <Path
-        d="M12 13V15"
+        d="M10.5 9L14 11"
         stroke={color}
-        strokeWidth={2}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      {/* Left leg */}
+      <Path
+        d="M9 17L7 22"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      {/* Right leg */}
+      <Path
+        d="M9 17L11 22"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      {/* Walking cane */}
+      <Path
+        d="M16 8C16 7 15.5 6.5 14.5 6.5"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M16 8V22"
+        stroke={color}
+        strokeWidth={1.8}
         strokeLinecap="round"
       />
     </Svg>
