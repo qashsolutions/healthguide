@@ -12,9 +12,11 @@ import {
   ActivityIndicator,
   Image,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { colors, roleColors } from '@/theme/colors';
@@ -27,8 +29,11 @@ import {
   FilterIcon,
   ElderIcon,
   CloseIcon,
+  AlertIcon,
 } from '@/components/icons';
 import { RatingSummary } from '@/components/caregiver/RatingSummary';
+
+const DISCLAIMER_ACCEPTED_KEY = 'healthguide_directory_disclaimer_accepted';
 
 interface CaregiverResult {
   id: string;
@@ -90,6 +95,25 @@ export default function CaregiverDirectoryScreen() {
 
   const [showElderDropdown, setShowElderDropdown] = useState(false);
   const selectedElder = elders.find((e) => e.id === selectedElderId) || null;
+
+  // Disclaimer modal state
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+
+  // Check disclaimer acceptance on mount
+  useEffect(() => {
+    (async () => {
+      const accepted = await AsyncStorage.getItem(DISCLAIMER_ACCEPTED_KEY);
+      if (accepted !== 'true') {
+        setShowDisclaimer(true);
+      }
+    })();
+  }, []);
+
+  const handleAcceptDisclaimer = async () => {
+    await AsyncStorage.setItem(DISCLAIMER_ACCEPTED_KEY, 'true');
+    setShowDisclaimer(false);
+  };
 
   // Fetch elders on mount
   useEffect(() => {
@@ -525,6 +549,64 @@ export default function CaregiverDirectoryScreen() {
           }
         />
       )}
+
+      {/* Disclaimer Modal — must accept before using directory */}
+      <Modal
+        visible={showDisclaimer}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.disclaimerOverlay}>
+          <View style={styles.disclaimerModal}>
+            <View style={styles.disclaimerIconRow}>
+              <AlertIcon size={28} color={colors.warning[600]} />
+            </View>
+            <Text style={styles.disclaimerTitle}>Important Notice</Text>
+
+            <ScrollView style={styles.disclaimerScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.disclaimerBody}>
+                HealthGuide is a platform that connects agencies and elders with caregivers. By using this directory, you acknowledge and agree to the following:
+              </Text>
+
+              <Text style={styles.disclaimerBullet}>
+                {'\u2022'} HealthGuide does <Text style={styles.disclaimerBold}>not</Text> verify, validate, or endorse any caregiver's skills, certifications, qualifications, or background.
+              </Text>
+              <Text style={styles.disclaimerBullet}>
+                {'\u2022'} HealthGuide does <Text style={styles.disclaimerBold}>not</Text> collect fees from caregivers and serves solely as a discovery platform.
+              </Text>
+              <Text style={styles.disclaimerBullet}>
+                {'\u2022'} It is the sole responsibility of the agency and the elder's family to conduct their own due diligence, including background checks, credential verification, and reference checks, before assigning any caregiver.
+              </Text>
+              <Text style={styles.disclaimerBullet}>
+                {'\u2022'} HealthGuide assumes <Text style={styles.disclaimerBold}>no liability</Text> for any issues, damages, or disputes arising from the engagement of any caregiver found through this platform.
+              </Text>
+            </ScrollView>
+
+            <Pressable
+              style={[styles.disclaimerCheckRow]}
+              onPress={() => setDisclaimerChecked(!disclaimerChecked)}
+            >
+              <View style={[styles.disclaimerCheckbox, disclaimerChecked && styles.disclaimerCheckboxChecked]}>
+                {disclaimerChecked && <Text style={styles.disclaimerCheckmark}>{'\u2713'}</Text>}
+              </View>
+              <Text style={styles.disclaimerCheckLabel}>
+                I understand and agree to the above terms
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.disclaimerAcceptButton, !disclaimerChecked && styles.disclaimerAcceptButtonDisabled]}
+              onPress={disclaimerChecked ? handleAcceptDisclaimer : undefined}
+              disabled={!disclaimerChecked}
+            >
+              <Text style={[styles.disclaimerAcceptText, !disclaimerChecked && styles.disclaimerAcceptTextDisabled]}>
+                Accept & Continue
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -919,5 +1001,99 @@ const styles = StyleSheet.create({
   },
   ratingRow: {
     marginTop: spacing[2],
+  },
+
+  // Disclaimer modal
+  disclaimerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing[5],
+  },
+  disclaimerModal: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing[5],
+    maxHeight: '85%',
+  },
+  disclaimerIconRow: {
+    alignItems: 'center',
+    marginBottom: spacing[3],
+  },
+  disclaimerTitle: {
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    textAlign: 'center',
+    marginBottom: spacing[4],
+  },
+  disclaimerScroll: {
+    maxHeight: 280,
+    marginBottom: spacing[4],
+  },
+  disclaimerBody: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    lineHeight: 22,
+    marginBottom: spacing[3],
+  },
+  disclaimerBullet: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    lineHeight: 22,
+    marginBottom: spacing[3],
+    paddingLeft: spacing[2],
+  },
+  disclaimerBold: {
+    fontWeight: '700',
+  },
+  disclaimerCheckRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    marginBottom: spacing[4],
+    paddingVertical: spacing[2],
+  },
+  disclaimerCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.neutral[300],
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  disclaimerCheckboxChecked: {
+    backgroundColor: colors.success[600],
+    borderColor: colors.success[600],
+  },
+  disclaimerCheckmark: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  disclaimerCheckLabel: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    flex: 1,
+    fontWeight: '500',
+  },
+  disclaimerAcceptButton: {
+    backgroundColor: colors.success[600],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  disclaimerAcceptButtonDisabled: {
+    backgroundColor: colors.neutral[200],
+  },
+  disclaimerAcceptText: {
+    ...typography.styles.label,
+    color: colors.white,
+    fontWeight: '600',
+  },
+  disclaimerAcceptTextDisabled: {
+    color: colors.text.tertiary,
   },
 });
