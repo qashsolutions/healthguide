@@ -130,13 +130,11 @@ export function generateElders(count: number, agencyId = 'agency-1') {
       city: location.city,
       state: location.state,
       zip_code: location.zip,
-      status: i % 5 === 0 ? 'pending_handshake' : 'active',
-      handshake_completed: i % 5 !== 0,
       agency_id: agencyId,
       care_needs: ['companionship', 'meal_prep', 'personal_care'].slice(0, (i % 3) + 1),
       gender_preference: 'no_preference',
       family_contacts_count: (i % 4),
-      is_active: true,
+      is_active: i % 5 !== 0,
     };
   });
 }

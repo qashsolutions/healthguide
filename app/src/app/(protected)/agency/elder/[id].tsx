@@ -26,18 +26,13 @@ interface ElderForm {
   first_name: string;
   last_name: string;
   phone: string;
-  email: string;
   address: string;
   city: string;
   state: string;
   zip_code: string;
   care_needs: string[];
   special_instructions: string;
-  emergency_contact: string;
-  emergency_phone: string;
-  caregiver_gender_preference: 'male' | 'female' | 'no_preference';
-  status: 'active' | 'inactive' | 'pending_handshake';
-  handshake_completed: boolean;
+  is_active: boolean;
 }
 
 interface FamilyContact {
@@ -45,10 +40,6 @@ interface FamilyContact {
   full_name: string;
   relationship: string;
   phone: string;
-  is_primary: boolean;
-  notify_check_in: boolean;
-  notify_check_out: boolean;
-  notify_daily_report: boolean;
 }
 
 const DEFAULT_CARE_NEEDS = [
@@ -88,18 +79,13 @@ export default function ElderDetailScreen() {
     first_name: '',
     last_name: '',
     phone: '',
-    email: '',
     address: '',
     city: '',
     state: '',
     zip_code: '',
     care_needs: ['companionship'],
     special_instructions: '',
-    emergency_contact: '',
-    emergency_phone: '',
-    caregiver_gender_preference: 'no_preference',
-    status: 'pending_handshake',
-    handshake_completed: false,
+    is_active: true,
   });
 
   useEffect(() => {
@@ -126,18 +112,13 @@ export default function ElderDetailScreen() {
           first_name: data.first_name || '',
           last_name: data.last_name || '',
           phone: data.phone || '',
-          email: data.email || '',
           address: data.address || '',
           city: data.city || '',
           state: data.state || '',
           zip_code: data.zip_code || '',
           care_needs: data.care_needs || ['companionship'],
           special_instructions: data.special_instructions || '',
-          emergency_contact: data.emergency_contact || '',
-          emergency_phone: data.emergency_phone || '',
-          caregiver_gender_preference: data.caregiver_gender_preference || 'no_preference',
-          status: data.status || 'pending_handshake',
-          handshake_completed: data.handshake_completed || false,
+          is_active: data.is_active !== false,
         });
       }
     } catch (error) {
@@ -151,9 +132,9 @@ export default function ElderDetailScreen() {
     try {
       const { data, error } = await supabase
         .from('family_members')
-        .select('*')
+        .select('id, name, relationship, phone')
         .eq('elder_id', id)
-        .order('is_primary', { ascending: false });
+        .eq('is_active', true);
 
       if (error) throw error;
 
@@ -163,10 +144,6 @@ export default function ElderDetailScreen() {
           full_name: c.name || '',
           relationship: c.relationship || '',
           phone: c.phone || '',
-          is_primary: c.is_primary || false,
-          notify_check_in: c.notify_check_in !== false,
-          notify_check_out: c.notify_check_out !== false,
-          notify_daily_report: c.notify_daily_report !== false,
         })));
       }
     } catch (error) {
@@ -239,16 +216,12 @@ export default function ElderDetailScreen() {
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone,
-        email: form.email,
         address: form.address,
         city: form.city,
         state: form.state,
         zip_code: form.zip_code,
         care_needs: form.care_needs,
         special_instructions: form.special_instructions,
-        emergency_contact: form.emergency_contact,
-        emergency_phone: form.emergency_phone,
-        caregiver_gender_preference: form.caregiver_gender_preference,
         latitude: coords?.latitude,
         longitude: coords?.longitude,
       };
@@ -259,8 +232,7 @@ export default function ElderDetailScreen() {
           .insert({
             ...dataToSave,
             agency_id: user?.agency_id,
-            status: 'pending_handshake',
-            handshake_completed: false,
+            is_active: true,
           })
           .select()
           .single();
@@ -285,35 +257,29 @@ export default function ElderDetailScreen() {
     setSaving(false);
   }
 
-  async function handleHandshake(withWhom: 'careseeker' | 'family_member') {
+  async function handleActivate() {
     try {
       const { error } = await supabase
         .from('elders')
-        .update({
-          handshake_completed: true,
-          handshake_date: new Date().toISOString(),
-          handshake_with: withWhom,
-          status: 'active',
-        })
+        .update({ is_active: true })
         .eq('id', id);
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Handshake completed! Care can now begin.');
-      setForm({ ...form, handshake_completed: true, status: 'active' });
+      Alert.alert('Success', 'Elder activated! Care can now begin.');
+      setForm({ ...form, is_active: true });
     } catch (error) {
-      Alert.alert('Error', 'Could not complete handshake');
+      Alert.alert('Error', 'Could not activate elder');
     }
   }
 
-  function promptHandshake() {
+  function promptActivate() {
     Alert.alert(
-      'Complete Handshake',
-      'Who is confirming the care agreement?',
+      'Activate Elder',
+      'Confirm that the care agreement is in place and activate this elder?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Elder (Careseeker)', onPress: () => handleHandshake('careseeker') },
-        { text: 'Family Member', onPress: () => handleHandshake('family_member') },
+        { text: 'Activate', onPress: handleActivate },
       ]
     );
   }
@@ -353,22 +319,22 @@ export default function ElderDetailScreen() {
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
           {/* Handshake Banner */}
-          {!isNew && !form.handshake_completed && (
+          {!isNew && !form.is_active && (
             <Card style={styles.handshakeBanner}>
               <View style={styles.handshakeContent}>
                 <AlertIcon size={24} color={colors.warning[500]} />
                 <View style={styles.handshakeText}>
-                  <Text style={styles.handshakeTitle}>Handshake Required</Text>
+                  <Text style={styles.handshakeTitle}>Elder Inactive</Text>
                   <Text style={styles.handshakeSubtitle}>
-                    Complete handshake before care can begin
+                    Activate this elder to begin providing care
                   </Text>
                 </View>
               </View>
               <Button
-                title="Complete Handshake"
+                title="Activate Elder"
                 variant="primary"
                 size="sm"
-                onPress={promptHandshake}
+                onPress={promptActivate}
               />
             </Card>
           )}
@@ -398,13 +364,6 @@ export default function ElderDetailScreen() {
               keyboardType="phone-pad"
             />
 
-            <Input
-              label="Email"
-              value={form.email}
-              onChangeText={(text: string) => setForm({ ...form, email: text })}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
           </Card>
 
           {/* Address */}
@@ -487,24 +446,6 @@ export default function ElderDetailScreen() {
             />
           </Card>
 
-          {/* Emergency Contact */}
-          <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Emergency Contact</Text>
-
-            <Input
-              label="Contact Name"
-              value={form.emergency_contact}
-              onChangeText={(text: string) => setForm({ ...form, emergency_contact: text })}
-              placeholder="Jane Smith"
-            />
-
-            <Input
-              label="Contact Phone"
-              value={form.emergency_phone}
-              onChangeText={(text: string) => setForm({ ...form, emergency_phone: text })}
-              keyboardType="phone-pad"
-            />
-          </Card>
 
           {/* Video Contacts */}
           {!isNew && (
@@ -572,9 +513,6 @@ export default function ElderDetailScreen() {
                   <View style={styles.contactInfo}>
                     <Text style={styles.contactName}>
                       {contact.full_name}
-                      {contact.is_primary && (
-                        <Text style={styles.primaryBadge}> (Primary)</Text>
-                      )}
                     </Text>
                     <Text style={styles.contactRelation}>{contact.relationship}</Text>
                     <Text style={styles.contactPhone}>{contact.phone}</Text>

@@ -54,17 +54,26 @@ export default function CaregiversScreen() {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      // Get caregivers for this agency
-      const { data: caregiversData, error } = await supabase
-        .from('caregiver_profiles')
+      // Get caregivers for this agency via caregiver_agency_links
+      const { data: linksData, error } = await supabase
+        .from('caregiver_agency_links')
         .select(`
-          id,
-          full_name,
-          phone,
-          is_active,
-          photo_url
+          caregiver_profile:caregiver_profiles (
+            id,
+            full_name,
+            phone,
+            is_active,
+            photo_url
+          )
         `)
-        .order('full_name');
+        .eq('agency_id', user.agency_id)
+        .eq('is_active', true);
+
+      // Flatten the joined data
+      const caregiversData = (linksData || [])
+        .map((link: any) => Array.isArray(link.caregiver_profile) ? link.caregiver_profile[0] : link.caregiver_profile)
+        .filter(Boolean)
+        .sort((a: any, b: any) => (a.full_name || '').localeCompare(b.full_name || ''));
 
       if (error) throw error;
 

@@ -138,7 +138,7 @@ export default function NotesScreen() {
     try {
       // Save each observation category to the observations table
       const observationRecords = observations.map((obs) => ({
-        assignment_id: id,
+        visit_id: id,
         elder_id: elderInfo.id,
         caregiver_id: user.id,
         category: obs.category,
@@ -159,7 +159,7 @@ export default function NotesScreen() {
       // Save voice notes if any
       if (voiceNotes.length > 0) {
         const voiceNoteRecords = voiceNotes.map((note) => ({
-          assignment_id: id,
+          visit_id: id,
           elder_id: elderInfo.id,
           caregiver_id: user.id,
           category: 'voice_note',

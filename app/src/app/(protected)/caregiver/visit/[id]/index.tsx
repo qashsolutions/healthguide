@@ -96,12 +96,12 @@ export default function VisitDetailScreen() {
         .select(`
           id,
           status,
-          task:task_definitions (
+          task:task_library (
             name,
             category
           )
         `)
-        .eq('assignment_id', id);
+        .eq('visit_id', id);
 
       if (tasksError) throw tasksError;
 

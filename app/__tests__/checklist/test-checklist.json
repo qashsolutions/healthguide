@@ -668,7 +668,7 @@
     "batch": 8,
     "testFile": "02-agency/07-agency-elders.test.tsx",
     "screen": "agency/elder/[id].tsx",
-    "feature": "Elder form shows emergency contact fields",
+    "feature": "Elder form shows address and special instructions sections",
     "status": "pass"
   },
   {

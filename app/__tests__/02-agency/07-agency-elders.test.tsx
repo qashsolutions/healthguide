@@ -181,12 +181,13 @@ describe('Batch 8: Elder Detail (New Mode)', () => {
     expect(screen.getByText('Personal Care')).toBeTruthy();
   });
 
-  // Feature #84: Emergency contact fields render
-  it('#84 - Elder form shows emergency contact fields', () => {
+  // Feature #84: Address and special instructions sections render
+  it('#84 - Elder form shows address and special instructions sections', () => {
     render(<ElderDetailScreen />);
-    expect(screen.getByText('Emergency Contact')).toBeTruthy();
-    expect(screen.getByText('Contact Name')).toBeTruthy();
-    expect(screen.getByText('Contact Phone')).toBeTruthy();
+    expect(screen.getByText('Address (Required for EVV)')).toBeTruthy();
+    expect(screen.getByPlaceholderText('123 Main St')).toBeTruthy();
+    expect(screen.getByText('Special Instructions')).toBeTruthy();
+    expect(screen.getByPlaceholderText('Any special care instructions...')).toBeTruthy();
   });
 
   // Feature #85: Save button renders

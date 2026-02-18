@@ -32,7 +32,7 @@ interface Caregiver {
   id: string;
   first_name: string;
   last_name: string;
-  avatar_url?: string;
+  photo_url?: string;
   is_available: boolean;
 }
 
@@ -40,7 +40,7 @@ interface Elder {
   id: string;
   first_name: string;
   last_name: string;
-  avatar_url?: string;
+  photo_url?: string;
   address: string;
 }
 
@@ -72,7 +72,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
     setFetchingData(true);
     const { data, error } = await supabase
       .from('elders')
-      .select('id, first_name, last_name, avatar_url, address')
+      .select('id, first_name, last_name, photo_url, address')
       .eq('agency_id', user?.user_metadata?.agency_id)
       .eq('is_active', true)
       .order('first_name');
@@ -84,7 +84,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
   async function fetchCaregivers() {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, first_name, last_name, avatar_url')
+      .select('id, first_name, last_name, photo_url')
       .eq('agency_id', user?.user_metadata?.agency_id)
       .eq('role', 'caregiver')
       .eq('is_active', true)
@@ -155,8 +155,8 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
         style={[styles.listItem, isSelected && styles.listItemSelected]}
         onPress={() => setSelectedElder(item.id)}
       >
-        {item.avatar_url ? (
-          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
+        {item.photo_url ? (
+          <Image source={{ uri: item.photo_url }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
             <Text style={styles.avatarInitials}>
@@ -191,8 +191,8 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
         onPress={() => item.is_available && setSelectedCaregiver(item.id)}
         disabled={!item.is_available}
       >
-        {item.avatar_url ? (
-          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
+        {item.photo_url ? (
+          <Image source={{ uri: item.photo_url }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
             <Text style={styles.avatarInitials}>

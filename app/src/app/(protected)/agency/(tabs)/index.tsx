@@ -48,7 +48,7 @@ interface TodayVisit {
   scheduled_start: string;
   scheduled_end: string;
   status: string;
-  caregiver: { full_name: string } | null;
+  caregiver: { first_name: string; last_name: string } | null;
   elder: { first_name: string; last_name: string } | null;
 }
 
@@ -92,11 +92,12 @@ export default function AgencyDashboard() {
         visitsResult,
         activityResult,
       ] = await Promise.all([
-        // Caregivers count
+        // Caregivers count (via user_profiles since caregiver_profiles has no agency_id)
         supabase
-          .from('caregiver_profiles')
+          .from('user_profiles')
           .select('id, is_active', { count: 'exact' })
-          .eq('agency_id', agency.id),
+          .eq('agency_id', agency.id)
+          .eq('role', 'caregiver'),
 
         // Elders count
         supabase
@@ -113,7 +114,7 @@ export default function AgencyDashboard() {
             scheduled_start,
             scheduled_end,
             status,
-            caregiver:caregiver_profiles (full_name),
+            caregiver:user_profiles!caregiver_id (first_name, last_name),
             elder:elders (first_name, last_name)
           `)
           .eq('agency_id', agency.id)
@@ -128,7 +129,7 @@ export default function AgencyDashboard() {
             status,
             actual_start,
             actual_end,
-            caregiver:caregiver_profiles (full_name),
+            caregiver:user_profiles!caregiver_id (first_name, last_name),
             elder:elders (first_name, last_name)
           `)
           .eq('agency_id', agency.id)
@@ -166,7 +167,8 @@ export default function AgencyDashboard() {
           scheduled_end: v.scheduled_end,
           status: v.status,
           caregiver: caregiverData ? {
-            full_name: caregiverData.full_name || '',
+            first_name: caregiverData.first_name || '',
+            last_name: caregiverData.last_name || '',
           } : null,
           elder: v.elder ? {
             first_name: v.elder.first_name || '',
@@ -180,7 +182,9 @@ export default function AgencyDashboard() {
         const caregiverRaw = Array.isArray(a.caregiver) ? a.caregiver[0] : a.caregiver;
         const elderRaw = Array.isArray(a.elder) ? a.elder[0] : a.elder;
 
-        const caregiverName = caregiverRaw?.full_name || 'Unknown';
+        const caregiverName = caregiverRaw
+          ? [caregiverRaw.first_name, caregiverRaw.last_name].filter(Boolean).join(' ') || 'Unknown'
+          : 'Unknown';
         const elderName = elderRaw
           ? `${elderRaw.first_name} ${elderRaw.last_name?.charAt(0) || ''}.`
           : 'Unknown';
@@ -425,7 +429,7 @@ export default function AgencyDashboard() {
                     {visit.elder?.first_name} {visit.elder?.last_name}
                   </Text>
                   <Text style={styles.visitCaregiver} numberOfLines={1}>
-                    {visit.caregiver?.full_name}
+                    {visit.caregiver ? `${visit.caregiver.first_name} ${visit.caregiver.last_name}`.trim() : 'Unassigned'}
                   </Text>
                   <View style={[styles.statusBadge, { backgroundColor: getStatusColor(visit.status) + '20' }]}>
                     <View style={[styles.statusDot, { backgroundColor: getStatusColor(visit.status) }]} />

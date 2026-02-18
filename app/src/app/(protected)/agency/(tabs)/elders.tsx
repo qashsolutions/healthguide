@@ -19,7 +19,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { PersonIcon, PlusIcon, HeartIcon, LocationIcon, AlertIcon, SearchIcon } from '@/components/icons';
+import { PersonIcon, PlusIcon, HeartIcon, LocationIcon, SearchIcon } from '@/components/icons';
 
 interface Elder {
   id: string;
@@ -27,11 +27,9 @@ interface Elder {
   address: string;
   city: string;
   state: string;
-  status: 'active' | 'inactive' | 'pending_handshake';
-  handshake_completed: boolean;
+  is_active: boolean;
   care_needs: string[];
   family_contacts_count: number;
-  assigned_caregiver_name?: string;
 }
 
 export default function EldersScreen() {
@@ -62,10 +60,8 @@ export default function EldersScreen() {
           address,
           city,
           state,
-          status,
-          handshake_completed,
+          is_active,
           care_needs,
-          preferred_caregiver_id,
           family_members (id)
         `)
         .eq('agency_id', user.agency_id)
@@ -74,36 +70,15 @@ export default function EldersScreen() {
       if (error) throw error;
 
       if (eldersData) {
-        // Get assigned caregivers
-        const caregiversMap: Record<string, string> = {};
-        const caregiverIds = eldersData
-          .filter((e: any) => e.preferred_caregiver_id)
-          .map((e: any) => e.preferred_caregiver_id);
-
-        if (caregiverIds.length > 0) {
-          const { data: caregivers } = await supabase
-            .from('caregiver_profiles')
-            .select('id, full_name')
-            .in('id', caregiverIds);
-
-          caregivers?.forEach((c: any) => {
-            caregiversMap[c.id] = c.full_name;
-          });
-        }
-
         const formattedElders = eldersData.map((e: any) => ({
           id: e.id,
           full_name: [e.first_name, e.last_name].filter(Boolean).join(' ') || 'Unknown',
           address: e.address,
           city: e.city,
           state: e.state,
-          status: e.status || 'pending_handshake',
-          handshake_completed: e.handshake_completed || false,
+          is_active: e.is_active !== false,
           care_needs: e.care_needs || [],
           family_contacts_count: Array.isArray(e.family_members) ? e.family_members.length : 0,
-          assigned_caregiver_name: e.preferred_caregiver_id
-            ? caregiversMap[e.preferred_caregiver_id]
-            : undefined,
         }));
 
         setElders(formattedElders);
@@ -125,15 +100,10 @@ export default function EldersScreen() {
     (e.full_name?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
-  const pendingHandshake = elders.filter((e) => !e.handshake_completed).length;
+  const inactiveCount = elders.filter((e) => !e.is_active).length;
 
   const renderElder = ({ item }: { item: Elder }) => {
     const displayName = item.full_name;
-    const statusColors = {
-      active: colors.success[500],
-      inactive: colors.error[500],
-      pending_handshake: colors.warning[500],
-    };
 
     return (
       <Card
@@ -160,28 +130,15 @@ export default function EldersScreen() {
               </Text>
             )}
           </View>
-          {!item.handshake_completed ? (
-            <View style={styles.alertBadge}>
-              <AlertIcon size={20} color={colors.warning[500]} />
-              <Text style={styles.alertText}>Handshake</Text>
-            </View>
-          ) : (
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: statusColors[item.status] },
-              ]}
-            />
-          )}
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: item.is_active ? colors.success[500] : colors.neutral[400] },
+            ]}
+          />
         </View>
 
         <View style={styles.cardDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Caregiver:</Text>
-            <Text style={styles.detailValue}>
-              {item.assigned_caregiver_name || 'Not assigned'}
-            </Text>
-          </View>
           <View style={styles.detailRow}>
             <HeartIcon size={16} color={colors.error[400]} />
             <Text style={styles.detailValue}>
@@ -200,9 +157,9 @@ export default function EldersScreen() {
           <Text style={styles.count}>
             {elders.length} elders
           </Text>
-          {pendingHandshake > 0 && (
+          {inactiveCount > 0 && (
             <Text style={styles.pendingText}>
-              {pendingHandshake} pending handshake
+              {inactiveCount} inactive
             </Text>
           )}
         </View>
@@ -348,15 +305,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-  },
-  alertBadge: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  alertText: {
-    fontSize: 10,
-    color: colors.warning[500],
-    fontWeight: '500',
   },
   cardDetails: {
     paddingTop: spacing[3],

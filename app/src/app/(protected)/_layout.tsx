@@ -1,14 +1,42 @@
 // HealthGuide Protected Layout
 // Per healthguide-core/navigation skill - Role-based navigation
 
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Stack, useSegments, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { colors } from '@/theme/colors';
 import { SyncProvider, SyncStatusBar } from '@/components/sync';
+import { useEffect } from 'react';
+
+function getRoleRoute(role: string): string {
+  switch (role) {
+    case 'agency_owner': return 'agency';
+    case 'caregiver': return 'caregiver';
+    case 'careseeker': return 'careseeker';
+    case 'family_member': return 'family';
+    default: return 'agency';
+  }
+}
 
 export default function ProtectedLayout() {
   const { user, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  // Role-based redirect: ensure user lands on their role's screens
+  useEffect(() => {
+    if (!user || loading) return;
+
+    const roleRoute = getRoleRoute(user.role);
+    const currentRoleSegment = segments[1]; // segments[0] = '(protected)'
+
+    // If user is on wrong role route (or none), redirect to correct one
+    if (!currentRoleSegment || !['agency', 'caregiver', 'careseeker', 'family'].includes(currentRoleSegment)) {
+      router.replace(`/(protected)/${roleRoute}` as any);
+    } else if (currentRoleSegment !== roleRoute) {
+      router.replace(`/(protected)/${roleRoute}` as any);
+    }
+  }, [user, loading, segments]);
 
   if (loading) {
     return (

@@ -229,7 +229,7 @@ describe('Batch 34: Negative Scenarios — XSS & SQL Injection', () => {
   // #405
   it('#405 - SQL injection in search: no crash', async () => {
     mockChain.then.mockImplementation((resolve: any) =>
-      resolve({ data: generateCaregivers(5), error: null })
+      resolve({ data: generateCaregivers(5).map(c => ({ caregiver_profile: c })), error: null })
     );
     render(<CaregiversScreen />);
     await waitFor(() => {
@@ -276,7 +276,7 @@ describe('Batch 34: Negative Scenarios — Overflow Text', () => {
   // #408
   it('#408 - 10000-char search query: search field accepts input', async () => {
     mockChain.then.mockImplementation((resolve: any) =>
-      resolve({ data: generateCaregivers(5), error: null })
+      resolve({ data: generateCaregivers(5).map(c => ({ caregiver_profile: c })), error: null })
     );
     render(<CaregiversScreen />);
     await waitFor(() => {
@@ -433,19 +433,20 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
 
   // #418
   it('#418 - Caregiver with null phone: card renders without crash', async () => {
-    const nullPhoneCaregivers = [{
+    const nullPhoneCaregiver = {
       ...generateCaregivers(1)[0],
       phone: null,
-    }];
+    };
+    const nullPhoneCaregiverLinks = [{ caregiver_profile: nullPhoneCaregiver }];
     let callCount = 0;
     mockChain.then.mockImplementation((resolve: any) => {
       callCount++;
-      if (callCount === 1) return resolve({ data: nullPhoneCaregivers, error: null });
+      if (callCount === 1) return resolve({ data: nullPhoneCaregiverLinks, error: null });
       return resolve({ data: [], error: null });
     });
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText(nullPhoneCaregivers[0].full_name)).toBeTruthy();
+      expect(screen.getByText(nullPhoneCaregiver.full_name)).toBeTruthy();
     });
   });
 

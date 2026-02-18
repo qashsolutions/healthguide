@@ -86,7 +86,7 @@ export default function CheckOutScreen() {
       const { data: tasksData, error: tasksError } = await supabase
         .from('visit_tasks')
         .select('id, status')
-        .eq('assignment_id', id);
+        .eq('visit_id', id);
 
       if (!tasksError && tasksData) {
         const completed = tasksData.filter(t => t.status === 'completed').length;
@@ -147,7 +147,7 @@ export default function CheckOutScreen() {
       try {
         await supabase.functions.invoke('notify-check-out', {
           body: {
-            assignment_id: id,
+            visit_id: id,
             elder_id: assignment?.elder.id,
             caregiver_id: user?.id,
           },

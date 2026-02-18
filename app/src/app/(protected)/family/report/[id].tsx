@@ -38,14 +38,16 @@ import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
 interface DailyReport {
   id: string;
   report_date: string;
-  created_at: string;
-  summary: string | null;
+  generated_at: string | null;
   elder: {
     first_name: string;
     last_name: string;
   };
   visits: ReportVisit[];
   observations: Observation[];
+  total_tasks_completed: number;
+  total_tasks_assigned: number;
+  missed_visits: number;
 }
 
 interface ReportVisit {
@@ -144,8 +146,10 @@ export default function FamilyReportDetailScreen() {
         .select(`
           id,
           report_date,
-          created_at,
-          summary,
+          generated_at,
+          total_tasks_completed,
+          total_tasks_assigned,
+          missed_visits,
           elder:elders!elder_id (
             id,
             first_name,
@@ -415,13 +419,6 @@ export default function FamilyReportDetailScreen() {
           </Card>
         )}
 
-        {/* Summary */}
-        {report.summary && (
-          <Card style={styles.cardSpacing}>
-            <Text style={styles.cardTitle}>Summary</Text>
-            <Text style={styles.summaryText}>{report.summary}</Text>
-          </Card>
-        )}
 
         <View style={styles.bottomPadding} />
       </ScrollView>

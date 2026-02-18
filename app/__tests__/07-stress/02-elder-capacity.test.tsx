@@ -182,13 +182,14 @@ describe('Batch 32: Elder Capacity — Elders List', () => {
   });
 
   // #366
-  it('#366 - Pending handshake elders have distinct status', async () => {
+  it('#366 - Inactive elders have distinct status dot color', async () => {
     render(<EldersScreen />);
     await waitFor(() => {
       expect(screen.getByText(elders15[0].full_name)).toBeTruthy();
     });
-    // Elder at index 0 has status 'pending_handshake'
-    expect(screen.getByText(/pending handshake/i)).toBeTruthy();
+    // Elders at index 0, 5, 10 have is_active=false (i % 5 === 0)
+    // The header shows "X inactive" for inactive elders
+    expect(screen.getByText(/inactive/i)).toBeTruthy();
   });
 
   // #367

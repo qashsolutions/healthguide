@@ -16,7 +16,7 @@ import { supabase } from '@/lib/supabase';
 
 interface AssignmentTask {
   id: string;
-  assignment_id: string;
+  visit_id: string;
   task_id: string;
   status: TaskStatus;
   completed_at: string | null;
@@ -51,12 +51,13 @@ export default function TasksScreen() {
       .from('visit_tasks')
       .select(`
         id,
-        assignment_id,
+        visit_id,
         task_id,
         status,
         completed_at,
         skipped_reason,
         notes,
+        sort_order,
         task:task_library (
           id,
           name,
@@ -65,8 +66,8 @@ export default function TasksScreen() {
           description
         )
       `)
-      .eq('assignment_id', id)
-      .order('created_at', { ascending: true });
+      .eq('visit_id', id)
+      .order('sort_order', { ascending: true });
 
     if (error) {
       console.error('Error fetching tasks:', error);
@@ -80,7 +81,7 @@ export default function TasksScreen() {
       const taskData = Array.isArray(t.task) ? t.task[0] : t.task;
       return {
         id: t.id,
-        visit_id: t.assignment_id,
+        visit_id: t.visit_id,
         task_id: t.task_id,
         status: t.status as TaskStatus,
         completed_at: t.completed_at || undefined,
