@@ -63,7 +63,10 @@ function RootLayoutNav() {
   }, [onLayoutRootView]);
 
   // Show loading while fonts load or auth initializes
-  if (!fontsLoaded || !initialized || loading) {
+  // NOTE: `loading` intentionally excluded — setting it unmounts the entire
+  // navigation Stack, destroying all navigation state (BUG-1). Individual
+  // screens handle their own loading spinners via the `loading` value.
+  if (!fontsLoaded || !initialized) {
     return <LoadingScreen />;
   }
 

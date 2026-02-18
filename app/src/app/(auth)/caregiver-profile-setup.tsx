@@ -148,6 +148,21 @@ export default function CaregiverProfileSetupScreen() {
   const keywordInputRef = useRef<TextInput>(null);
 
   const [dbTasks, setDbTasks] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Platform-aware feedback: inline toast instead of window.alert on web
+  const showToast = (message: string, type: 'success' | 'error', onDismiss?: () => void) => {
+    if (Platform.OS !== 'web') {
+      const title = type === 'success' ? 'Success' : 'Error';
+      Alert.alert(title, message, [{ text: 'OK', onPress: onDismiss }]);
+      return;
+    }
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+      onDismiss?.();
+    }, 3000);
+  };
 
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
@@ -197,7 +212,7 @@ export default function CaregiverProfileSetupScreen() {
         setFormData({ ...formData, photoUri: result.assets[0].uri });
       }
     } catch (err) {
-      Alert.alert('Error', 'Could not pick image');
+      showToast('Could not pick image', 'error');
     }
   };
 
@@ -281,6 +296,17 @@ export default function CaregiverProfileSetupScreen() {
 
   const handleCompleteProfile = async () => {
     if (!isStep1Valid) return;
+
+    // UI Issue 6: Validate rate range (min must not exceed max)
+    if (formData.hourlyRateMin && formData.hourlyRateMax) {
+      const min = parseFloat(formData.hourlyRateMin);
+      const max = parseFloat(formData.hourlyRateMax);
+      if (min > max) {
+        showToast('Minimum rate cannot be greater than maximum rate', 'error');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const certs = formData.certifications
@@ -321,11 +347,11 @@ export default function CaregiverProfileSetupScreen() {
       });
       if (updateError) throw updateError;
 
-      Alert.alert('Success', 'Profile created! Agencies can now find you.', [
-        { text: 'OK', onPress: () => router.replace('/(protected)/caregiver/(tabs)') },
-      ]);
+      showToast('Profile created! Agencies can now find you.', 'success', () => {
+        router.replace('/(protected)/caregiver/(tabs)');
+      });
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Could not create profile');
+      showToast(err.message || 'Could not create profile', 'error');
     }
     setLoading(false);
   };
@@ -695,7 +721,7 @@ export default function CaregiverProfileSetupScreen() {
                   onPress={handleCompleteProfile}
                   style={{ backgroundColor: CAREGIVER_COLOR }}
                 />
-                <Pressable onPress={handleCompleteProfile} style={s.skipButton}>
+                <Pressable onPress={() => router.replace('/(protected)/caregiver/(tabs)')} style={s.skipButton}>
                   <Text style={s.skipText}>Skip — I'll fill this in later</Text>
                 </Pressable>
               </>
@@ -703,6 +729,16 @@ export default function CaregiverProfileSetupScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Inline toast for web — rendered last to overlay content */}
+      {toast && (
+        <View style={[
+          s.toast,
+          toast.type === 'success' ? s.toastSuccess : s.toastError,
+        ]}>
+          <Text style={s.toastText}>{toast.message}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1016,5 +1052,34 @@ const s = StyleSheet.create({
     ...typography.styles.body,
     color: CAREGIVER_COLOR,
     fontWeight: '600',
+  },
+
+  // Toast (web-friendly replacement for Alert.alert)
+  toast: {
+    position: 'fixed' as any,
+    top: 40,
+    left: spacing[4],
+    right: spacing[4],
+    zIndex: 9999,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  toastSuccess: {
+    backgroundColor: CAREGIVER_COLOR,
+  },
+  toastError: {
+    backgroundColor: colors.error[600] || '#dc2626',
+  },
+  toastText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

@@ -3,7 +3,7 @@
 // Per healthguide-core/auth skill - Large touch targets for caregivers
 // Per frontend-design skill - Role-based theming with emerald
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Button, Input } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
@@ -28,6 +29,18 @@ export default function CaregiverSignupScreen() {
   const { signInWithPhone, loading } = useAuth();
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
+
+  // BUG-3 fix: Clear any stale session so OTP flow doesn't redirect to
+  // the previous user's dashboard when onAuthStateChange fires.
+  useEffect(() => {
+    async function clearStaleSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.auth.signOut();
+      }
+    }
+    clearStaleSession();
+  }, []);
 
   const handleSendOTP = async () => {
     // Basic phone validation
@@ -107,7 +120,10 @@ export default function CaregiverSignupScreen() {
             label="Phone Number"
             placeholder="(555) 123-4567"
             value={formatPhoneNumber(phone)}
-            onChangeText={(text) => setPhone(text.replace(/\D/g, ''))}
+            onChangeText={(text) => {
+              setError('');
+              setPhone(text.replace(/\D/g, ''));
+            }}
             keyboardType="phone-pad"
             autoComplete="tel"
             size="caregiver"
