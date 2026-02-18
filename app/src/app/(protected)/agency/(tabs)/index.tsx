@@ -26,7 +26,6 @@ import {
   PersonIcon,
   CalendarIcon,
   CheckIcon,
-  AlertIcon,
   ClockIcon,
 } from '@/components/icons';
 
@@ -61,12 +60,19 @@ interface RecentActivity {
   time: string;
 }
 
-interface Alert {
+interface CheckinDetail {
   id: string;
-  type: string;
-  title: string;
-  description: string;
-  priority: 'high' | 'medium' | 'low';
+  caregiverName: string;
+  elderName: string;
+  scheduledTime: string;
+  minutesLate: number;
+  status: string;
+}
+
+interface CheckinGroups {
+  red: CheckinDetail[];
+  amber: CheckinDetail[];
+  green: CheckinDetail[];
 }
 
 export default function AgencyDashboard() {
@@ -77,7 +83,8 @@ export default function AgencyDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [todayVisits, setTodayVisits] = useState<TodayVisit[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [checkinGroups, setCheckinGroups] = useState<CheckinGroups>({ red: [], amber: [], green: [] });
+  const [expandedCard, setExpandedCard] = useState<'red' | 'amber' | 'green' | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
     if (!agency?.id) return;
@@ -224,34 +231,46 @@ export default function AgencyDashboard() {
           : 0,
       };
 
-      // Generate alerts
-      const generatedAlerts: Alert[] = [];
-
-      // Check for late check-ins (visits scheduled but not started within 15 min)
+      // Categorize visits into check-in groups (Red / Amber / Green)
       const now = new Date();
-      visits.forEach((v: any) => {
-        if (v.status === 'scheduled') {
-          const [hours, minutes] = v.scheduled_start.split(':');
-          const scheduledTime = new Date();
-          scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0);
+      const groups: CheckinGroups = { red: [], amber: [], green: [] };
 
-          const diffMinutes = (now.getTime() - scheduledTime.getTime()) / 60000;
-          if (diffMinutes > 15) {
-            generatedAlerts.push({
-              id: `late-${v.id}`,
-              type: 'late_checkin',
-              title: 'Late Check-in',
-              description: `${v.elder?.first_name || 'Elder'}'s visit is ${Math.round(diffMinutes)} minutes late`,
-              priority: diffMinutes > 30 ? 'high' : 'medium',
-            });
-          }
+      visits.forEach((v: any) => {
+        const caregiverName = v.caregiver
+          ? `${v.caregiver.first_name} ${v.caregiver.last_name}`.trim()
+          : 'Unassigned';
+        const elderName = v.elder
+          ? `${v.elder.first_name} ${v.elder.last_name}`.trim()
+          : 'Unknown';
+
+        const [hours, minutes] = v.scheduled_start.split(':');
+        const scheduledTime = new Date();
+        scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0);
+        const formattedTime = format(scheduledTime, 'h:mm a');
+        const diffMinutes = Math.max(0, (now.getTime() - scheduledTime.getTime()) / 60000);
+
+        const detail: CheckinDetail = {
+          id: v.id,
+          caregiverName,
+          elderName,
+          scheduledTime: formattedTime,
+          minutesLate: Math.round(diffMinutes),
+          status: v.status,
+        };
+
+        if (v.status === 'scheduled' && diffMinutes > 30) {
+          groups.red.push(detail);
+        } else if (v.status === 'scheduled' && diffMinutes > 15) {
+          groups.amber.push(detail);
+        } else {
+          groups.green.push(detail);
         }
       });
 
       setStats(calculatedStats);
       setTodayVisits(transformedVisits);
       setRecentActivity(activity);
-      setAlerts(generatedAlerts);
+      setCheckinGroups(groups);
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -326,27 +345,75 @@ export default function AgencyDashboard() {
           </View>
         </GradientHeader>
 
-        {/* Alerts */}
-        {alerts.length > 0 && (
-          <View style={styles.alertsSection}>
-            {alerts.map((alert) => (
-              <View
-                key={alert.id}
+        {/* Check-in Summary Cards */}
+        {stats && stats.visitsToday > 0 && (
+          <View style={styles.checkinSection}>
+            <View style={styles.checkinSummaryRow}>
+              <Pressable
                 style={[
-                  styles.alertCard,
-                  alert.priority === 'high' && styles.alertHigh,
+                  styles.checkinCard,
+                  styles.checkinCardRed,
+                  checkinGroups.red.length === 0 && styles.checkinCardMuted,
+                  expandedCard === 'red' && styles.checkinCardActive,
                 ]}
+                onPress={() => setExpandedCard(expandedCard === 'red' ? null : 'red')}
               >
-                <AlertIcon
-                  size={20}
-                  color={alert.priority === 'high' ? colors.error[600] : colors.warning[600]}
-                />
-                <View style={styles.alertContent}>
-                  <Text style={styles.alertTitle}>{alert.title}</Text>
-                  <Text style={styles.alertDescription}>{alert.description}</Text>
-                </View>
+                <Text style={styles.checkinCount}>{checkinGroups.red.length}</Text>
+                <Text style={[styles.checkinLabel, { color: colors.error[700] }]}>Critical</Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.checkinCard,
+                  styles.checkinCardAmber,
+                  checkinGroups.amber.length === 0 && styles.checkinCardMuted,
+                  expandedCard === 'amber' && styles.checkinCardActive,
+                ]}
+                onPress={() => setExpandedCard(expandedCard === 'amber' ? null : 'amber')}
+              >
+                <Text style={styles.checkinCount}>{checkinGroups.amber.length}</Text>
+                <Text style={[styles.checkinLabel, { color: colors.warning[700] }]}>Late</Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.checkinCard,
+                  styles.checkinCardGreen,
+                  checkinGroups.green.length === 0 && styles.checkinCardMuted,
+                  expandedCard === 'green' && styles.checkinCardActive,
+                ]}
+                onPress={() => setExpandedCard(expandedCard === 'green' ? null : 'green')}
+              >
+                <Text style={styles.checkinCount}>{checkinGroups.green.length}</Text>
+                <Text style={[styles.checkinLabel, { color: colors.success[700] }]}>On Time</Text>
+              </Pressable>
+            </View>
+
+            {expandedCard && checkinGroups[expandedCard].length > 0 && (
+              <View style={styles.checkinDetailList}>
+                {checkinGroups[expandedCard].map((detail) => (
+                  <View
+                    key={detail.id}
+                    style={[
+                      styles.checkinDetailRow,
+                      expandedCard === 'red' && { borderLeftColor: colors.error[400] },
+                      expandedCard === 'amber' && { borderLeftColor: colors.warning[400] },
+                      expandedCard === 'green' && { borderLeftColor: colors.success[400] },
+                    ]}
+                  >
+                    <Text style={styles.checkinDetailName} numberOfLines={1}>
+                      {detail.caregiverName} → {detail.elderName}
+                    </Text>
+                    <Text style={styles.checkinDetailTime}>
+                      Scheduled {detail.scheduledTime}
+                      {expandedCard === 'green'
+                        ? ` · ${detail.status === 'scheduled' ? 'Upcoming' : detail.status.replace('_', ' ')}`
+                        : ` · ${detail.minutesLate} min late`}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            ))}
+            )}
           </View>
         )}
 
@@ -557,7 +624,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing[4],
-    paddingBottom: spacing[8],
+    paddingBottom: 100,
   },
   welcomeSection: {
     marginBottom: spacing[4],
@@ -570,29 +637,67 @@ const styles = StyleSheet.create({
     ...typography.styles.h2,
     color: colors.text.primary,
   },
-  alertsSection: {
+  checkinSection: {
     marginBottom: spacing[4],
   },
-  alertCard: {
+  checkinSummaryRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.warning[50],
-    borderRadius: borderRadius.lg,
-    padding: spacing[3],
-    marginBottom: spacing[2],
-    gap: spacing[3],
+    gap: spacing[2],
   },
-  alertHigh: {
-    backgroundColor: colors.error[50],
-  },
-  alertContent: {
+  checkinCard: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
   },
-  alertTitle: {
-    ...typography.styles.label,
+  checkinCardRed: {
+    backgroundColor: colors.error[50],
+    borderColor: colors.error[200],
+  },
+  checkinCardAmber: {
+    backgroundColor: colors.warning[50],
+    borderColor: colors.warning[200],
+  },
+  checkinCardGreen: {
+    backgroundColor: colors.success[50],
+    borderColor: colors.success[200],
+  },
+  checkinCardMuted: {
+    opacity: 0.5,
+  },
+  checkinCardActive: {
+    borderWidth: 2.5,
+  },
+  checkinCount: {
+    ...typography.styles.h2,
     color: colors.text.primary,
   },
-  alertDescription: {
+  checkinLabel: {
+    ...typography.styles.caption,
+    fontWeight: '600',
+  },
+  checkinDetailList: {
+    marginTop: spacing[3],
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  checkinDetailRow: {
+    backgroundColor: colors.surface,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.neutral[300],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+  },
+  checkinDetailName: {
+    ...typography.styles.label,
+    color: colors.text.primary,
+    marginBottom: spacing[1],
+  },
+  checkinDetailTime: {
     ...typography.styles.caption,
     color: colors.text.secondary,
   },

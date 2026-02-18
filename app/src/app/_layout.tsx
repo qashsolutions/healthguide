@@ -8,9 +8,33 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, LogBox, Platform } from 'react-native';
 import { colors } from '@/theme/colors';
 import { useHealthGuideFonts } from '@/lib/fonts';
+
+// Suppress noisy warnings from dependencies (dev only)
+if (__DEV__) {
+  // react-native-web View emits this for JSX whitespace between elements
+  const origError = console.error;
+  console.error = (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('A text node cannot be a child of a <View>')) return;
+    origError(...args);
+  };
+
+  // react-native-reanimated / dependency warnings
+  const origWarn = console.warn;
+  console.warn = (...args: any[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('props.pointerEvents is deprecated')) return;
+    origWarn(...args);
+  };
+
+  if (Platform.OS !== 'web') {
+    LogBox.ignoreLogs([
+      'A text node cannot be a child of a <View>',
+      'props.pointerEvents is deprecated',
+    ]);
+  }
+}
 
 // Prevent splash screen from auto-hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
