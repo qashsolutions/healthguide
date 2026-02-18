@@ -1,7 +1,7 @@
 // HealthGuide Caregiver Directory
 // Searchable marketplace for agency owners to find caregivers
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,31 +11,49 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
   FilterIcon,
+  ElderIcon,
+  CloseIcon,
 } from '@/components/icons';
 import { RatingSummary } from '@/components/caregiver/RatingSummary';
 
 interface CaregiverResult {
   id: string;
-  profile_id: string;
+  full_name: string;
+  photo_url: string | null;
+  zip_code: string;
+  hourly_rate: number | null;
+  npi_verified: boolean;
+  capabilities: string[];
+  availability: Record<string, string[]> | null;
+  bio: string | null;
+  rating_count: number;
+  positive_count: number;
+}
+
+interface Elder {
+  id: string;
   first_name: string;
   last_name: string;
-  photo_url?: string;
-  zip_code: string;
-  hourly_rate?: number;
-  capabilities: string[];
-  rating_count?: number;
-  positive_count?: number;
+  zip_code: string | null;
+}
+
+interface ElderTask {
+  task_id: string;
+  task_library: { name: string; category: string } | null;
 }
 
 interface FilterState {
@@ -48,6 +66,8 @@ interface FilterState {
 
 export default function CaregiverDirectoryScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+
   const [filters, setFilters] = useState<FilterState>({
     zipCode: '',
     morningAvailable: false,
@@ -61,6 +81,78 @@ export default function CaregiverDirectoryScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // Elder picker state
+  const [elders, setElders] = useState<Elder[]>([]);
+  const [selectedElderId, setSelectedElderId] = useState<string | null>(null);
+  const [elderTasks, setElderTasks] = useState<ElderTask[]>([]);
+
+  const [showElderDropdown, setShowElderDropdown] = useState(false);
+  const selectedElder = elders.find((e) => e.id === selectedElderId) || null;
+
+  // Fetch elders on mount
+  useEffect(() => {
+    if (!user?.agency_id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('elders')
+        .select('id, first_name, last_name, zip_code')
+        .eq('agency_id', user.agency_id)
+        .eq('is_active', true)
+        .order('first_name');
+      if (data) setElders(data);
+    })();
+  }, [user?.agency_id]);
+
+  // Fetch elder tasks on selection
+  useEffect(() => {
+    if (!selectedElderId) {
+      setElderTasks([]);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from('elder_task_preferences')
+        .select('task_id, task_library(name, category)')
+        .eq('elder_id', selectedElderId)
+        .limit(3);
+      if (data) setElderTasks(data as ElderTask[]);
+    })();
+  }, [selectedElderId]);
+
+  const handleSelectElder = (elder: Elder) => {
+    setSelectedElderId(elder.id);
+    setFilters((prev) => ({ ...prev, zipCode: elder.zip_code || '' }));
+    setShowFilters(true);
+    setCaregivers([]);
+    setHasSearched(false);
+  };
+
+  const handleClearElder = () => {
+    setSelectedElderId(null);
+    setElderTasks([]);
+    setFilters((prev) => ({ ...prev, zipCode: '' }));
+    setCaregivers([]);
+    setHasSearched(false);
+  };
+
+  // Client-side availability filter
+  const filterByAvailability = (results: CaregiverResult[]): CaregiverResult[] => {
+    const selectedTimes: string[] = [];
+    if (filters.morningAvailable) selectedTimes.push('morning');
+    if (filters.afternoonAvailable) selectedTimes.push('afternoon');
+    if (filters.eveningAvailable) selectedTimes.push('evening');
+
+    if (selectedTimes.length === 0) return results;
+
+    return results.filter((cg) => {
+      if (!cg.availability) return false;
+      // Check if the caregiver has the selected time on any day
+      return selectedTimes.every((time) =>
+        Object.values(cg.availability!).some((slots) => slots.includes(time))
+      );
+    });
+  };
+
   const handleSearch = async () => {
     setLoading(true);
     setHasSearched(true);
@@ -73,16 +165,12 @@ export default function CaregiverDirectoryScreen() {
       }
 
       if (filters.maxRate.trim()) {
-        filterPayload.max_rate = parseFloat(filters.maxRate);
+        filterPayload.hourly_rate_max = parseFloat(filters.maxRate);
       }
 
-      const availability = [];
-      if (filters.morningAvailable) availability.push('morning');
-      if (filters.afternoonAvailable) availability.push('afternoon');
-      if (filters.eveningAvailable) availability.push('evening');
-
-      if (availability.length > 0) {
-        filterPayload.availability = availability;
+      // Limit to 3 when elder is selected
+      if (selectedElderId) {
+        filterPayload.limit = 3;
       }
 
       const { data, error } = await supabase.functions.invoke(
@@ -94,7 +182,8 @@ export default function CaregiverDirectoryScreen() {
 
       if (error) throw error;
 
-      setCaregivers(data || []);
+      const results: CaregiverResult[] = data?.caregivers || [];
+      setCaregivers(filterByAvailability(results));
     } catch (error) {
       console.error('Error searching caregivers:', error);
       setCaregivers([]);
@@ -103,8 +192,12 @@ export default function CaregiverDirectoryScreen() {
     }
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+    }
+    return name.charAt(0).toUpperCase();
   };
 
   const renderCaregiverCard = ({ item }: { item: CaregiverResult }) => {
@@ -114,7 +207,7 @@ export default function CaregiverDirectoryScreen() {
       <Pressable
         style={styles.caregiverCard}
         onPress={() =>
-          router.push(`/(protected)/agency/caregiver-profile-view?id=${item.profile_id}` as any)
+          router.push(`/(protected)/agency/caregiver-profile-view?id=${item.id}` as any)
         }
       >
         {/* Avatar */}
@@ -127,7 +220,7 @@ export default function CaregiverDirectoryScreen() {
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>
-                {getInitials(item.first_name, item.last_name)}
+                {getInitials(item.full_name)}
               </Text>
             </View>
           )}
@@ -138,7 +231,7 @@ export default function CaregiverDirectoryScreen() {
           {/* Name + Badge Row */}
           <View style={styles.nameRow}>
             <Text style={styles.caregiverName}>
-              {item.first_name} {item.last_name}
+              {item.full_name}
             </Text>
           </View>
 
@@ -176,11 +269,100 @@ export default function CaregiverDirectoryScreen() {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace('/(protected)/agency/(tabs)')}>
           <ChevronLeftIcon size={28} color={colors.text.primary} />
         </Pressable>
         <Text style={styles.headerTitle}>Find Caregivers</Text>
         <View style={{ width: 28 }} />
+      </View>
+
+      {/* Elder Picker Dropdown */}
+      <View style={styles.elderPickerSection}>
+        <Text style={styles.elderPickerLabel}>Select an elder</Text>
+        <Pressable
+          style={[styles.dropdownTrigger, selectedElder && styles.dropdownTriggerActive]}
+          onPress={() => setShowElderDropdown(true)}
+        >
+          {selectedElder ? (
+            <View style={styles.dropdownSelectedRow}>
+              <ElderIcon size={18} color={colors.primary[700]} />
+              <Text style={styles.dropdownSelectedText}>
+                {selectedElder.first_name} {selectedElder.last_name}
+              </Text>
+              {selectedElder.zip_code && (
+                <Text style={styles.dropdownSelectedZip}>{selectedElder.zip_code}</Text>
+              )}
+              <Pressable
+                onPress={(e) => { e.stopPropagation(); handleClearElder(); }}
+                hitSlop={8}
+                style={styles.dropdownClearButton}
+              >
+                <CloseIcon size={16} color={colors.text.secondary} />
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.dropdownPlaceholderRow}>
+              <Text style={styles.dropdownPlaceholder}>Choose an elder...</Text>
+              <ChevronDownIcon size={20} color={colors.text.tertiary} />
+            </View>
+          )}
+        </Pressable>
+
+        {/* Dropdown Modal */}
+        <Modal
+          visible={showElderDropdown}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowElderDropdown(false)}
+        >
+          <Pressable
+            style={styles.dropdownOverlay}
+            onPress={() => setShowElderDropdown(false)}
+          >
+            <View style={styles.dropdownMenu}>
+              <Text style={styles.dropdownMenuTitle}>Select an Elder</Text>
+              <FlatList
+                data={elders}
+                keyExtractor={(item) => item.id}
+                style={styles.dropdownList}
+                ItemSeparatorComponent={() => <View style={styles.dropdownSeparator} />}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={[
+                      styles.dropdownItem,
+                      item.id === selectedElderId && styles.dropdownItemActive,
+                    ]}
+                    onPress={() => {
+                      handleSelectElder(item);
+                      setShowElderDropdown(false);
+                    }}
+                  >
+                    <ElderIcon
+                      size={20}
+                      color={item.id === selectedElderId ? colors.primary[700] : colors.text.secondary}
+                    />
+                    <View style={styles.dropdownItemContent}>
+                      <Text
+                        style={[
+                          styles.dropdownItemName,
+                          item.id === selectedElderId && styles.dropdownItemNameActive,
+                        ]}
+                      >
+                        {item.first_name} {item.last_name}
+                      </Text>
+                      {item.zip_code && (
+                        <Text style={styles.dropdownItemZip}>{item.zip_code}</Text>
+                      )}
+                    </View>
+                  </Pressable>
+                )}
+                ListEmptyComponent={
+                  <Text style={styles.dropdownEmpty}>No active elders</Text>
+                }
+              />
+            </View>
+          </Pressable>
+        </Modal>
       </View>
 
       {/* Filter Toggle */}
@@ -214,6 +396,22 @@ export default function CaregiverDirectoryScreen() {
               maxLength={5}
             />
           </View>
+
+          {/* Elder Care Needs (only when elder selected) */}
+          {selectedElder && elderTasks.length > 0 && (
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Care Needs</Text>
+              <View style={styles.careNeedsRow}>
+                {elderTasks.map((task) => (
+                  <View key={task.task_id} style={styles.careNeedChip}>
+                    <Text style={styles.careNeedText}>
+                      {task.task_library?.name || 'Unknown'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Availability Toggles */}
           <View style={styles.filterGroup}>
@@ -254,10 +452,12 @@ export default function CaregiverDirectoryScreen() {
                 placeholder="e.g., 30"
                 placeholderTextColor={colors.text.tertiary}
                 value={filters.maxRate}
-                onChangeText={(text) =>
-                  setFilters({ ...filters, maxRate: text.replace(/\D/g, '') })
-                }
+                onChangeText={(text) => {
+                  const digits = text.replace(/\D/g, '').slice(0, 3);
+                  setFilters({ ...filters, maxRate: digits });
+                }}
                 keyboardType="numeric"
+                maxLength={3}
               />
               <Text style={styles.rateUnit}>/hr</Text>
             </View>
@@ -280,7 +480,9 @@ export default function CaregiverDirectoryScreen() {
         <View style={styles.centerContainer}>
           <Text style={styles.emptyStateTitle}>Get Started</Text>
           <Text style={styles.emptyStateText}>
-            Use the filters above to find caregivers in your area
+            {selectedElder
+              ? `Use the filters above to find caregivers for ${selectedElder.first_name}`
+              : 'Select an elder or use the filters above to find caregivers'}
           </Text>
         </View>
       ) : caregivers.length === 0 ? (
@@ -298,6 +500,13 @@ export default function CaregiverDirectoryScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListHeaderComponent={
+            selectedElder ? (
+              <Text style={styles.resultsHeader}>
+                Top {caregivers.length} match{caregivers.length !== 1 ? 'es' : ''} for {selectedElder.first_name} {selectedElder.last_name}
+              </Text>
+            ) : null
+          }
         />
       )}
     </SafeAreaView>
@@ -322,6 +531,129 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
     color: colors.text.primary,
   },
+
+  // Elder Picker
+  elderPickerSection: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+  },
+  elderPickerLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing[2],
+    fontWeight: '500',
+  },
+  dropdownTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[3],
+    backgroundColor: colors.background,
+  },
+  dropdownTriggerActive: {
+    borderColor: colors.primary[300],
+    backgroundColor: colors.primary[50],
+  },
+  dropdownPlaceholderRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dropdownPlaceholder: {
+    ...typography.styles.body,
+    color: colors.text.tertiary,
+  },
+  dropdownSelectedRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  dropdownSelectedText: {
+    ...typography.styles.body,
+    color: colors.primary[700],
+    fontWeight: '600',
+    flex: 1,
+  },
+  dropdownSelectedZip: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
+  dropdownClearButton: {
+    padding: spacing[1],
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing[6],
+  },
+  dropdownMenu: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    maxHeight: 400,
+    overflow: 'hidden',
+  },
+  dropdownMenuTitle: {
+    ...typography.styles.label,
+    color: colors.text.primary,
+    fontWeight: '600',
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[4],
+    paddingBottom: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+  },
+  dropdownList: {
+    maxHeight: 340,
+  },
+  dropdownSeparator: {
+    height: 1,
+    backgroundColor: colors.neutral[100],
+    marginHorizontal: spacing[4],
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+  },
+  dropdownItemActive: {
+    backgroundColor: colors.primary[50],
+  },
+  dropdownItemContent: {
+    flex: 1,
+  },
+  dropdownItemName: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    fontWeight: '500',
+  },
+  dropdownItemNameActive: {
+    color: colors.primary[700],
+    fontWeight: '600',
+  },
+  dropdownItemZip: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  dropdownEmpty: {
+    ...typography.styles.body,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    padding: spacing[4],
+    fontStyle: 'italic',
+  },
+
+  // Filters
   filterToggleContainer: {
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
@@ -374,6 +706,24 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[3],
     color: colors.text.primary,
     backgroundColor: colors.background,
+  },
+  careNeedsRow: {
+    flexDirection: 'row',
+    gap: spacing[2],
+    flexWrap: 'wrap',
+  },
+  careNeedChip: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary[50],
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+  },
+  careNeedText: {
+    ...typography.styles.caption,
+    color: colors.primary[700],
+    fontWeight: '500',
   },
   togglesRow: {
     flexDirection: 'row',
@@ -440,6 +790,8 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '600',
   },
+
+  // Results
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -461,6 +813,12 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  resultsHeader: {
+    ...typography.styles.label,
+    color: colors.text.secondary,
+    fontWeight: '600',
+    marginBottom: spacing[3],
   },
   listContent: {
     paddingHorizontal: spacing[4],
