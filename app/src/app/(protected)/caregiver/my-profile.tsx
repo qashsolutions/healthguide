@@ -104,7 +104,8 @@ interface FormData {
   photoUri: string | null;
   photoUrl: string | null;
   certifications: string;
-  hourlyRate: string;
+  hourlyRateMin: string;
+  hourlyRateMax: string;
   capabilities: string[];
   keywords: string[];
   availability: Record<string, string[]>;
@@ -135,7 +136,8 @@ export default function CaregiverMyProfileScreen() {
     photoUri: null,
     photoUrl: null,
     certifications: '',
-    hourlyRate: '',
+    hourlyRateMin: '',
+    hourlyRateMax: '',
     capabilities: [],
     keywords: [],
     availability: {
@@ -169,7 +171,8 @@ export default function CaregiverMyProfileScreen() {
           photoUri: null,
           photoUrl: data.photo_url || null,
           certifications: (data.certifications || []).join(', '),
-          hourlyRate: data.hourly_rate ? String(data.hourly_rate) : '',
+          hourlyRateMin: data.hourly_rate_min ? String(data.hourly_rate_min) : '',
+          hourlyRateMax: data.hourly_rate_max ? String(data.hourly_rate_max) : '',
           capabilities: data.capabilities || [],
           keywords: data.keywords || [],
           availability: data.availability || {
@@ -297,7 +300,8 @@ export default function CaregiverMyProfileScreen() {
           zip_code: formData.zipCode,
           photo_url: photoUrl,
           certifications: certs,
-          hourly_rate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : null,
+          hourly_rate_min: formData.hourlyRateMin ? parseFloat(formData.hourlyRateMin) : null,
+          hourly_rate_max: formData.hourlyRateMax ? parseFloat(formData.hourlyRateMax) : null,
           capabilities: formData.capabilities,
           keywords: formData.keywords,
           availability: formData.availability,
@@ -450,18 +454,39 @@ export default function CaregiverMyProfileScreen() {
               size="caregiver"
             />
 
-            <Input
-              label="Hourly Rate"
-              placeholder="20"
-              value={formData.hourlyRate}
-              onChangeText={text => {
-                const cleaned = text.replace(/[^\d.]/g, '');
-                setFormData({ ...formData, hourlyRate: cleaned });
-              }}
-              keyboardType="decimal-pad"
-              size="caregiver"
-              leftIcon={<Text style={st.currencyIcon}>$</Text>}
-            />
+            <View>
+              <Text style={st.label}>Hourly Rate Range</Text>
+              <View style={st.rateRangeRow}>
+                <View style={st.rateInputWrapper}>
+                  <Input
+                    placeholder="15"
+                    value={formData.hourlyRateMin}
+                    onChangeText={text => {
+                      const cleaned = text.replace(/[^\d.]/g, '');
+                      setFormData({ ...formData, hourlyRateMin: cleaned });
+                    }}
+                    keyboardType="decimal-pad"
+                    size="caregiver"
+                    leftIcon={<Text style={st.currencyIcon}>$</Text>}
+                  />
+                </View>
+                <Text style={st.rateDash}>—</Text>
+                <View style={st.rateInputWrapper}>
+                  <Input
+                    placeholder="25"
+                    value={formData.hourlyRateMax}
+                    onChangeText={text => {
+                      const cleaned = text.replace(/[^\d.]/g, '');
+                      setFormData({ ...formData, hourlyRateMax: cleaned });
+                    }}
+                    keyboardType="decimal-pad"
+                    size="caregiver"
+                    leftIcon={<Text style={st.currencyIcon}>$</Text>}
+                  />
+                </View>
+                <Text style={st.rateUnit}>/hr</Text>
+              </View>
+            </View>
           </View>
 
           {/* Tasks / Capabilities */}
@@ -737,6 +762,22 @@ const st = StyleSheet.create({
   },
 
   currencyIcon: { ...typography.styles.body, color: colors.text.secondary },
+  rateRangeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  rateInputWrapper: { flex: 1 },
+  rateDash: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  rateUnit: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    fontWeight: '500',
+  },
 
   // Tag input
   tagInput: {

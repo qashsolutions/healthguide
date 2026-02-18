@@ -35,7 +35,8 @@ interface CaregiverResult {
   full_name: string;
   photo_url: string | null;
   zip_code: string;
-  hourly_rate: number | null;
+  hourly_rate_min: number | null;
+  hourly_rate_max: number | null;
   npi_verified: boolean;
   capabilities: string[];
   availability: Record<string, string[]> | null;
@@ -80,6 +81,7 @@ export default function CaregiverDirectoryScreen() {
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [rateError, setRateError] = useState('');
 
   // Elder picker state
   const [elders, setElders] = useState<Elder[]>([]);
@@ -154,6 +156,14 @@ export default function CaregiverDirectoryScreen() {
   };
 
   const handleSearch = async () => {
+    if (filters.maxRate.trim()) {
+      const rate = parseFloat(filters.maxRate);
+      if (rate < 10) {
+        setRateError('Minimum rate is $10');
+        return;
+      }
+    }
+    setRateError('');
     setLoading(true);
     setHasSearched(true);
 
@@ -201,7 +211,11 @@ export default function CaregiverDirectoryScreen() {
   };
 
   const renderCaregiverCard = ({ item }: { item: CaregiverResult }) => {
-    const rateDisplay = item.hourly_rate ? `$${item.hourly_rate}/hr` : 'Rate not specified';
+    const rateDisplay = item.hourly_rate_min && item.hourly_rate_max
+      ? `$${item.hourly_rate_min}-$${item.hourly_rate_max}/hr`
+      : item.hourly_rate_min
+        ? `From $${item.hourly_rate_min}/hr`
+        : 'Rate not specified';
 
     return (
       <Pressable
@@ -455,12 +469,14 @@ export default function CaregiverDirectoryScreen() {
                 onChangeText={(text) => {
                   const digits = text.replace(/\D/g, '').slice(0, 3);
                   setFilters({ ...filters, maxRate: digits });
+                  if (rateError) setRateError('');
                 }}
                 keyboardType="numeric"
                 maxLength={3}
               />
               <Text style={styles.rateUnit}>/hr</Text>
             </View>
+            {rateError ? <Text style={styles.rateErrorText}>{rateError}</Text> : null}
           </View>
 
           {/* Search Button */}
@@ -777,6 +793,11 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     color: colors.text.secondary,
     fontWeight: '500',
+  },
+  rateErrorText: {
+    ...typography.styles.caption,
+    color: colors.error[500],
+    marginTop: spacing[1],
   },
   searchButton: {
     backgroundColor: colors.success[600],

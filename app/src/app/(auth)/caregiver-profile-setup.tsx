@@ -1,7 +1,7 @@
 // HealthGuide Caregiver Profile Setup Screen
 // Modern 3-step profile creation: Basic Info → Skills & Rate → Availability & About
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,8 +27,10 @@ import * as ImagePicker from 'expo-image-picker';
 
 const CAREGIVER_COLOR = roleColors.caregiver;
 
-// Suggested tasks for quick-add
-const SUGGESTED_TASKS = [
+const MAX_CAPABILITIES = 5;
+
+// Fallback tasks when no agency task_library is available
+const FALLBACK_TASKS = [
   'Companionship',
   'Meal Preparation',
   'Light Housekeeping',
@@ -125,7 +127,8 @@ interface FormData {
   zipCode: string;
   photoUri: string | null;
   certifications: string;
-  hourlyRate: string;
+  hourlyRateMin: string;
+  hourlyRateMax: string;
   capabilities: string[];
   keywords: string[];
   availability: Record<string, string[]>;
@@ -144,12 +147,15 @@ export default function CaregiverProfileSetupScreen() {
   const taskInputRef = useRef<TextInput>(null);
   const keywordInputRef = useRef<TextInput>(null);
 
+  const [dbTasks, setDbTasks] = useState<string[]>([]);
+
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     zipCode: '',
     photoUri: null,
     certifications: '',
-    hourlyRate: '',
+    hourlyRateMin: '',
+    hourlyRateMax: '',
     capabilities: [],
     keywords: [],
     availability: {
@@ -159,6 +165,25 @@ export default function CaregiverProfileSetupScreen() {
     experienceSummary: '',
     bio: '',
   });
+
+  // Fetch task names from agency's task_library if caregiver is linked
+  useEffect(() => {
+    async function loadAgencyTasks() {
+      if (!user?.agency_id) return;
+      const { data } = await supabase
+        .from('task_library')
+        .select('name')
+        .eq('agency_id', user.agency_id)
+        .eq('is_active', true)
+        .order('name');
+      if (data && data.length > 0) {
+        setDbTasks(data.map(t => t.name));
+      }
+    }
+    loadAgencyTasks();
+  }, [user?.agency_id]);
+
+  const suggestedTasks = dbTasks.length > 0 ? dbTasks : FALLBACK_TASKS;
 
   const handlePickImage = async () => {
     try {
@@ -179,7 +204,7 @@ export default function CaregiverProfileSetupScreen() {
   // --- Tag input helpers ---
   const addTask = (task: string) => {
     const trimmed = task.trim();
-    if (trimmed && !formData.capabilities.includes(trimmed)) {
+    if (trimmed && !formData.capabilities.includes(trimmed) && formData.capabilities.length < MAX_CAPABILITIES) {
       setFormData({ ...formData, capabilities: [...formData.capabilities, trimmed] });
     }
     setTaskInput('');
@@ -281,7 +306,8 @@ export default function CaregiverProfileSetupScreen() {
           zip_code: formData.zipCode,
           photo_url: photoUrl,
           certifications: certs,
-          hourly_rate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : null,
+          hourly_rate_min: formData.hourlyRateMin ? parseFloat(formData.hourlyRateMin) : null,
+          hourly_rate_max: formData.hourlyRateMax ? parseFloat(formData.hourlyRateMax) : null,
           capabilities: formData.capabilities,
           keywords: formData.keywords,
           availability: formData.availability,
@@ -319,12 +345,17 @@ export default function CaregiverProfileSetupScreen() {
   );
 
   // --- Suggestion chips component ---
-  const SuggestionChips = ({ suggestions, selected, onToggle }: {
-    suggestions: string[]; selected: string[]; onToggle: (s: string) => void;
+  const SuggestionChips = ({ suggestions, selected, onToggle, maxReached }: {
+    suggestions: string[]; selected: string[]; onToggle: (s: string) => void; maxReached?: boolean;
   }) => (
     <View style={s.suggestionsRow}>
       {suggestions.filter(s => !selected.includes(s)).slice(0, 8).map(item => (
-        <Pressable key={item} style={s.suggestionChip} onPress={() => onToggle(item)}>
+        <Pressable
+          key={item}
+          style={[s.suggestionChip, maxReached && { opacity: 0.4 }]}
+          onPress={() => !maxReached && onToggle(item)}
+          disabled={maxReached}
+        >
           <Text style={s.suggestionChipText}>+ {item}</Text>
         </Pressable>
       ))}
@@ -414,25 +445,32 @@ export default function CaregiverProfileSetupScreen() {
               <View style={s.form}>
                 {/* Tasks / Capabilities */}
                 <View>
-                  <Text style={s.label}>Tasks You Can Perform</Text>
+                  <Text style={s.label}>Tasks You Can Perform ({formData.capabilities.length}/{MAX_CAPABILITIES})</Text>
                   {formData.capabilities.length > 0 && (
                     <TagChips tags={formData.capabilities} onRemove={removeTask} color={CAREGIVER_COLOR} />
                   )}
-                  <TextInput
-                    ref={taskInputRef}
-                    style={s.tagInput}
-                    placeholder="Type a task and press comma to add..."
-                    placeholderTextColor={colors.text.disabled}
-                    value={taskInput}
-                    onChangeText={handleTaskInputChange}
-                    onSubmitEditing={() => { if (taskInput.trim()) addTask(taskInput); }}
-                    returnKeyType="done"
-                  />
-                  <Text style={s.inputHint}>Tap suggestions or type your own</Text>
+                  {formData.capabilities.length < MAX_CAPABILITIES ? (
+                    <>
+                      <TextInput
+                        ref={taskInputRef}
+                        style={s.tagInput}
+                        placeholder="Type a task and press comma to add..."
+                        placeholderTextColor={colors.text.disabled}
+                        value={taskInput}
+                        onChangeText={handleTaskInputChange}
+                        onSubmitEditing={() => { if (taskInput.trim()) addTask(taskInput); }}
+                        returnKeyType="done"
+                      />
+                      <Text style={s.inputHint}>Tap suggestions or type your own</Text>
+                    </>
+                  ) : (
+                    <Text style={s.inputHint}>Maximum {MAX_CAPABILITIES} tasks selected</Text>
+                  )}
                   <SuggestionChips
-                    suggestions={SUGGESTED_TASKS}
+                    suggestions={suggestedTasks}
                     selected={formData.capabilities}
                     onToggle={addTask}
+                    maxReached={formData.capabilities.length >= MAX_CAPABILITIES}
                   />
                 </View>
 
@@ -446,19 +484,40 @@ export default function CaregiverProfileSetupScreen() {
                   size="caregiver"
                 />
 
-                {/* Hourly Rate */}
-                <Input
-                  label="Hourly Rate"
-                  placeholder="20"
-                  value={formData.hourlyRate}
-                  onChangeText={text => {
-                    const cleaned = text.replace(/[^\d.]/g, '');
-                    setFormData({ ...formData, hourlyRate: cleaned });
-                  }}
-                  keyboardType="decimal-pad"
-                  size="caregiver"
-                  leftIcon={<Text style={s.currencyIcon}>$</Text>}
-                />
+                {/* Hourly Rate Range */}
+                <View>
+                  <Text style={s.label}>Hourly Rate Range</Text>
+                  <View style={s.rateRangeRow}>
+                    <View style={s.rateInputWrapper}>
+                      <Input
+                        placeholder="15"
+                        value={formData.hourlyRateMin}
+                        onChangeText={text => {
+                          const cleaned = text.replace(/[^\d.]/g, '');
+                          setFormData({ ...formData, hourlyRateMin: cleaned });
+                        }}
+                        keyboardType="decimal-pad"
+                        size="caregiver"
+                        leftIcon={<Text style={s.currencyIcon}>$</Text>}
+                      />
+                    </View>
+                    <Text style={s.rateDash}>—</Text>
+                    <View style={s.rateInputWrapper}>
+                      <Input
+                        placeholder="25"
+                        value={formData.hourlyRateMax}
+                        onChangeText={text => {
+                          const cleaned = text.replace(/[^\d.]/g, '');
+                          setFormData({ ...formData, hourlyRateMax: cleaned });
+                        }}
+                        keyboardType="decimal-pad"
+                        size="caregiver"
+                        leftIcon={<Text style={s.currencyIcon}>$</Text>}
+                      />
+                    </View>
+                    <Text style={s.rateUnit}>/hr</Text>
+                  </View>
+                </View>
 
                 {/* Keywords */}
                 <View>
@@ -738,6 +797,22 @@ const s = StyleSheet.create({
   },
 
   currencyIcon: { ...typography.styles.body, color: colors.text.secondary },
+  rateRangeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  rateInputWrapper: { flex: 1 },
+  rateDash: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  rateUnit: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    fontWeight: '500',
+  },
 
   // Tag input
   tagInput: {

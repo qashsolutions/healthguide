@@ -13,11 +13,6 @@ export default function CaregiverLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="visit" />
-      <Stack.Screen name="visit-history" />
-      <Stack.Screen name="community" />
-      <Stack.Screen name="my-profile" />
-      <Stack.Screen name="pending-invitations" />
     </Stack>
   );
 }

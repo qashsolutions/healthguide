@@ -4,6 +4,12 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -26,7 +32,8 @@ interface CaregiverResult {
   full_name: string;
   photo_url: string | null;
   zip_code: string;
-  hourly_rate: number | null;
+  hourly_rate_min: number | null;
+  hourly_rate_max: number | null;
   npi_verified: boolean;
   capabilities: string[];
   availability: Record<string, unknown> | null;
@@ -37,13 +44,12 @@ interface CaregiverResult {
 }
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
     const payload: SearchCaregiversRequest = await req.json();
-
-    // Validate required fields
-    if (!payload.zip_code) {
-      return jsonResponse({ success: false, error: 'zip_code is required' }, 400);
-    }
 
     // Set defaults
     const radius = payload.radius || 'area';
@@ -60,7 +66,8 @@ serve(async (req) => {
         full_name,
         photo_url,
         zip_code,
-        hourly_rate,
+        hourly_rate_min,
+        hourly_rate_max,
         npi_verified,
         capabilities,
         availability,
@@ -73,19 +80,21 @@ serve(async (req) => {
       )
       .eq('is_active', true);
 
-    // Apply zip code filter
-    if (radius === 'exact') {
-      query = query.eq('zip_code', payload.zip_code);
-    } else {
-      // Area match: first 3 digits of zip code
-      const zipPrefix = payload.zip_code.substring(0, 3);
-      query = query.ilike('zip_code', `${zipPrefix}%`);
+    // Apply zip code filter (optional)
+    if (payload.zip_code) {
+      if (radius === 'exact') {
+        query = query.eq('zip_code', payload.zip_code);
+      } else {
+        // Area match: first 3 digits of zip code
+        const zipPrefix = payload.zip_code.substring(0, 3);
+        query = query.ilike('zip_code', `${zipPrefix}%`);
+      }
     }
 
-    // Apply hourly rate filter
+    // Apply hourly rate filter — match if caregiver's minimum rate is within elder's budget
     if (payload.hourly_rate_max !== undefined) {
       query = query.or(
-        `hourly_rate.lte.${payload.hourly_rate_max},hourly_rate.is.null`
+        `hourly_rate_min.lte.${payload.hourly_rate_max},hourly_rate_min.is.null`
       );
     }
 
@@ -162,6 +171,6 @@ serve(async (req) => {
 function jsonResponse(data: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }

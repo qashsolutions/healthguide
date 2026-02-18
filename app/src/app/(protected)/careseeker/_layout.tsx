@@ -13,8 +13,6 @@ export default function CareseekerLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="daily-check-in" />
-      <Stack.Screen name="games" />
     </Stack>
   );
 }

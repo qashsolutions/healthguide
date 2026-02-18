@@ -13,14 +13,6 @@ export default function AgencyLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="caregiver-directory" />
-      <Stack.Screen name="caregiver-profile-view" />
-      <Stack.Screen name="rate-caregiver" />
-      <Stack.Screen name="assignment" />
-      <Stack.Screen name="caregiver" />
-      <Stack.Screen name="elder" />
-      <Stack.Screen name="elders" />
-      <Stack.Screen name="settings" />
     </Stack>
   );
 }

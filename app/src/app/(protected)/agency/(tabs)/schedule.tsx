@@ -9,6 +9,9 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -19,7 +22,12 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { CalendarIcon, ClockIcon, CaregiverIcon, ElderIcon, PlusIcon, ChevronRightIcon } from '@/components/icons';
+import { CalendarIcon, ClockIcon, CaregiverIcon, ElderIcon, ChevronRightIcon, ChevronDownIcon } from '@/components/icons';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface ScheduledVisit {
   id: string;
@@ -38,8 +46,33 @@ export default function ScheduleScreen() {
   const [visits, setVisits] = useState<ScheduledVisit[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedVisits, setExpandedVisits] = useState<Set<string>>(new Set());
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday start
+
+  const toggleExpand = (visitId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedVisits((prev) => {
+      const next = new Set(prev);
+      if (next.has(visitId)) {
+        next.delete(visitId);
+      } else {
+        next.add(visitId);
+      }
+      return next;
+    });
+  };
+
+  const toggleExpandAll = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (expandedVisits.size === selectedDayVisits.length) {
+      // All expanded → collapse all
+      setExpandedVisits(new Set());
+    } else {
+      // Expand all
+      setExpandedVisits(new Set(selectedDayVisits.map((v) => v.id)));
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -186,6 +219,8 @@ export default function ScheduleScreen() {
     return `${hour12}:${minutes} ${ampm}`;
   }
 
+  const allExpanded = selectedDayVisits.length > 0 && expandedVisits.size === selectedDayVisits.length;
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Week Navigation */}
@@ -251,17 +286,33 @@ export default function ScheduleScreen() {
 
       {/* Day Header */}
       <View style={styles.header}>
-        <Text style={styles.dateTitle}>
-          {format(selectedDate, 'EEEE, MMMM d')}
-        </Text>
-        <Button
-          title="+ Add"
-          variant="primary"
-          size="sm"
-          onPress={() => {
-            router.push(`/(protected)/agency/assignment/new?date=${format(selectedDate, 'yyyy-MM-dd')}` as any);
-          }}
-        />
+        <View>
+          <Text style={styles.dateTitle}>
+            {format(selectedDate, 'EEEE, MMMM d')}
+          </Text>
+          {selectedDayVisits.length > 0 && (
+            <Text style={styles.visitCountLabel}>
+              {selectedDayVisits.length} visit{selectedDayVisits.length !== 1 ? 's' : ''} scheduled
+            </Text>
+          )}
+        </View>
+        <View style={styles.headerActions}>
+          {selectedDayVisits.length > 0 && (
+            <Pressable onPress={toggleExpandAll} style={styles.expandAllBtn}>
+              <Text style={styles.expandAllText}>
+                {allExpanded ? 'Collapse' : 'Expand'}
+              </Text>
+            </Pressable>
+          )}
+          <Button
+            title="+ Add"
+            variant="primary"
+            size="sm"
+            onPress={() => {
+              router.push(`/(protected)/agency/assignment/new?date=${format(selectedDate, 'yyyy-MM-dd')}` as any);
+            }}
+          />
+        </View>
       </View>
 
       {/* Schedule List */}
@@ -287,49 +338,74 @@ export default function ScheduleScreen() {
             </Text>
           </View>
         ) : (
-          selectedDayVisits.map((visit) => {
+          selectedDayVisits.map((visit, index) => {
+            const isExpanded = expandedVisits.has(visit.id);
             const statusBadge = getStatusBadge(visit.status);
 
             return (
-              <Card
+              <Pressable
                 key={visit.id}
-                variant="default"
-                padding="md"
+                onPress={() => toggleExpand(visit.id)}
                 style={styles.visitCard}
-                onPress={() => router.push(`/(protected)/agency/assignment/${visit.id}` as any)}
               >
-                <View style={styles.visitHeader}>
-                  <View style={styles.timeContainer}>
-                    <ClockIcon size={16} color={colors.text.secondary} />
-                    <Text style={styles.timeText}>
-                      {formatTime(visit.scheduled_start)} - {formatTime(visit.scheduled_end)}
-                    </Text>
-                  </View>
-                  <Badge
-                    label={statusBadge.label}
-                    variant={statusBadge.variant}
-                    size="sm"
+                <View style={[styles.cardInner, isExpanded && styles.cardInnerExpanded]}>
+                  {/* Status indicator bar */}
+                  <View
+                    style={[
+                      styles.statusBar,
+                      { backgroundColor: getStatusColor(visit.status) },
+                    ]}
                   />
-                </View>
 
-                <View style={styles.visitBody}>
-                  <View style={styles.personRow}>
-                    <CaregiverIcon size={20} color={roleColors.caregiver} />
-                    <Text style={styles.personText}>{visit.caregiver_name}</Text>
-                    <ChevronRightIcon size={16} color={colors.text.tertiary} />
-                    <ElderIcon size={20} color={roleColors.careseeker} />
-                    <Text style={styles.personText}>{visit.elder_name}</Text>
+                  {/* Collapsed row: always visible */}
+                  <View style={styles.collapsedRow}>
+                    <View style={styles.visitNumber}>
+                      <Text style={styles.visitNumberText}>{index + 1}</Text>
+                    </View>
+                    <ElderIcon size={18} color={roleColors.careseeker} />
+                    <Text style={styles.elderNameText} numberOfLines={1}>
+                      {visit.elder_name}
+                    </Text>
+                    <Text style={styles.timeChip}>
+                      {formatTime(visit.scheduled_start)}
+                    </Text>
+                    <View style={[styles.chevron, isExpanded && styles.chevronExpanded]}>
+                      <ChevronDownIcon size={16} color={colors.text.tertiary} />
+                    </View>
                   </View>
-                </View>
 
-                {/* Status indicator bar */}
-                <View
-                  style={[
-                    styles.statusBar,
-                    { backgroundColor: getStatusColor(visit.status) },
-                  ]}
-                />
-              </Card>
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <View style={styles.expandedContent}>
+                      <View style={styles.detailRow}>
+                        <ClockIcon size={16} color={colors.text.secondary} />
+                        <Text style={styles.detailText}>
+                          {formatTime(visit.scheduled_start)} - {formatTime(visit.scheduled_end)}
+                        </Text>
+                        <Badge
+                          label={statusBadge.label}
+                          variant={statusBadge.variant}
+                          size="sm"
+                        />
+                      </View>
+                      <View style={styles.detailRow}>
+                        <CaregiverIcon size={18} color={roleColors.caregiver} />
+                        <Text style={styles.detailText}>{visit.caregiver_name}</Text>
+                        <ChevronRightIcon size={14} color={colors.text.tertiary} />
+                        <ElderIcon size={18} color={roleColors.careseeker} />
+                        <Text style={styles.detailText}>{visit.elder_name}</Text>
+                      </View>
+                      <Pressable
+                        onPress={() => router.push(`/(protected)/agency/assignment/${visit.id}` as any)}
+                        style={styles.viewDetailsBtn}
+                      >
+                        <Text style={styles.viewDetailsText}>View Details</Text>
+                        <ChevronRightIcon size={14} color={roleColors.agency_owner} />
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+              </Pressable>
             );
           })
         )}
@@ -428,13 +504,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  expandAllBtn: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1.5],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+  },
+  expandAllText: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
   dateTitle: {
     ...typography.styles.h4,
     color: colors.text.primary,
   },
+  visitCountLabel: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing[0.5],
+  },
   scrollContent: {
     padding: spacing[4],
     paddingTop: 0,
+    paddingBottom: 100,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -454,54 +553,92 @@ const styles = StyleSheet.create({
     marginTop: spacing[1],
   },
   visitCard: {
-    marginBottom: spacing[3],
+    marginBottom: spacing[1.5],
+  },
+  cardInner: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
     overflow: 'hidden',
   },
-  visitHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing[3],
+  cardInnerExpanded: {
+    borderColor: roleColors.agency_owner,
+    borderWidth: 1.5,
   },
-  timeContainer: {
+  collapsedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[1],
+    paddingVertical: spacing[2.5],
+    paddingHorizontal: spacing[3],
+    paddingLeft: spacing[4],
+    gap: spacing[2],
   },
-  timeText: {
-    ...typography.styles.label,
+  visitNumber: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: roleColors.agency_owner,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  visitNumberText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  elderNameText: {
+    ...typography.styles.body,
     color: colors.text.primary,
+    fontWeight: '600',
+    flex: 1,
   },
-  visitBody: {
+  timeChip: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    backgroundColor: colors.neutral[100],
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[0.5],
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+  },
+  chevron: {
+    transform: [{ rotate: '0deg' }],
+  },
+  chevronExpanded: {
+    transform: [{ rotate: '180deg' }],
+  },
+  expandedContent: {
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[3],
+    paddingTop: spacing[1],
     gap: spacing[2],
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[100],
   },
-  personRow: {
+  detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
   },
-  personText: {
+  detailText: {
     ...typography.styles.body,
     color: colors.text.primary,
   },
-  arrowIcon: {
-    marginHorizontal: spacing[1],
-  },
-  tasksRow: {
+  viewDetailsBtn: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing[2],
-    marginTop: spacing[2],
-  },
-  taskChip: {
-    backgroundColor: colors.neutral[100],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[1],
+    paddingVertical: spacing[2],
+    marginTop: spacing[1],
+    backgroundColor: roleColors.agency_owner + '10',
     borderRadius: borderRadius.md,
   },
-  taskText: {
+  viewDetailsText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
+    color: roleColors.agency_owner,
+    fontWeight: '600',
   },
   statusBar: {
     position: 'absolute',
@@ -509,7 +646,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    borderTopLeftRadius: borderRadius.xl,
-    borderBottomLeftRadius: borderRadius.xl,
+    borderTopLeftRadius: borderRadius.lg,
+    borderBottomLeftRadius: borderRadius.lg,
   },
 });

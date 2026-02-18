@@ -37,7 +37,8 @@ interface CaregiverProfile {
   phone?: string;
   email?: string;
   zip_code: string;
-  hourly_rate?: number;
+  hourly_rate_min?: number;
+  hourly_rate_max?: number;
   certifications?: string;
   bio?: string;
   experience_summary?: string;
@@ -204,7 +205,11 @@ export default function CaregiverProfileViewScreen() {
           {/* Rate */}
           <View style={styles.professionalItem}>
             <Text style={styles.rateValue}>
-              {profile.hourly_rate ? `$${profile.hourly_rate}/hr` : 'Rate not specified'}
+              {profile.hourly_rate_min && profile.hourly_rate_max
+                ? `$${profile.hourly_rate_min}-$${profile.hourly_rate_max}/hr`
+                : profile.hourly_rate_min
+                  ? `From $${profile.hourly_rate_min}/hr`
+                  : 'Rate not specified'}
             </Text>
           </View>
 
