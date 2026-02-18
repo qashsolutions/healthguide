@@ -58,7 +58,10 @@ export default function VisitHistoryScreen() {
   );
 
   async function loadVisits(pageNum: number, reset = false) {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase

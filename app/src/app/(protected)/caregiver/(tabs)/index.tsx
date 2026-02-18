@@ -67,7 +67,10 @@ export default function CaregiverTodayScreen() {
   const [pendingCount, setPendingCount] = useState(0);
 
   const fetchTodayAssignments = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     const today = format(new Date(), 'yyyy-MM-dd');
 

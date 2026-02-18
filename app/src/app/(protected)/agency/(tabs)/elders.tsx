@@ -47,7 +47,10 @@ export default function EldersScreen() {
   );
 
   async function fetchElders() {
-    if (!user?.agency_id) return;
+    if (!user?.agency_id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       // Get elders with family contact counts

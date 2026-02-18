@@ -45,7 +45,10 @@ export default function FamilyReportsScreen() {
   );
 
   async function loadReports() {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       // Get family member's elder ID

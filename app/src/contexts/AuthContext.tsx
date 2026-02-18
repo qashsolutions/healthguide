@@ -1,7 +1,7 @@
 // HealthGuide Auth Context
 // Per healthguide-core/auth skill - Role-based authentication
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { UserProfile, UserRole, Agency, AuthState } from '@/types/auth';
 
@@ -29,21 +29,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile from database
   const fetchUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
-    console.log('[Auth] fetchUserProfile called for:', userId);
-    if (!isSupabaseConfigured()) {
-      console.log('[Auth] Supabase not configured');
-      return null;
-    }
+    if (!isSupabaseConfigured()) return null;
 
     try {
-      console.log('[Auth] Querying user_profiles...');
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
-
-      console.log('[Auth] Query result:', { data: !!data, error: error?.message });
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -80,71 +73,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data as Agency;
   }, []);
 
-  // Initialize auth state
+  // Initialize auth state — use a ref to prevent duplicate processing
+  const initializingRef = useRef(false);
+
   useEffect(() => {
     if (!isSupabaseConfigured()) {
       setState(prev => ({ ...prev, loading: false, initialized: true }));
       return;
     }
 
-    // Check existing session
-    console.log('[Auth] Checking existing session...');
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('[Auth] getSession result:', { hasSession: !!session, userId: session?.user?.id });
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        console.log('[Auth] Profile fetched:', { hasProfile: !!profile, role: profile?.role });
-        let agency: Agency | null = null;
+    let mounted = true;
 
-        if (profile?.agency_id) {
-          console.log('[Auth] Fetching agency:', profile.agency_id);
-          agency = await fetchAgency(profile.agency_id);
-          console.log('[Auth] Agency fetched:', { hasAgency: !!agency });
-        }
-
-        console.log('[Auth] Setting state: loading=false, initialized=true');
-        setState({
-          user: profile,
-          agency,
-          loading: false,
-          initialized: true,
-        });
-      } else {
-        setState(prev => ({ ...prev, loading: false, initialized: true }));
+    async function loadSession(userId: string) {
+      const profile = await fetchUserProfile(userId);
+      let agency: Agency | null = null;
+      if (profile?.agency_id) {
+        agency = await fetchAgency(profile.agency_id);
       }
-    });
+      if (mounted) {
+        setState({ user: profile, agency, loading: false, initialized: true });
+      }
+    }
 
-    // Listen for auth changes
+    // Listen for auth changes — this is the single source of truth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event);
+        // INITIAL_SESSION fires once on mount with the existing session (Supabase v2)
+        // SIGNED_IN fires on actual login
+        // Skip duplicate processing if already handling a session
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+          if (initializingRef.current) return;
+          initializingRef.current = true;
 
-        if (event === 'SIGNED_IN' && session?.user) {
-          const profile = await fetchUserProfile(session.user.id);
-          let agency: Agency | null = null;
-
-          if (profile?.agency_id) {
-            agency = await fetchAgency(profile.agency_id);
+          if (session?.user) {
+            await loadSession(session.user.id);
+          } else if (mounted) {
+            setState({ user: null, agency: null, loading: false, initialized: true });
           }
 
-          setState({
-            user: profile,
-            agency,
-            loading: false,
-            initialized: true,
-          });
+          initializingRef.current = false;
         } else if (event === 'SIGNED_OUT') {
-          setState({
-            user: null,
-            agency: null,
-            loading: false,
-            initialized: true,
-          });
+          if (mounted) {
+            setState({ user: null, agency: null, loading: false, initialized: true });
+          }
+        } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          // Silently refresh profile on token refresh or user update
+          if (session?.user && !initializingRef.current) {
+            initializingRef.current = true;
+            await loadSession(session.user.id);
+            initializingRef.current = false;
+          }
         }
       }
     );
 
+    // Fallback: if onAuthStateChange doesn't fire INITIAL_SESSION within 3s,
+    // check session manually (covers edge cases with older Supabase client versions)
+    const fallbackTimer = setTimeout(async () => {
+      if (!mounted) return;
+      // Only run if we haven't initialized yet
+      setState(prev => {
+        if (prev.initialized) return prev;
+        // Trigger a manual check
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+          if (!mounted) return;
+          if (session?.user) {
+            await loadSession(session.user.id);
+          } else {
+            setState(s => s.initialized ? s : { user: null, agency: null, loading: false, initialized: true });
+          }
+        });
+        return prev;
+      });
+    }, 3000);
+
     return () => {
+      mounted = false;
+      clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
   }, [fetchUserProfile, fetchAgency]);

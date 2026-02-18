@@ -49,7 +49,10 @@ export default function CaregiversScreen() {
   );
 
   async function fetchCaregivers() {
-    if (!user?.agency_id) return;
+    if (!user?.agency_id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const today = new Date().toISOString().split('T')[0];
