@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-  Switch,
   Text,
   Pressable,
 } from 'react-native';
@@ -40,13 +39,11 @@ interface CaregiverForm {
   full_name: string;
   phone: string;
   email: string;
-  is_licensed: boolean;
-  license_number: string;
-  license_expiry: string;
   capabilities: string[];
   availability: WeeklyAvailability;
-  status: 'active' | 'inactive' | 'pending';
-  notes: string;
+  is_active: boolean;
+  bio: string;
+  certifications: string[];
 }
 
 const DEFAULT_CAPABILITIES = [
@@ -99,13 +96,11 @@ export default function CaregiverDetailScreen() {
     full_name: '',
     phone: '',
     email: '',
-    is_licensed: false,
-    license_number: '',
-    license_expiry: '',
     capabilities: ['companionship', 'errands'],
     availability: DEFAULT_AVAILABILITY,
-    status: 'pending',
-    notes: '',
+    is_active: true,
+    bio: '',
+    certifications: [],
   });
 
   useEffect(() => {
@@ -130,13 +125,11 @@ export default function CaregiverDetailScreen() {
           full_name: data.full_name || '',
           phone: data.phone || '',
           email: data.email || '',
-          is_licensed: data.is_licensed || false,
-          license_number: data.license_number || '',
-          license_expiry: data.license_expiry || '',
           capabilities: data.capabilities || ['companionship', 'errands'],
           availability: data.availability || DEFAULT_AVAILABILITY,
-          status: data.status || 'pending',
-          notes: data.notes || '',
+          is_active: data.is_active !== false,
+          bio: data.bio || '',
+          certifications: data.certifications || [],
         });
       }
     } catch (error) {
@@ -154,16 +147,37 @@ export default function CaregiverDetailScreen() {
 
     setSaving(true);
     try {
+      const profileData = {
+        full_name: form.full_name,
+        phone: form.phone,
+        email: form.email,
+        capabilities: form.capabilities,
+        availability: form.availability,
+        is_active: form.is_active,
+        bio: form.bio,
+        certifications: form.certifications,
+      };
+
       if (isNew) {
-        const { error } = await supabase.from('caregiver_profiles').insert({
-          ...form,
-          agency_id: user?.agency_id,
-        });
+        const { data: newProfile, error } = await supabase
+          .from('caregiver_profiles')
+          .insert(profileData)
+          .select('id')
+          .single();
         if (error) throw error;
+
+        // Link to agency via caregiver_agency_links
+        if (newProfile && user?.agency_id) {
+          await supabase.from('caregiver_agency_links').insert({
+            caregiver_profile_id: newProfile.id,
+            agency_id: user.agency_id,
+            is_active: true,
+          });
+        }
       } else {
         const { error } = await supabase
           .from('caregiver_profiles')
-          .update(form)
+          .update(profileData)
           .eq('id', id);
         if (error) throw error;
       }
@@ -189,7 +203,6 @@ export default function CaregiverDetailScreen() {
       if (error) throw error;
 
       Alert.alert('Success', 'Invitation sent!');
-      setForm({ ...form, status: 'pending' });
     } catch (error) {
       console.error('Error sending invitation:', error);
       Alert.alert('Error', 'Could not send invitation');
@@ -209,10 +222,10 @@ export default function CaregiverDetailScreen() {
             try {
               const { error } = await supabase
                 .from('caregiver_profiles')
-                .update({ status: 'inactive' })
+                .update({ is_active: false })
                 .eq('id', id);
               if (error) throw error;
-              setForm({ ...form, status: 'inactive' });
+              setForm({ ...form, is_active: false });
             } catch (error) {
               Alert.alert('Error', 'Could not deactivate caregiver');
             }
@@ -254,9 +267,7 @@ export default function CaregiverDetailScreen() {
     return form.availability[day].some((s) => s.start === slot.start && s.end === slot.end);
   }
 
-  const allCapabilities = form.is_licensed
-    ? [...DEFAULT_CAPABILITIES, 'medication_administration']
-    : DEFAULT_CAPABILITIES;
+  const allCapabilities = [...DEFAULT_CAPABILITIES, 'medication_administration'];
 
   if (loading) {
     return (
@@ -307,37 +318,6 @@ export default function CaregiverDetailScreen() {
             />
           </Card>
 
-          {/* Licensing */}
-          <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Licensing</Text>
-
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Licensed Caregiver</Text>
-              <Switch
-                value={form.is_licensed}
-                onValueChange={(value) => setForm({ ...form, is_licensed: value })}
-                trackColor={{ false: colors.neutral[200], true: colors.primary[500] }}
-              />
-            </View>
-
-            {form.is_licensed && (
-              <>
-                <Input
-                  label="License Number"
-                  value={form.license_number}
-                  onChangeText={(text: string) => setForm({ ...form, license_number: text })}
-                  placeholder="LIC-123456"
-                />
-                <Input
-                  label="License Expiry"
-                  value={form.license_expiry}
-                  onChangeText={(text: string) => setForm({ ...form, license_expiry: text })}
-                  placeholder="MM/DD/YYYY"
-                />
-              </>
-            )}
-          </Card>
-
           {/* Capabilities */}
           <Card style={styles.section}>
             <Text style={styles.sectionTitle}>Capabilities</Text>
@@ -348,7 +328,6 @@ export default function CaregiverDetailScreen() {
             <View style={styles.capabilitiesContainer}>
               {allCapabilities.map((capability) => {
                 const isSelected = form.capabilities.includes(capability);
-                const isRestricted = capability === 'medication_administration' && !form.is_licensed;
 
                 return (
                   <Pressable
@@ -356,10 +335,8 @@ export default function CaregiverDetailScreen() {
                     style={[
                       styles.chip,
                       isSelected && styles.chipSelected,
-                      isRestricted && styles.chipDisabled,
                     ]}
-                    onPress={() => !isRestricted && toggleCapability(capability)}
-                    disabled={isRestricted}
+                    onPress={() => toggleCapability(capability)}
                   >
                     {isSelected && <CheckIcon size={16} color={colors.white} />}
                     <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
@@ -369,12 +346,6 @@ export default function CaregiverDetailScreen() {
                 );
               })}
             </View>
-
-            {!form.is_licensed && (
-              <Text style={styles.notice}>
-                * Unlicensed caregivers cannot administer medications
-              </Text>
-            )}
           </Card>
 
           {/* Availability */}
@@ -418,13 +389,13 @@ export default function CaregiverDetailScreen() {
             </View>
           </Card>
 
-          {/* Notes */}
+          {/* Bio */}
           <Card style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
+            <Text style={styles.sectionTitle}>Bio</Text>
             <Input
-              value={form.notes}
-              onChangeText={(text: string) => setForm({ ...form, notes: text })}
-              placeholder="Any additional notes about this caregiver..."
+              value={form.bio}
+              onChangeText={(text: string) => setForm({ ...form, bio: text })}
+              placeholder="Brief description or experience summary..."
               multiline
               numberOfLines={3}
             />
@@ -439,7 +410,7 @@ export default function CaregiverDetailScreen() {
               fullWidth
             />
 
-            {!isNew && form.status !== 'active' && (
+            {!isNew && !form.is_active && (
               <Button
                 title="Send Invitation"
                 variant="outline"
@@ -448,7 +419,7 @@ export default function CaregiverDetailScreen() {
               />
             )}
 
-            {!isNew && form.status === 'active' && (
+            {!isNew && form.is_active && (
               <Button
                 title="Deactivate Caregiver"
                 variant="danger"

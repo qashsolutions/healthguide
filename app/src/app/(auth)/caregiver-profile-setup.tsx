@@ -1,7 +1,5 @@
 // HealthGuide Caregiver Profile Setup Screen
-// Multi-step profile creation after phone verification
-// Per healthguide-core/auth skill - Large touch targets
-// Per frontend-design skill - Role-based theming with emerald
+// Modern 3-step profile creation: Basic Info → Skills & Rate → Availability & About
 
 import React, { useState, useRef } from 'react';
 import {
@@ -20,64 +18,116 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Button, Input, Card } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { ArrowLeftIcon, CheckIcon } from '@/components/icons';
+import { ArrowLeftIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import * as ImagePicker from 'expo-image-picker';
 
-const CAREGIVER_COLOR = roleColors.caregiver; // Emerald #059669
+const CAREGIVER_COLOR = roleColors.caregiver;
 
-const CAPABILITIES = [
-  'companionship',
-  'meal_preparation',
-  'light_housekeeping',
-  'errands',
-  'mobility_assistance',
-  'personal_care',
-  'medication_reminders',
-  'medication_administration',
+// Suggested tasks for quick-add
+const SUGGESTED_TASKS = [
+  'Companionship',
+  'Meal Preparation',
+  'Light Housekeeping',
+  'Errands & Shopping',
+  'Mobility Assistance',
+  'Personal Care',
+  'Medication Reminders',
+  'Medication Administration',
+  'Bathing Assistance',
+  'Transportation',
+  'Wound Care',
+  'Dementia Care',
+  'Vital Signs Monitoring',
 ];
 
-const CAPABILITY_LABELS: Record<string, string> = {
-  companionship: 'Companionship',
-  meal_preparation: 'Meal Prep',
-  light_housekeeping: 'Light Housekeeping',
-  errands: 'Errands & Shopping',
-  mobility_assistance: 'Mobility Assist',
-  personal_care: 'Personal Care',
-  medication_reminders: 'Med Reminders',
-  medication_administration: 'Med Admin',
-};
+// Suggested keywords for discoverability
+const SUGGESTED_KEYWORDS = [
+  'Experienced',
+  'Compassionate',
+  'Reliable',
+  'Patient',
+  'Dementia Care',
+  'Alzheimer\'s',
+  'Post-Surgery',
+  'Hospice Care',
+  'Physical Therapy',
+  'Spanish Speaking',
+  'Bilingual',
+  'CPR Certified',
+  'First Aid',
+  'Live-In Available',
+  'Night Shifts',
+  'Weekend Available',
+];
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 const DAY_LABELS: Record<string, string> = {
-  monday: 'Mon',
-  tuesday: 'Tue',
-  wednesday: 'Wed',
-  thursday: 'Thu',
-  friday: 'Fri',
-  saturday: 'Sat',
-  sunday: 'Sun',
+  monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
+  friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
 };
 
 const TIME_SLOTS = [
-  { label: 'Morning', value: 'morning', time: '6am–12pm' },
-  { label: 'Afternoon', value: 'afternoon', time: '12pm–6pm' },
-  { label: 'Evening', value: 'evening', time: '6pm–10pm' },
+  { label: '6-8a', value: '6am-8am' },
+  { label: '8-10a', value: '8am-10am' },
+  { label: '10-12p', value: '10am-12pm' },
+  { label: '12-2p', value: '12pm-2pm' },
+  { label: '2-4p', value: '2pm-4pm' },
+  { label: '4-6p', value: '4pm-6pm' },
+  { label: '6-8p', value: '6pm-8pm' },
+  { label: '8-10p', value: '8pm-10pm' },
+];
+
+const MAX_HOURS_PER_DAY = 8; // 4 slots × 2hrs
+const MAX_SLOTS_PER_DAY = 4;
+
+// Schedule presets for quick setup
+const SCHEDULE_PRESETS = [
+  {
+    label: 'Full-Time',
+    desc: 'Mon–Fri, 8am–4pm',
+    build: () => {
+      const weekday = ['8am-10am', '10am-12pm', '12pm-2pm', '2pm-4pm'];
+      return { monday: weekday, tuesday: weekday, wednesday: weekday, thursday: weekday, friday: weekday, saturday: [] as string[], sunday: [] as string[] };
+    },
+  },
+  {
+    label: 'Mornings',
+    desc: 'Mon–Fri, 6am–12pm',
+    build: () => {
+      const morning = ['6am-8am', '8am-10am', '10am-12pm'];
+      return { monday: morning, tuesday: morning, wednesday: morning, thursday: morning, friday: morning, saturday: [] as string[], sunday: [] as string[] };
+    },
+  },
+  {
+    label: 'Evenings',
+    desc: 'Mon–Fri, 4pm–10pm',
+    build: () => {
+      const evening = ['4pm-6pm', '6pm-8pm', '8pm-10pm'];
+      return { monday: evening, tuesday: evening, wednesday: evening, thursday: evening, friday: evening, saturday: [] as string[], sunday: [] as string[] };
+    },
+  },
+  {
+    label: 'Weekends',
+    desc: 'Sat–Sun, 8am–4pm',
+    build: () => {
+      const day = ['8am-10am', '10am-12pm', '12pm-2pm', '2pm-4pm'];
+      return { monday: [] as string[], tuesday: [] as string[], wednesday: [] as string[], thursday: [] as string[], friday: [] as string[], saturday: day, sunday: day };
+    },
+  },
 ];
 
 interface FormData {
   fullName: string;
   zipCode: string;
   photoUri: string | null;
-  npiNumber: string;
-  npiVerified: boolean;
-  npiData: any;
   certifications: string;
   hourlyRate: string;
   capabilities: string[];
+  keywords: string[];
   availability: Record<string, string[]>;
   experienceSummary: string;
   bio: string;
@@ -88,26 +138,23 @@ export default function CaregiverProfileSetupScreen() {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const bioInputRef = useRef<TextInput>(null);
+  const [taskInput, setTaskInput] = useState('');
+  const [keywordInput, setKeywordInput] = useState('');
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const taskInputRef = useRef<TextInput>(null);
+  const keywordInputRef = useRef<TextInput>(null);
 
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     zipCode: '',
     photoUri: null,
-    npiNumber: '',
-    npiVerified: false,
-    npiData: null,
     certifications: '',
     hourlyRate: '',
     capabilities: [],
+    keywords: [],
     availability: {
-      monday: ['morning', 'afternoon'],
-      tuesday: ['morning', 'afternoon'],
-      wednesday: ['morning', 'afternoon'],
-      thursday: ['morning', 'afternoon'],
-      friday: ['morning', 'afternoon'],
-      saturday: [],
-      sunday: [],
+      monday: [], tuesday: [], wednesday: [], thursday: [],
+      friday: [], saturday: [], sunday: [],
     },
     experienceSummary: '',
     bio: '',
@@ -116,129 +163,116 @@ export default function CaregiverProfileSetupScreen() {
   const handlePickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
-
-      if (!result.canceled && result.assets && result.assets[0]) {
+      if (!result.canceled && result.assets?.[0]) {
         setFormData({ ...formData, photoUri: result.assets[0].uri });
       }
     } catch (err) {
-      console.error('Error picking image:', err);
       Alert.alert('Error', 'Could not pick image');
     }
   };
 
-  const handleVerifyNPI = async () => {
-    if (formData.npiNumber.length !== 10) {
-      Alert.alert('Error', 'NPI must be exactly 10 digits');
-      return;
+  // --- Tag input helpers ---
+  const addTask = (task: string) => {
+    const trimmed = task.trim();
+    if (trimmed && !formData.capabilities.includes(trimmed)) {
+      setFormData({ ...formData, capabilities: [...formData.capabilities, trimmed] });
     }
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-npi', {
-        body: {
-          npi_number: formData.npiNumber,
-          user_id: user?.id,
-        },
-      });
-
-      if (error) {
-        // NPI not found - allow continuation
-        Alert.alert('NPI Not Found', 'You can continue without verification');
-        setFormData({ ...formData, npiVerified: false, npiData: null });
-      } else {
-        // NPI verified
-        setFormData({
-          ...formData,
-          npiVerified: true,
-          npiData: data,
-        });
-      }
-    } catch (err) {
-      Alert.alert('Verification Failed', 'You can continue without verification');
-      console.error('NPI verification error:', err);
-    }
-    setLoading(false);
+    setTaskInput('');
   };
 
-  const toggleCapability = (capability: string) => {
-    const updated = formData.capabilities.includes(capability)
-      ? formData.capabilities.filter((c) => c !== capability)
-      : [...formData.capabilities, capability];
-    setFormData({ ...formData, capabilities: updated });
+  const removeTask = (task: string) => {
+    setFormData({ ...formData, capabilities: formData.capabilities.filter(t => t !== task) });
   };
+
+  const handleTaskInputChange = (text: string) => {
+    if (text.endsWith(',') || text.endsWith('\n')) {
+      addTask(text.slice(0, -1));
+    } else {
+      setTaskInput(text);
+    }
+  };
+
+  const addKeyword = (kw: string) => {
+    const trimmed = kw.trim();
+    if (trimmed && !formData.keywords.includes(trimmed)) {
+      setFormData({ ...formData, keywords: [...formData.keywords, trimmed] });
+    }
+    setKeywordInput('');
+  };
+
+  const removeKeyword = (kw: string) => {
+    setFormData({ ...formData, keywords: formData.keywords.filter(k => k !== kw) });
+  };
+
+  const handleKeywordInputChange = (text: string) => {
+    if (text.endsWith(',') || text.endsWith('\n')) {
+      addKeyword(text.slice(0, -1));
+    } else {
+      setKeywordInput(text);
+    }
+  };
+
+  // --- Availability helpers ---
+  const getDayHours = (day: string) => (formData.availability[day] || []).length * 2;
 
   const toggleAvailabilitySlot = (day: string, slot: string) => {
     const daySlots = formData.availability[day] || [];
-    const updated = daySlots.includes(slot)
-      ? daySlots.filter((s) => s !== slot)
-      : [...daySlots, slot];
-    setFormData({
-      ...formData,
-      availability: { ...formData.availability, [day]: updated },
-    });
+    if (daySlots.includes(slot)) {
+      setFormData({
+        ...formData,
+        availability: { ...formData.availability, [day]: daySlots.filter(s => s !== slot) },
+      });
+      setActivePreset(null);
+    } else if (daySlots.length < MAX_SLOTS_PER_DAY) {
+      setFormData({
+        ...formData,
+        availability: { ...formData.availability, [day]: [...daySlots, slot] },
+      });
+      setActivePreset(null);
+    }
   };
 
-  const isStep1Valid = formData.fullName.trim().length > 0 && formData.zipCode.length === 5;
-  const isStep2Valid = true; // All optional
-  const isStep3Valid = true; // All optional
-  const isStep4Valid = true; // All optional
+  const applyPreset = (preset: typeof SCHEDULE_PRESETS[0]) => {
+    setActivePreset(preset.label);
+    setFormData({ ...formData, availability: preset.build() });
+  };
 
-  const stepValidation = [isStep1Valid, isStep2Valid, isStep3Valid, isStep4Valid];
+  // --- Validation ---
+  const isStep1Valid = formData.fullName.trim().length > 0 && formData.zipCode.length === 5;
 
   const handleNext = () => {
-    if (!stepValidation[step - 1]) return;
-    if (step < 4) {
-      setStep(step + 1);
-    }
+    if (step === 1 && !isStep1Valid) return;
+    if (step < 3) setStep(step + 1);
   };
 
   const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
-
-  const handleSkip = () => {
-    if (step < 4) {
-      setStep(step + 1);
-    }
+    if (step > 1) setStep(step - 1);
   };
 
   const handleCompleteProfile = async () => {
     if (!isStep1Valid) return;
-
     setLoading(true);
     try {
-      // Build availability JSONB
-      const availability = formData.availability;
-
-      // Parse certifications array
       const certs = formData.certifications
-        .split(',')
-        .map((c) => c.trim())
-        .filter((c) => c.length > 0);
+        .split(',').map(c => c.trim()).filter(c => c.length > 0);
 
-      // Upload photo if selected
       let photoUrl = null;
       if (formData.photoUri) {
         const photoName = `${user?.id}_${Date.now()}.jpg`;
         const response = await fetch(formData.photoUri);
         const blob = await response.blob();
-
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(`caregiver/${user?.id}/${photoName}`, blob);
-
         if (uploadError) throw uploadError;
         photoUrl = uploadData?.path || null;
       }
 
-      // Insert into caregiver_profiles
       const { error: insertError } = await supabase
         .from('caregiver_profiles')
         .insert({
@@ -246,92 +280,98 @@ export default function CaregiverProfileSetupScreen() {
           full_name: formData.fullName,
           zip_code: formData.zipCode,
           photo_url: photoUrl,
-          npi_number: formData.npiNumber || null,
-          npi_verified: formData.npiVerified,
           certifications: certs,
           hourly_rate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : null,
           capabilities: formData.capabilities,
-          availability: availability,
+          keywords: formData.keywords,
+          availability: formData.availability,
           experience_summary: formData.experienceSummary || null,
           bio: formData.bio || null,
         });
-
       if (insertError) throw insertError;
 
-      // Update auth user metadata
       const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          role: 'caregiver',
-          has_profile: true,
-        },
+        data: { role: 'caregiver', has_profile: true },
       });
-
       if (updateError) throw updateError;
 
       Alert.alert('Success', 'Profile created! Agencies can now find you.', [
-        {
-          text: 'OK',
-          onPress: () => {
-            router.replace('/(protected)/caregiver/(tabs)');
-          },
-        },
+        { text: 'OK', onPress: () => router.replace('/(protected)/caregiver/(tabs)') },
       ]);
     } catch (err: any) {
-      console.error('Error creating profile:', err);
       Alert.alert('Error', err.message || 'Could not create profile');
     }
     setLoading(false);
   };
 
+  // --- Tag chips component ---
+  const TagChips = ({ tags, onRemove, color }: { tags: string[]; onRemove: (t: string) => void; color: string }) => (
+    <View style={s.tagChipsRow}>
+      {tags.map(tag => (
+        <View key={tag} style={[s.tagChip, { backgroundColor: color + '15', borderColor: color }]}>
+          <Text style={[s.tagChipText, { color }]}>{tag}</Text>
+          <Pressable onPress={() => onRemove(tag)} hitSlop={8}>
+            <CloseIcon size={14} color={color} />
+          </Pressable>
+        </View>
+      ))}
+    </View>
+  );
+
+  // --- Suggestion chips component ---
+  const SuggestionChips = ({ suggestions, selected, onToggle }: {
+    suggestions: string[]; selected: string[]; onToggle: (s: string) => void;
+  }) => (
+    <View style={s.suggestionsRow}>
+      {suggestions.filter(s => !selected.includes(s)).slice(0, 8).map(item => (
+        <Pressable key={item} style={s.suggestionChip} onPress={() => onToggle(item)}>
+          <Text style={s.suggestionChipText}>+ {item}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={s.keyboardView}
       >
-        {/* Back Button */}
-        {step > 1 && (
-          <Button
-            title=""
-            variant="ghost"
-            size="sm"
-            icon={<ArrowLeftIcon size={24} />}
-            onPress={handleBack}
-            style={styles.backButton}
-          />
-        )}
+        {/* Header with back button */}
+        <View style={s.headerBar}>
+          {step > 1 ? (
+            <Pressable onPress={handleBack} hitSlop={12}>
+              <ArrowLeftIcon size={24} color={colors.text.primary} />
+            </Pressable>
+          ) : <View style={{ width: 24 }} />}
+          <Text style={s.headerTitle}>
+            {step === 1 ? 'Basic Info' : step === 2 ? 'Skills & Rate' : 'Schedule & About'}
+          </Text>
+          <Text style={s.stepLabel}>{step}/3</Text>
+        </View>
+
+        {/* Progress bar */}
+        <View style={s.progressBar}>
+          <View style={[s.progressFill, { width: `${(step / 3) * 100}%` }]} />
+        </View>
 
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Step Indicator */}
-          <View style={styles.stepIndicator}>
-            {[1, 2, 3, 4].map((s) => (
-              <View
-                key={s}
-                style={[
-                  styles.stepDot,
-                  {
-                    backgroundColor: s <= step ? CAREGIVER_COLOR : colors.neutral[200],
-                  },
-                ]}
-              />
-            ))}
-          </View>
-
           {/* STEP 1: Basic Info */}
           {step === 1 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Basic Information</Text>
+            <View style={s.stepContainer}>
+              <Text style={s.stepTitle}>Let's get started</Text>
+              <Text style={s.stepSubtitle}>Basic details to set up your profile</Text>
 
-              <View style={styles.form}>
+              <View style={s.form}>
                 <Input
                   label="Full Name *"
                   placeholder="Jane Smith"
                   value={formData.fullName}
-                  onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+                  onChangeText={text => setFormData({ ...formData, fullName: text })}
                   autoCapitalize="words"
                   size="caregiver"
                 />
@@ -340,7 +380,7 @@ export default function CaregiverProfileSetupScreen() {
                   label="Zip Code *"
                   placeholder="90210"
                   value={formData.zipCode}
-                  onChangeText={(text) => {
+                  onChangeText={text => {
                     const cleaned = text.replace(/\D/g, '').slice(0, 5);
                     setFormData({ ...formData, zipCode: cleaned });
                   }}
@@ -349,21 +389,14 @@ export default function CaregiverProfileSetupScreen() {
                   size="caregiver"
                 />
 
-                {/* Photo Picker */}
                 <View>
-                  <Text style={styles.label}>Photo (Optional)</Text>
-                  <Pressable
-                    onPress={handlePickImage}
-                    style={styles.photoButton}
-                  >
+                  <Text style={s.label}>Photo (Optional)</Text>
+                  <Pressable onPress={handlePickImage} style={s.photoButton}>
                     {formData.photoUri ? (
-                      <Image
-                        source={{ uri: formData.photoUri }}
-                        style={styles.photoImage}
-                      />
+                      <Image source={{ uri: formData.photoUri }} style={s.photoImage} />
                     ) : (
-                      <View style={styles.photoPlaceholder}>
-                        <Text style={styles.photoPlaceholderText}>Add Photo</Text>
+                      <View style={s.photoPlaceholder}>
+                        <Text style={s.photoPlaceholderText}>Add Photo</Text>
                       </View>
                     )}
                   </Pressable>
@@ -372,183 +405,180 @@ export default function CaregiverProfileSetupScreen() {
             </View>
           )}
 
-          {/* STEP 2: Professional Info */}
+          {/* STEP 2: Skills & Rate */}
           {step === 2 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Professional Information</Text>
+            <View style={s.stepContainer}>
+              <Text style={s.stepTitle}>Your skills</Text>
+              <Text style={s.stepSubtitle}>Tell agencies what you can do</Text>
 
-              <View style={styles.form}>
+              <View style={s.form}>
+                {/* Tasks / Capabilities */}
                 <View>
-                  <Text style={styles.label}>NPI Number (Optional)</Text>
-                  <View style={styles.npiRow}>
-                    <Input
-                      placeholder="1234567890"
-                      value={formData.npiNumber}
-                      onChangeText={(text) => {
-                        const cleaned = text.replace(/\D/g, '').slice(0, 10);
-                        setFormData({
-                          ...formData,
-                          npiNumber: cleaned,
-                          npiVerified: false,
-                          npiData: null,
-                        });
-                      }}
-                      keyboardType="numeric"
-                      maxLength={10}
-                      size="caregiver"
-                      style={{ flex: 1 }}
-                    />
-                    <Button
-                      title="Verify"
-                      variant="outline"
-                      size="sm"
-                      onPress={handleVerifyNPI}
-                      loading={loading}
-                      disabled={formData.npiNumber.length !== 10}
-                      style={styles.verifyButton}
-                    />
-                  </View>
-
-                  {formData.npiVerified && formData.npiData && (
-                    <View style={styles.npiSuccess}>
-                      <CheckIcon size={16} color={colors.success[600]} />
-                      <View style={styles.npiSuccessText}>
-                        <Text style={styles.npiVerifiedLabel}>Verified</Text>
-                        <Text style={styles.npiVerifiedValue}>
-                          {formData.npiData.credentials || 'Healthcare Provider'}
-                        </Text>
-                      </View>
-                    </View>
+                  <Text style={s.label}>Tasks You Can Perform</Text>
+                  {formData.capabilities.length > 0 && (
+                    <TagChips tags={formData.capabilities} onRemove={removeTask} color={CAREGIVER_COLOR} />
                   )}
+                  <TextInput
+                    ref={taskInputRef}
+                    style={s.tagInput}
+                    placeholder="Type a task and press comma to add..."
+                    placeholderTextColor={colors.text.disabled}
+                    value={taskInput}
+                    onChangeText={handleTaskInputChange}
+                    onSubmitEditing={() => { if (taskInput.trim()) addTask(taskInput); }}
+                    returnKeyType="done"
+                  />
+                  <Text style={s.inputHint}>Tap suggestions or type your own</Text>
+                  <SuggestionChips
+                    suggestions={SUGGESTED_TASKS}
+                    selected={formData.capabilities}
+                    onToggle={addTask}
+                  />
                 </View>
 
+                {/* Certifications */}
                 <Input
-                  label="Certifications (Optional)"
+                  label="Certifications"
                   placeholder="CNA, HHA, LPN, RN..."
                   value={formData.certifications}
-                  onChangeText={(text) => setFormData({ ...formData, certifications: text })}
+                  onChangeText={text => setFormData({ ...formData, certifications: text })}
                   autoCapitalize="characters"
                   size="caregiver"
                 />
 
+                {/* Hourly Rate */}
                 <Input
-                  label="Hourly Rate (Optional)"
-                  placeholder="$20"
+                  label="Hourly Rate"
+                  placeholder="20"
                   value={formData.hourlyRate}
-                  onChangeText={(text) => {
-                    const cleaned = text.replace(/\D/g, '');
+                  onChangeText={text => {
+                    const cleaned = text.replace(/[^\d.]/g, '');
                     setFormData({ ...formData, hourlyRate: cleaned });
                   }}
                   keyboardType="decimal-pad"
                   size="caregiver"
-                  leftIcon={<Text style={styles.currencyIcon}>$</Text>}
+                  leftIcon={<Text style={s.currencyIcon}>$</Text>}
                 />
-              </View>
-            </View>
-          )}
 
-          {/* STEP 3: Skills & Availability */}
-          {step === 3 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>Skills & Availability</Text>
-
-              {/* Capabilities */}
-              <View style={styles.sectionBlock}>
-                <Text style={styles.sectionLabel}>Capabilities</Text>
-                <View style={styles.capabilitiesGrid}>
-                  {CAPABILITIES.map((cap) => {
-                    const isSelected = formData.capabilities.includes(cap);
-                    return (
-                      <Pressable
-                        key={cap}
-                        style={[
-                          styles.capabilityChip,
-                          isSelected && {
-                            backgroundColor: CAREGIVER_COLOR,
-                            borderColor: CAREGIVER_COLOR,
-                          },
-                        ]}
-                        onPress={() => toggleCapability(cap)}
-                      >
-                        {isSelected && <CheckIcon size={14} color={colors.white} />}
-                        <Text
-                          style={[
-                            styles.capabilityChipText,
-                            isSelected && styles.capabilityChipTextSelected,
-                          ]}
-                        >
-                          {CAPABILITY_LABELS[cap]}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Availability Grid */}
-              <View style={[styles.sectionBlock, { marginTop: spacing[6] }]}>
-                <Text style={styles.sectionLabel}>Availability</Text>
-                <View style={styles.availabilityGrid}>
-                  {/* Header */}
-                  <View style={styles.availabilityRow}>
-                    <View style={styles.availabilityCorner} />
-                    {TIME_SLOTS.map((slot) => (
-                      <View key={slot.value} style={styles.availabilityHeaderCell}>
-                        <Text style={styles.availabilityHeaderText}>{slot.label}</Text>
-                        <Text style={styles.availabilityTimeText}>{slot.time}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Days */}
-                  {DAYS.map((day) => (
-                    <View key={day} style={styles.availabilityRow}>
-                      <Text style={styles.availabilityDayLabel}>{DAY_LABELS[day]}</Text>
-                      {TIME_SLOTS.map((slot) => {
-                        const isSelected = (formData.availability[day] || []).includes(
-                          slot.value
-                        );
-                        return (
-                          <Pressable
-                            key={slot.value}
-                            style={[
-                              styles.availabilityCell,
-                              isSelected && {
-                                backgroundColor: CAREGIVER_COLOR,
-                              },
-                            ]}
-                            onPress={() => toggleAvailabilitySlot(day, slot.value)}
-                          >
-                            {isSelected && (
-                              <View
-                                style={[styles.availabilityDot, { backgroundColor: colors.white }]}
-                              />
-                            )}
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* STEP 4: About Me */}
-          {step === 4 && (
-            <View style={styles.stepContainer}>
-              <Text style={styles.stepTitle}>About You</Text>
-
-              <View style={styles.form}>
+                {/* Keywords */}
                 <View>
-                  <Text style={styles.label}>Experience Summary (Optional)</Text>
+                  <Text style={s.label}>Keywords</Text>
+                  <Text style={s.inputHint}>Help agencies find you by adding searchable keywords</Text>
+                  {formData.keywords.length > 0 && (
+                    <TagChips tags={formData.keywords} onRemove={removeKeyword} color={colors.info[600]} />
+                  )}
                   <TextInput
-                    style={styles.multilineInput}
+                    ref={keywordInputRef}
+                    style={s.tagInput}
+                    placeholder="Type a keyword and press comma..."
+                    placeholderTextColor={colors.text.disabled}
+                    value={keywordInput}
+                    onChangeText={handleKeywordInputChange}
+                    onSubmitEditing={() => { if (keywordInput.trim()) addKeyword(keywordInput); }}
+                    returnKeyType="done"
+                  />
+                  <SuggestionChips
+                    suggestions={SUGGESTED_KEYWORDS}
+                    selected={formData.keywords}
+                    onToggle={addKeyword}
+                  />
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 3: Availability & About */}
+          {step === 3 && (
+            <View style={s.stepContainer}>
+              <Text style={s.stepTitle}>Your schedule</Text>
+              <Text style={s.stepSubtitle}>Set your availability (max {MAX_HOURS_PER_DAY}hrs/day)</Text>
+
+              {/* Schedule presets */}
+              <View style={s.presetsRow}>
+                {SCHEDULE_PRESETS.map(preset => (
+                  <Pressable
+                    key={preset.label}
+                    style={[s.presetChip, activePreset === preset.label && s.presetChipActive]}
+                    onPress={() => applyPreset(preset)}
+                  >
+                    <Text style={[
+                      s.presetLabel,
+                      activePreset === preset.label && s.presetLabelActive,
+                    ]}>{preset.label}</Text>
+                    <Text style={[
+                      s.presetDesc,
+                      activePreset === preset.label && s.presetDescActive,
+                    ]}>{preset.desc}</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* Availability grid */}
+              <View style={s.availGrid}>
+                {/* Time header */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View>
+                    <View style={s.availRow}>
+                      <View style={s.availDayCell} />
+                      {TIME_SLOTS.map(slot => (
+                        <View key={slot.value} style={s.availHeaderCell}>
+                          <Text style={s.availHeaderText}>{slot.label}</Text>
+                        </View>
+                      ))}
+                      <View style={s.availHoursCell}>
+                        <Text style={s.availHoursHeader}>Hrs</Text>
+                      </View>
+                    </View>
+
+                    {/* Day rows */}
+                    {DAYS.map(day => {
+                      const daySlots = formData.availability[day] || [];
+                      const hours = daySlots.length * 2;
+                      const atMax = daySlots.length >= MAX_SLOTS_PER_DAY;
+                      return (
+                        <View key={day} style={s.availRow}>
+                          <View style={s.availDayCell}>
+                            <Text style={s.availDayText}>{DAY_LABELS[day]}</Text>
+                          </View>
+                          {TIME_SLOTS.map(slot => {
+                            const isSelected = daySlots.includes(slot.value);
+                            const isDisabled = !isSelected && atMax;
+                            return (
+                              <Pressable
+                                key={slot.value}
+                                style={[
+                                  s.availCell,
+                                  isSelected && s.availCellSelected,
+                                  isDisabled && s.availCellDisabled,
+                                ]}
+                                onPress={() => !isDisabled && toggleAvailabilitySlot(day, slot.value)}
+                              >
+                                {isSelected && <CheckIcon size={12} color={colors.white} />}
+                              </Pressable>
+                            );
+                          })}
+                          <View style={s.availHoursCell}>
+                            <Text style={[
+                              s.availHoursText,
+                              hours > 0 && { color: CAREGIVER_COLOR, fontWeight: '700' as const },
+                            ]}>{hours}h</Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+
+              {/* About section */}
+              <View style={[s.form, { marginTop: spacing[6] }]}>
+                <View>
+                  <Text style={s.label}>Experience Summary</Text>
+                  <TextInput
+                    style={s.multilineInput}
                     placeholder="Describe your caregiving experience..."
                     value={formData.experienceSummary}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, experienceSummary: text })
-                    }
+                    onChangeText={text => setFormData({ ...formData, experienceSummary: text })}
                     multiline
                     numberOfLines={4}
                     textAlignVertical="top"
@@ -557,51 +587,45 @@ export default function CaregiverProfileSetupScreen() {
                 </View>
 
                 <View>
-                  <Text style={styles.label}>Bio (Optional)</Text>
+                  <Text style={s.label}>Bio</Text>
                   <TextInput
-                    ref={bioInputRef}
-                    style={styles.multilineInput}
+                    style={s.bioInput}
                     placeholder="Tell agencies about yourself..."
                     value={formData.bio}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, bio: text })
-                    }
+                    onChangeText={text => setFormData({ ...formData, bio: text })}
                     multiline
-                    numberOfLines={3}
+                    numberOfLines={6}
                     textAlignVertical="top"
                     placeholderTextColor={colors.text.disabled}
                   />
+                  <Text style={s.bioGuide}>
+                    Share what makes you unique — your personality, approach to care, and why you love caregiving
+                  </Text>
                 </View>
               </View>
             </View>
           )}
 
-          {/* Navigation Buttons */}
-          <View style={styles.buttonContainer}>
-            {step < 4 && (
+          {/* Navigation */}
+          <View style={s.buttonContainer}>
+            {step < 3 ? (
               <>
                 <Button
-                  title="Next"
+                  title="Continue"
                   variant="primary"
                   size="caregiver"
                   fullWidth
-                  disabled={!stepValidation[step - 1]}
+                  disabled={step === 1 && !isStep1Valid}
                   onPress={handleNext}
                   style={{ backgroundColor: CAREGIVER_COLOR }}
                 />
-
                 {step > 1 && (
-                  <Pressable
-                    onPress={handleSkip}
-                    style={styles.skipButton}
-                  >
-                    <Text style={styles.skipText}>Skip</Text>
+                  <Pressable onPress={() => setStep(step + 1)} style={s.skipButton}>
+                    <Text style={s.skipText}>Skip for now</Text>
                   </Pressable>
                 )}
               </>
-            )}
-
-            {step === 4 && (
+            ) : (
               <>
                 <Button
                   title="Complete Profile"
@@ -612,12 +636,8 @@ export default function CaregiverProfileSetupScreen() {
                   onPress={handleCompleteProfile}
                   style={{ backgroundColor: CAREGIVER_COLOR }}
                 />
-
-                <Pressable
-                  onPress={handleSkip}
-                  style={styles.skipButton}
-                >
-                  <Text style={styles.skipText}>Skip</Text>
+                <Pressable onPress={handleCompleteProfile} style={s.skipButton}>
+                  <Text style={s.skipText}>Skip — I'll fill this in later</Text>
                 </Pressable>
               </>
             )}
@@ -628,190 +648,254 @@ export default function CaregiverProfileSetupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  keyboardView: { flex: 1 },
+
+  // Header
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
   },
-  keyboardView: {
-    flex: 1,
+  headerTitle: {
+    ...typography.caregiver.body,
+    color: colors.text.primary,
+    fontWeight: '600',
   },
+  stepLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+
+  // Progress bar
+  progressBar: {
+    height: 3,
+    backgroundColor: colors.neutral[200],
+    marginHorizontal: spacing[4],
+    borderRadius: 2,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: CAREGIVER_COLOR,
+    borderRadius: 2,
+  },
+
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing[6],
-    paddingTop: spacing[4],
+    paddingHorizontal: spacing[5],
+    paddingTop: spacing[6],
     paddingBottom: spacing[8],
   },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing[4],
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing[2],
-    marginBottom: spacing[8],
-  },
-  stepDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  stepContainer: {
-    marginBottom: spacing[8],
-  },
+  stepContainer: { marginBottom: spacing[4] },
   stepTitle: {
     ...typography.caregiver.heading,
     color: colors.text.primary,
+    marginBottom: spacing[1],
+  },
+  stepSubtitle: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
     marginBottom: spacing[6],
   },
-  form: {
-    gap: spacing[4],
-  },
+  form: { gap: spacing[5] },
+
   label: {
     ...typography.styles.label,
     color: colors.text.primary,
     marginBottom: spacing[2],
+    fontWeight: '600',
   },
+  inputHint: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
+    marginBottom: spacing[2],
+  },
+
+  // Photo
   photoButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.neutral[100],
     borderWidth: 2,
     borderColor: colors.neutral[200],
+    borderStyle: 'dashed',
     overflow: 'hidden',
   },
-  photoImage: {
-    width: '100%',
-    height: '100%',
-  },
-  photoPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-  },
+  photoImage: { width: '100%', height: '100%' },
+  photoPlaceholder: { justifyContent: 'center', alignItems: 'center', flex: 1 },
   photoPlaceholderText: {
-    ...typography.styles.body,
-    color: colors.text.secondary,
-  },
-  npiRow: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    alignItems: 'flex-end',
-  },
-  verifyButton: {
-    marginBottom: 0,
-  },
-  npiSuccess: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginTop: spacing[2],
-    padding: spacing[2],
-    backgroundColor: colors.success[50],
-    borderRadius: 8,
-  },
-  npiSuccessText: {
-    flex: 1,
-  },
-  npiVerifiedLabel: {
     ...typography.styles.caption,
-    color: colors.success[600],
-    fontWeight: '600',
-  },
-  npiVerifiedValue: {
-    ...typography.styles.bodySmall,
-    color: colors.success[600],
-  },
-  currencyIcon: {
-    ...typography.styles.body,
     color: colors.text.secondary,
+    fontWeight: '500',
   },
-  sectionBlock: {
-    marginBottom: spacing[6],
-  },
-  sectionLabel: {
-    ...typography.styles.h4,
+
+  currencyIcon: { ...typography.styles.body, color: colors.text.secondary },
+
+  // Tag input
+  tagInput: {
+    ...typography.styles.body,
     color: colors.text.primary,
-    marginBottom: spacing[3],
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: 10,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2.5] || 10,
+    minHeight: 44,
   },
-  capabilitiesGrid: {
+
+  // Tag chips
+  tagChipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing[2],
+    marginBottom: spacing[2],
   },
-  capabilityChip: {
+  tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[1],
     paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: 20,
+    paddingVertical: spacing[1.5] || 6,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  tagChipText: {
+    ...typography.styles.caption,
+    fontWeight: '600',
+  },
+
+  // Suggestion chips
+  suggestionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[1.5] || 6,
+  },
+  suggestionChip: {
+    paddingHorizontal: spacing[2.5] || 10,
+    paddingVertical: spacing[1],
+    borderRadius: 14,
     backgroundColor: colors.neutral[100],
     borderWidth: 1,
     borderColor: colors.neutral[200],
   },
-  capabilityChipText: {
+  suggestionChipText: {
     ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontSize: 12,
+  },
+
+  // Schedule presets
+  presetsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[2],
+    marginBottom: spacing[4],
+  },
+  presetChip: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    minWidth: 100,
+  },
+  presetChipActive: {
+    backgroundColor: CAREGIVER_COLOR + '12',
+    borderColor: CAREGIVER_COLOR,
+  },
+  presetLabel: {
+    ...typography.styles.caption,
+    fontWeight: '700',
     color: colors.text.primary,
-    fontWeight: '500',
   },
-  capabilityChipTextSelected: {
-    color: colors.white,
+  presetLabelActive: { color: CAREGIVER_COLOR },
+  presetDesc: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontSize: 10,
+    marginTop: 1,
   },
-  availabilityGrid: {
+  presetDescActive: { color: CAREGIVER_COLOR },
+
+  // Availability grid
+  availGrid: {
     backgroundColor: colors.surface,
     borderRadius: 12,
-    padding: spacing[3],
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    padding: spacing[2],
   },
-  availabilityRow: {
+  availRow: {
     flexDirection: 'row',
-    marginVertical: 6,
     alignItems: 'center',
+    marginVertical: 2,
   },
-  availabilityCorner: {
-    width: 50,
-  },
-  availabilityHeaderCell: {
-    flex: 1,
+  availDayCell: {
+    width: 36,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  availabilityHeaderText: {
+  availDayText: {
     ...typography.styles.caption,
-    color: colors.text.primary,
+    color: colors.text.secondary,
     fontWeight: '600',
     fontSize: 11,
   },
-  availabilityTimeText: {
-    ...typography.styles.bodySmall,
-    color: colors.text.secondary,
+  availHeaderCell: {
+    width: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 1,
+  },
+  availHeaderText: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontWeight: '600',
     fontSize: 9,
   },
-  availabilityDayLabel: {
-    width: 50,
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-    textAlign: 'center',
+  availHoursCell: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  availabilityCell: {
-    flex: 1,
-    height: 40,
-    marginHorizontal: 4,
-    borderRadius: 8,
+  availHoursHeader: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+    fontSize: 9,
+  },
+  availHoursText: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontSize: 11,
+  },
+  availCell: {
+    width: 36,
+    height: 32,
+    marginHorizontal: 1,
+    borderRadius: 6,
     backgroundColor: colors.neutral[100],
     justifyContent: 'center',
     alignItems: 'center',
   },
-  availabilityDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  availCellSelected: {
+    backgroundColor: CAREGIVER_COLOR,
   },
+  availCellDisabled: {
+    opacity: 0.35,
+  },
+
+  // Multiline inputs
   multilineInput: {
     ...typography.styles.body,
     color: colors.text.primary,
@@ -822,11 +906,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[3],
     minHeight: 100,
-    fontFamily: 'System',
   },
+  bioInput: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: 12,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[3],
+    minHeight: 150,
+  },
+  bioGuide: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    marginTop: spacing[2],
+    fontStyle: 'italic',
+    lineHeight: 18,
+  },
+
+  // Buttons
   buttonContainer: {
     gap: spacing[3],
-    marginTop: spacing[6],
+    marginTop: spacing[8],
   },
   skipButton: {
     paddingVertical: spacing[3],

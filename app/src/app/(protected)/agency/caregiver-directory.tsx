@@ -10,7 +10,6 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
-  Switch,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,7 +21,6 @@ import { spacing, borderRadius } from '@/theme/spacing';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  ShieldCheckIcon,
   FilterIcon,
 } from '@/components/icons';
 import { RatingSummary } from '@/components/caregiver/RatingSummary';
@@ -35,7 +33,6 @@ interface CaregiverResult {
   photo_url?: string;
   zip_code: string;
   hourly_rate?: number;
-  npi_verified: boolean;
   capabilities: string[];
   rating_count?: number;
   positive_count?: number;
@@ -46,7 +43,6 @@ interface FilterState {
   morningAvailable: boolean;
   afternoonAvailable: boolean;
   eveningAvailable: boolean;
-  verifiedOnly: boolean;
   maxRate: string;
 }
 
@@ -57,7 +53,6 @@ export default function CaregiverDirectoryScreen() {
     morningAvailable: false,
     afternoonAvailable: false,
     eveningAvailable: false,
-    verifiedOnly: false,
     maxRate: '',
   });
 
@@ -75,10 +70,6 @@ export default function CaregiverDirectoryScreen() {
 
       if (filters.zipCode.trim()) {
         filterPayload.zip_code = filters.zipCode.trim();
-      }
-
-      if (filters.verifiedOnly) {
-        filterPayload.npi_verified = true;
       }
 
       if (filters.maxRate.trim()) {
@@ -149,11 +140,6 @@ export default function CaregiverDirectoryScreen() {
             <Text style={styles.caregiverName}>
               {item.first_name} {item.last_name}
             </Text>
-            {item.npi_verified && (
-              <View style={styles.verifiedBadge}>
-                <ShieldCheckIcon size={12} color={colors.success[500]} />
-              </View>
-            )}
           </View>
 
           {/* Location + Rate */}
@@ -255,21 +241,6 @@ export default function CaregiverDirectoryScreen() {
                   </Pressable>
                 );
               })}
-            </View>
-          </View>
-
-          {/* Verified Only Toggle */}
-          <View style={styles.filterGroup}>
-            <View style={styles.verifiedToggleRow}>
-              <Text style={styles.filterLabel}>Verified Only</Text>
-              <Switch
-                value={filters.verifiedOnly}
-                onValueChange={(value) =>
-                  setFilters({ ...filters, verifiedOnly: value })
-                }
-                trackColor={{ false: colors.neutral[200], true: colors.success[300] }}
-                thumbColor={filters.verifiedOnly ? colors.success[600] : colors.neutral[400]}
-              />
             </View>
           </View>
 
@@ -431,11 +402,6 @@ const styles = StyleSheet.create({
     color: colors.success[600],
     fontWeight: '600',
   },
-  verifiedToggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   rateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -548,14 +514,6 @@ const styles = StyleSheet.create({
     ...typography.styles.label,
     color: colors.text.primary,
     fontWeight: '600',
-  },
-  verifiedBadge: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.success[50],
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   locationRate: {
     ...typography.styles.caption,

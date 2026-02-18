@@ -21,7 +21,6 @@ import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
 import {
   ChevronLeftIcon,
-  ShieldCheckIcon,
   PhoneIcon,
   MessageIcon,
 } from '@/components/icons';
@@ -39,14 +38,12 @@ interface CaregiverProfile {
   email?: string;
   zip_code: string;
   hourly_rate?: number;
-  npi_verified: boolean;
-  npi_credentials?: string;
-  npi_specialty?: string;
   certifications?: string;
   bio?: string;
   experience_summary?: string;
   capabilities: string[];
-  availability: Record<string, boolean[]>; // e.g., { "Mon": [true, false, true], ... }
+  keywords?: string[];
+  availability: Record<string, string[]>; // e.g., { "monday": ["6am-8am", "8am-10am"] }
   rating_count?: number;
   positive_count?: number;
 }
@@ -106,7 +103,16 @@ export default function CaregiverProfileViewScreen() {
   };
 
   const getDaysOfWeek = () => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const getTimeSlots = () => ['Morning', 'Afternoon', 'Evening'];
+  const getTimeSlots = () => [
+    { label: '6-8a', value: '6am-8am' },
+    { label: '8-10a', value: '8am-10am' },
+    { label: '10-12p', value: '10am-12pm' },
+    { label: '12-2p', value: '12pm-2pm' },
+    { label: '2-4p', value: '2pm-4pm' },
+    { label: '4-6p', value: '4pm-6pm' },
+    { label: '6-8p', value: '6pm-8pm' },
+    { label: '8-10p', value: '8pm-10pm' },
+  ];
 
   if (loading) {
     return (
@@ -162,17 +168,8 @@ export default function CaregiverProfileViewScreen() {
               </Text>
             </View>
 
-            {profile.npi_verified ? (
-              <View style={styles.verifiedBadge}>
-                <ShieldCheckIcon size={16} color={colors.success[500]} />
-                <Text style={styles.verifiedText}>Verified</Text>
-              </View>
-            ) : (
-              <Text style={styles.unverifiedText}>Unverified</Text>
-            )}
-
-            {profile.npi_verified && profile.npi_credentials && (
-              <Text style={styles.credentialsText}>{profile.npi_credentials}</Text>
+            {profile.certifications && (
+              <Text style={styles.credentialsText}>{profile.certifications}</Text>
             )}
           </View>
         </View>
@@ -219,13 +216,6 @@ export default function CaregiverProfileViewScreen() {
             </View>
           )}
 
-          {/* NPI Specialty */}
-          {profile.npi_verified && profile.npi_specialty && (
-            <View style={styles.professionalItem}>
-              <Text style={styles.label}>Specialty</Text>
-              <Text style={styles.value}>{profile.npi_specialty}</Text>
-            </View>
-          )}
         </View>
 
         {/* Skills Section */}
@@ -265,39 +255,58 @@ export default function CaregiverProfileViewScreen() {
         {/* Availability Section */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Availability</Text>
-          <View style={styles.availabilityGrid}>
-            {/* Time slot headers */}
-            <View style={styles.availabilityRow}>
-              <View style={styles.dayCell} />
-              {getTimeSlots().map((slot) => (
-                <View key={slot} style={styles.slotHeaderCell}>
-                  <Text style={styles.slotHeaderText}>{slot.substring(0, 3)}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.availabilityGrid}>
+              {/* Time slot headers */}
+              <View style={styles.availabilityRow}>
+                <View style={styles.dayCell} />
+                {getTimeSlots().map((slot) => (
+                  <View key={slot.value} style={styles.slotHeaderCell}>
+                    <Text style={styles.slotHeaderText}>{slot.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Days */}
+              {getDaysOfWeek().map((day) => {
+                const daySlots = profile.availability?.[day.toLowerCase()] || [];
+                return (
+                  <View key={day} style={styles.availabilityRow}>
+                    <View style={styles.dayCell}>
+                      <Text style={styles.dayText}>{day.substring(0, 3)}</Text>
+                    </View>
+                    {getTimeSlots().map((slot) => {
+                      const isAvailable = Array.isArray(daySlots) && daySlots.includes(slot.value);
+                      return (
+                        <View
+                          key={`${day}-${slot.value}`}
+                          style={[
+                            styles.availabilityCell,
+                            isAvailable && styles.availabilityCellActive,
+                          ]}
+                        />
+                      );
+                    })}
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Keywords Section */}
+        {profile.keywords && profile.keywords.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Keywords</Text>
+            <View style={styles.capabilitiesGrid}>
+              {profile.keywords.map((keyword, index) => (
+                <View key={index} style={[styles.capabilityChip, { backgroundColor: colors.info[50], borderColor: colors.info[600] }]}>
+                  <Text style={[styles.capabilityChipText, { color: colors.info[600] }]}>{keyword}</Text>
                 </View>
               ))}
             </View>
-
-            {/* Days */}
-            {getDaysOfWeek().map((day, dayIndex) => (
-              <View key={day} style={styles.availabilityRow}>
-                <View style={styles.dayCell}>
-                  <Text style={styles.dayText}>{day.substring(0, 3)}</Text>
-                </View>
-                {getTimeSlots().map((slot, slotIndex) => {
-                  const isAvailable = profile.availability?.[day.toLowerCase()]?.[slotIndex] ?? false;
-                  return (
-                    <View
-                      key={`${day}-${slot}`}
-                      style={[
-                        styles.availabilityCell,
-                        isAvailable && styles.availabilityCellActive,
-                      ]}
-                    />
-                  );
-                })}
-              </View>
-            ))}
           </View>
-        </View>
+        )}
 
         {/* About Section */}
         {(profile.experience_summary || profile.bio) && (
@@ -407,25 +416,6 @@ const styles = StyleSheet.create({
     ...typography.styles.h2,
     color: colors.text.primary,
     fontWeight: '600',
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.success[50],
-    marginBottom: spacing[1],
-  },
-  verifiedText: {
-    ...typography.styles.caption,
-    color: colors.success[600],
-    fontWeight: '600',
-  },
-  unverifiedText: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   credentialsText: {
     ...typography.styles.caption,
@@ -557,7 +547,7 @@ const styles = StyleSheet.create({
   },
   availabilityCell: {
     flex: 1,
-    aspectRatio: 1,
+    height: 28,
     backgroundColor: colors.neutral[100],
     borderRightWidth: 1,
     borderRightColor: colors.neutral[200],

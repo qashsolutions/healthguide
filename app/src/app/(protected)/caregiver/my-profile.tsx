@@ -1,6 +1,6 @@
 // HealthGuide Caregiver Marketplace Profile Editor
 // Single-screen editor for existing caregiver profiles
-// Fetches current profile and allows full editing
+// Mirrors setup screen: tag inputs, 2hr availability, keywords, no NPI
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -20,54 +20,82 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Button, Input, Card, Badge } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
-import { ArrowLeftIcon, CheckIcon } from '@/components/icons';
+import { ArrowLeftIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import { RatingSummary } from '@/components/caregiver/RatingSummary';
 import { ReviewsList } from '@/components/caregiver/ReviewsList';
 import * as ImagePicker from 'expo-image-picker';
 
-const CAREGIVER_COLOR = roleColors.caregiver; // Emerald #059669
+const CAREGIVER_COLOR = roleColors.caregiver;
 
-const CAPABILITIES = [
-  'companionship',
-  'meal_preparation',
-  'light_housekeeping',
-  'errands',
-  'mobility_assistance',
-  'personal_care',
-  'medication_reminders',
-  'medication_administration',
+const SUGGESTED_TASKS = [
+  'Companionship', 'Meal Preparation', 'Light Housekeeping', 'Errands & Shopping',
+  'Mobility Assistance', 'Personal Care', 'Medication Reminders', 'Medication Administration',
+  'Bathing Assistance', 'Transportation', 'Wound Care', 'Dementia Care', 'Vital Signs Monitoring',
 ];
 
-const CAPABILITY_LABELS: Record<string, string> = {
-  companionship: 'Companionship',
-  meal_preparation: 'Meal Prep',
-  light_housekeeping: 'Light Housekeeping',
-  errands: 'Errands & Shopping',
-  mobility_assistance: 'Mobility Assist',
-  personal_care: 'Personal Care',
-  medication_reminders: 'Med Reminders',
-  medication_administration: 'Med Admin',
-};
+const SUGGESTED_KEYWORDS = [
+  'Experienced', 'Compassionate', 'Reliable', 'Patient', 'Dementia Care',
+  'Alzheimer\'s', 'Post-Surgery', 'Hospice Care', 'Physical Therapy',
+  'Spanish Speaking', 'Bilingual', 'CPR Certified', 'First Aid',
+  'Live-In Available', 'Night Shifts', 'Weekend Available',
+];
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 const DAY_LABELS: Record<string, string> = {
-  monday: 'Mon',
-  tuesday: 'Tue',
-  wednesday: 'Wed',
-  thursday: 'Thu',
-  friday: 'Fri',
-  saturday: 'Sat',
-  sunday: 'Sun',
+  monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
+  friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
 };
 
 const TIME_SLOTS = [
-  { label: 'Morning', value: 'morning', time: '6am–12pm' },
-  { label: 'Afternoon', value: 'afternoon', time: '12pm–6pm' },
-  { label: 'Evening', value: 'evening', time: '6pm–10pm' },
+  { label: '6-8a', value: '6am-8am' },
+  { label: '8-10a', value: '8am-10am' },
+  { label: '10-12p', value: '10am-12pm' },
+  { label: '12-2p', value: '12pm-2pm' },
+  { label: '2-4p', value: '2pm-4pm' },
+  { label: '4-6p', value: '4pm-6pm' },
+  { label: '6-8p', value: '6pm-8pm' },
+  { label: '8-10p', value: '8pm-10pm' },
+];
+
+const MAX_SLOTS_PER_DAY = 4;
+
+const SCHEDULE_PRESETS = [
+  {
+    label: 'Full-Time',
+    desc: 'Mon–Fri, 8am–4pm',
+    build: () => {
+      const wd = ['8am-10am', '10am-12pm', '12pm-2pm', '2pm-4pm'];
+      return { monday: wd, tuesday: wd, wednesday: wd, thursday: wd, friday: wd, saturday: [] as string[], sunday: [] as string[] };
+    },
+  },
+  {
+    label: 'Mornings',
+    desc: 'Mon–Fri, 6am–12pm',
+    build: () => {
+      const m = ['6am-8am', '8am-10am', '10am-12pm'];
+      return { monday: m, tuesday: m, wednesday: m, thursday: m, friday: m, saturday: [] as string[], sunday: [] as string[] };
+    },
+  },
+  {
+    label: 'Evenings',
+    desc: 'Mon–Fri, 4pm–10pm',
+    build: () => {
+      const e = ['4pm-6pm', '6pm-8pm', '8pm-10pm'];
+      return { monday: e, tuesday: e, wednesday: e, thursday: e, friday: e, saturday: [] as string[], sunday: [] as string[] };
+    },
+  },
+  {
+    label: 'Weekends',
+    desc: 'Sat–Sun, 8am–4pm',
+    build: () => {
+      const d = ['8am-10am', '10am-12pm', '12pm-2pm', '2pm-4pm'];
+      return { monday: [] as string[], tuesday: [] as string[], wednesday: [] as string[], thursday: [] as string[], friday: [] as string[], saturday: d, sunday: d };
+    },
+  },
 ];
 
 interface FormData {
@@ -75,12 +103,10 @@ interface FormData {
   zipCode: string;
   photoUri: string | null;
   photoUrl: string | null;
-  npiNumber: string;
-  npiVerified: boolean;
-  npiData: any;
   certifications: string;
   hourlyRate: string;
   capabilities: string[];
+  keywords: string[];
   availability: Record<string, string[]>;
   experienceSummary: string;
   bio: string;
@@ -90,7 +116,6 @@ interface FormData {
 export default function CaregiverMyProfileScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const bioInputRef = useRef<TextInput>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -98,152 +123,149 @@ export default function CaregiverMyProfileScreen() {
   const [ratingCount, setRatingCount] = useState(0);
   const [positiveCount, setPositiveCount] = useState(0);
   const [showReviewsList, setShowReviewsList] = useState(false);
+  const [taskInput, setTaskInput] = useState('');
+  const [keywordInput, setKeywordInput] = useState('');
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+  const taskInputRef = useRef<TextInput>(null);
+  const keywordInputRef = useRef<TextInput>(null);
+
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     zipCode: '',
     photoUri: null,
     photoUrl: null,
-    npiNumber: '',
-    npiVerified: false,
-    npiData: null,
     certifications: '',
     hourlyRate: '',
     capabilities: [],
+    keywords: [],
     availability: {
-      monday: [],
-      tuesday: [],
-      wednesday: [],
-      thursday: [],
-      friday: [],
-      saturday: [],
-      sunday: [],
+      monday: [], tuesday: [], wednesday: [], thursday: [],
+      friday: [], saturday: [], sunday: [],
     },
     experienceSummary: '',
     bio: '',
     isActive: true,
   });
 
-  // Fetch existing profile on mount
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('caregiver_profiles')
-          .select('*')
-          .eq('user_id', user?.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setProfileId(data.id);
-          setRatingCount(data.rating_count || 0);
-          setPositiveCount(data.positive_count || 0);
-          setFormData({
-            fullName: data.full_name || '',
-            zipCode: data.zip_code || '',
-            photoUri: null,
-            photoUrl: data.photo_url || null,
-            npiNumber: data.npi_number || '',
-            npiVerified: data.npi_verified || false,
-            npiData: null,
-            certifications: (data.certifications || []).join(', '),
-            hourlyRate: data.hourly_rate ? String(data.hourly_rate) : '',
-            capabilities: data.capabilities || [],
-            availability: data.availability || {
-              monday: [],
-              tuesday: [],
-              wednesday: [],
-              thursday: [],
-              friday: [],
-              saturday: [],
-              sunday: [],
-            },
-            experienceSummary: data.experience_summary || '',
-            bio: data.bio || '',
-            isActive: data.is_active ?? true,
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        Alert.alert('Error', 'Could not load your profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user?.id) {
-      fetchProfile();
-    }
+    if (user?.id) fetchProfile();
   }, [user?.id]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('caregiver_profiles')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+      if (error) throw error;
+      if (data) {
+        setProfileId(data.id);
+        setRatingCount(data.rating_count || 0);
+        setPositiveCount(data.positive_count || 0);
+        setFormData({
+          fullName: data.full_name || '',
+          zipCode: data.zip_code || '',
+          photoUri: null,
+          photoUrl: data.photo_url || null,
+          certifications: (data.certifications || []).join(', '),
+          hourlyRate: data.hourly_rate ? String(data.hourly_rate) : '',
+          capabilities: data.capabilities || [],
+          keywords: data.keywords || [],
+          availability: data.availability || {
+            monday: [], tuesday: [], wednesday: [], thursday: [],
+            friday: [], saturday: [], sunday: [],
+          },
+          experienceSummary: data.experience_summary || '',
+          bio: data.bio || '',
+          isActive: data.is_active ?? true,
+        });
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Could not load your profile');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
-
-      if (!result.canceled && result.assets && result.assets[0]) {
+      if (!result.canceled && result.assets?.[0]) {
         setFormData({ ...formData, photoUri: result.assets[0].uri });
       }
     } catch (err) {
-      console.error('Error picking image:', err);
       Alert.alert('Error', 'Could not pick image');
     }
   };
 
-  const handleVerifyNPI = async () => {
-    if (formData.npiNumber.length !== 10) {
-      Alert.alert('Error', 'NPI must be exactly 10 digits');
-      return;
+  // Tag input helpers
+  const addTask = (task: string) => {
+    const trimmed = task.trim();
+    if (trimmed && !formData.capabilities.includes(trimmed)) {
+      setFormData({ ...formData, capabilities: [...formData.capabilities, trimmed] });
     }
-
-    setSaving(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-npi', {
-        body: {
-          npi_number: formData.npiNumber,
-          user_id: user?.id,
-        },
-      });
-
-      if (error) {
-        Alert.alert('NPI Not Found', 'This NPI could not be verified');
-        setFormData({ ...formData, npiVerified: false, npiData: null });
-      } else {
-        setFormData({
-          ...formData,
-          npiVerified: true,
-          npiData: data,
-        });
-        Alert.alert('Success', 'NPI verified');
-      }
-    } catch (err) {
-      Alert.alert('Verification Failed', 'Could not verify this NPI');
-      console.error('NPI verification error:', err);
-    }
-    setSaving(false);
+    setTaskInput('');
   };
 
-  const toggleCapability = (capability: string) => {
-    const updated = formData.capabilities.includes(capability)
-      ? formData.capabilities.filter((c) => c !== capability)
-      : [...formData.capabilities, capability];
-    setFormData({ ...formData, capabilities: updated });
+  const removeTask = (task: string) => {
+    setFormData({ ...formData, capabilities: formData.capabilities.filter(t => t !== task) });
   };
 
+  const handleTaskInputChange = (text: string) => {
+    if (text.endsWith(',') || text.endsWith('\n')) {
+      addTask(text.slice(0, -1));
+    } else {
+      setTaskInput(text);
+    }
+  };
+
+  const addKeyword = (kw: string) => {
+    const trimmed = kw.trim();
+    if (trimmed && !formData.keywords.includes(trimmed)) {
+      setFormData({ ...formData, keywords: [...formData.keywords, trimmed] });
+    }
+    setKeywordInput('');
+  };
+
+  const removeKeyword = (kw: string) => {
+    setFormData({ ...formData, keywords: formData.keywords.filter(k => k !== kw) });
+  };
+
+  const handleKeywordInputChange = (text: string) => {
+    if (text.endsWith(',') || text.endsWith('\n')) {
+      addKeyword(text.slice(0, -1));
+    } else {
+      setKeywordInput(text);
+    }
+  };
+
+  // Availability helpers
   const toggleAvailabilitySlot = (day: string, slot: string) => {
     const daySlots = formData.availability[day] || [];
-    const updated = daySlots.includes(slot)
-      ? daySlots.filter((s) => s !== slot)
-      : [...daySlots, slot];
-    setFormData({
-      ...formData,
-      availability: { ...formData.availability, [day]: updated },
-    });
+    if (daySlots.includes(slot)) {
+      setFormData({
+        ...formData,
+        availability: { ...formData.availability, [day]: daySlots.filter(s => s !== slot) },
+      });
+      setActivePreset(null);
+    } else if (daySlots.length < MAX_SLOTS_PER_DAY) {
+      setFormData({
+        ...formData,
+        availability: { ...formData.availability, [day]: [...daySlots, slot] },
+      });
+      setActivePreset(null);
+    }
+  };
+
+  const applyPreset = (preset: typeof SCHEDULE_PRESETS[0]) => {
+    setActivePreset(preset.label);
+    setFormData({ ...formData, availability: preset.build() });
   };
 
   const handleSaveProfile = async () => {
@@ -251,61 +273,45 @@ export default function CaregiverMyProfileScreen() {
       Alert.alert('Error', 'Full Name and Zip Code are required');
       return;
     }
-
     setSaving(true);
     try {
-      // Parse certifications array
       const certs = formData.certifications
-        .split(',')
-        .map((c) => c.trim())
-        .filter((c) => c.length > 0);
+        .split(',').map(c => c.trim()).filter(c => c.length > 0);
 
-      // Upload new photo if selected
       let photoUrl = formData.photoUrl;
       if (formData.photoUri) {
         const photoName = `${user?.id}_${Date.now()}.jpg`;
         const response = await fetch(formData.photoUri);
         const blob = await response.blob();
-
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(`caregiver/${user?.id}/${photoName}`, blob);
-
         if (uploadError) throw uploadError;
         photoUrl = uploadData?.path || null;
       }
 
-      // Update caregiver_profiles
       const { error: updateError } = await supabase
         .from('caregiver_profiles')
         .update({
           full_name: formData.fullName,
           zip_code: formData.zipCode,
           photo_url: photoUrl,
-          npi_number: formData.npiNumber || null,
-          npi_verified: formData.npiVerified,
           certifications: certs,
           hourly_rate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : null,
           capabilities: formData.capabilities,
+          keywords: formData.keywords,
           availability: formData.availability,
           experience_summary: formData.experienceSummary || null,
           bio: formData.bio || null,
           is_active: formData.isActive,
         })
         .eq('user_id', user?.id);
-
       if (updateError) throw updateError;
 
       Alert.alert('Success', 'Your profile has been updated', [
-        {
-          text: 'OK',
-          onPress: () => {
-            router.back();
-          },
-        },
+        { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err: any) {
-      console.error('Error updating profile:', err);
       Alert.alert('Error', err.message || 'Could not update profile');
     }
     setSaving(false);
@@ -313,31 +319,49 @@ export default function CaregiverMyProfileScreen() {
 
   const handleToggleActive = () => {
     if (!formData.isActive) {
-      // Re-activating
       setFormData({ ...formData, isActive: true });
     } else {
-      // Deactivating
       Alert.alert(
         'Deactivate Profile',
         'This will hide your profile from agencies. You can reactivate anytime.',
         [
           { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Deactivate',
-            style: 'destructive',
-            onPress: () => {
-              setFormData({ ...formData, isActive: false });
-            },
-          },
+          { text: 'Deactivate', style: 'destructive', onPress: () => setFormData({ ...formData, isActive: false }) },
         ]
       );
     }
   };
 
+  // Reusable components
+  const TagChips = ({ tags, onRemove, color }: { tags: string[]; onRemove: (t: string) => void; color: string }) => (
+    <View style={st.tagChipsRow}>
+      {tags.map(tag => (
+        <View key={tag} style={[st.tagChip, { backgroundColor: color + '15', borderColor: color }]}>
+          <Text style={[st.tagChipText, { color }]}>{tag}</Text>
+          <Pressable onPress={() => onRemove(tag)} hitSlop={8}>
+            <CloseIcon size={14} color={color} />
+          </Pressable>
+        </View>
+      ))}
+    </View>
+  );
+
+  const SuggestionChips = ({ suggestions, selected, onToggle }: {
+    suggestions: string[]; selected: string[]; onToggle: (s: string) => void;
+  }) => (
+    <View style={st.suggestionsRow}>
+      {suggestions.filter(s => !selected.includes(s)).slice(0, 6).map(item => (
+        <Pressable key={item} style={st.suggestionChip} onPress={() => onToggle(item)}>
+          <Text style={st.suggestionChipText}>+ {item}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={st.container}>
+        <View style={st.loadingContainer}>
           <ActivityIndicator size="large" color={CAREGIVER_COLOR} />
         </View>
       </SafeAreaView>
@@ -345,69 +369,65 @@ export default function CaregiverMyProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={st.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={st.keyboardView}
       >
-        {/* Header with Back Button */}
-        <View style={styles.headerBar}>
-          <Pressable onPress={() => router.back()}>
+        {/* Header */}
+        <View style={st.headerBar}>
+          <Pressable onPress={() => router.back()} hitSlop={12}>
             <ArrowLeftIcon size={24} color={colors.text.primary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Edit Marketplace Profile</Text>
+          <Text style={st.headerTitle}>Edit Marketplace Profile</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={st.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* SECTION 1: Basic Info */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Basic Information</Text>
+          {/* Basic Info */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>Basic Information</Text>
 
-            {/* Photo */}
-            <View style={styles.photoSection}>
-              <Text style={styles.label}>Photo</Text>
-              <Pressable onPress={handlePickImage} style={styles.photoButton}>
+            <View style={st.photoSection}>
+              <Pressable onPress={handlePickImage} style={st.photoButton}>
                 {formData.photoUri || formData.photoUrl ? (
                   <Image
                     source={{
                       uri: formData.photoUri || `${supabase.storage.from('avatars').getPublicUrl(formData.photoUrl || '').data.publicUrl}`,
                     }}
-                    style={styles.photoImage}
+                    style={st.photoImage}
                   />
                 ) : (
-                  <View style={styles.photoPlaceholder}>
-                    <Text style={styles.photoPlaceholderText}>
+                  <View style={st.photoPlaceholder}>
+                    <Text style={st.photoPlaceholderText}>
                       {formData.fullName ? formData.fullName.split(' ')[0][0] : 'A'}
                     </Text>
                   </View>
                 )}
               </Pressable>
               <Pressable onPress={handlePickImage}>
-                <Text style={styles.photoChangeLink}>Change Photo</Text>
+                <Text style={st.photoChangeLink}>Change Photo</Text>
               </Pressable>
             </View>
 
-            {/* Full Name */}
             <Input
               label="Full Name *"
               placeholder="Jane Smith"
               value={formData.fullName}
-              onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+              onChangeText={text => setFormData({ ...formData, fullName: text })}
               autoCapitalize="words"
               size="caregiver"
             />
 
-            {/* Zip Code */}
             <Input
               label="Zip Code *"
               placeholder="90210"
               value={formData.zipCode}
-              onChangeText={(text) => {
+              onChangeText={text => {
                 const cleaned = text.replace(/\D/g, '').slice(0, 5);
                 setFormData({ ...formData, zipCode: cleaned });
               }}
@@ -417,175 +437,158 @@ export default function CaregiverMyProfileScreen() {
             />
           </View>
 
-          {/* SECTION 2: Professional Info */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Information</Text>
+          {/* Professional Info */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>Professional Information</Text>
 
-            {/* NPI Number */}
-            <View>
-              <Text style={styles.label}>NPI Number</Text>
-              <View style={styles.npiRow}>
-                <Input
-                  placeholder="1234567890"
-                  value={formData.npiNumber}
-                  onChangeText={(text) => {
-                    const cleaned = text.replace(/\D/g, '').slice(0, 10);
-                    setFormData({
-                      ...formData,
-                      npiNumber: cleaned,
-                      npiVerified: false,
-                      npiData: null,
-                    });
-                  }}
-                  keyboardType="numeric"
-                  maxLength={10}
-                  size="caregiver"
-                  style={{ flex: 1 }}
-                />
-                <Button
-                  title={formData.npiVerified ? 'Re-verify' : 'Verify'}
-                  variant="outline"
-                  size="sm"
-                  onPress={handleVerifyNPI}
-                  loading={saving}
-                  disabled={formData.npiNumber.length !== 10}
-                  style={styles.verifyButton}
-                />
-              </View>
-
-              {formData.npiVerified && formData.npiData && (
-                <View style={styles.npiSuccess}>
-                  <CheckIcon size={16} color={colors.success[600]} />
-                  <View style={styles.npiSuccessText}>
-                    <Text style={styles.npiVerifiedLabel}>Verified</Text>
-                    <Text style={styles.npiVerifiedValue}>
-                      {formData.npiData.credentials || 'Healthcare Provider'}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-
-            {/* Certifications */}
             <Input
               label="Certifications"
               placeholder="CNA, HHA, LPN, RN..."
               value={formData.certifications}
-              onChangeText={(text) => setFormData({ ...formData, certifications: text })}
+              onChangeText={text => setFormData({ ...formData, certifications: text })}
               autoCapitalize="characters"
               size="caregiver"
             />
 
-            {/* Hourly Rate */}
             <Input
               label="Hourly Rate"
-              placeholder="$20"
+              placeholder="20"
               value={formData.hourlyRate}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/\D/g, '');
+              onChangeText={text => {
+                const cleaned = text.replace(/[^\d.]/g, '');
                 setFormData({ ...formData, hourlyRate: cleaned });
               }}
               keyboardType="decimal-pad"
               size="caregiver"
-              leftIcon={<Text style={styles.currencyIcon}>$</Text>}
+              leftIcon={<Text style={st.currencyIcon}>$</Text>}
             />
           </View>
 
-          {/* SECTION 3: Skills */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Capabilities</Text>
-            <View style={styles.capabilitiesGrid}>
-              {CAPABILITIES.map((cap) => {
-                const isSelected = formData.capabilities.includes(cap);
-                return (
-                  <Pressable
-                    key={cap}
-                    style={[
-                      styles.capabilityChip,
-                      isSelected && {
-                        backgroundColor: CAREGIVER_COLOR,
-                        borderColor: CAREGIVER_COLOR,
-                      },
-                    ]}
-                    onPress={() => toggleCapability(cap)}
-                  >
-                    {isSelected && <CheckIcon size={14} color={colors.white} />}
-                    <Text
-                      style={[
-                        styles.capabilityChipText,
-                        isSelected && styles.capabilityChipTextSelected,
-                      ]}
-                    >
-                      {CAPABILITY_LABELS[cap]}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+          {/* Tasks / Capabilities */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>Tasks You Can Perform</Text>
+            {formData.capabilities.length > 0 && (
+              <TagChips tags={formData.capabilities} onRemove={removeTask} color={CAREGIVER_COLOR} />
+            )}
+            <TextInput
+              ref={taskInputRef}
+              style={st.tagInput}
+              placeholder="Type a task and press comma to add..."
+              placeholderTextColor={colors.text.disabled}
+              value={taskInput}
+              onChangeText={handleTaskInputChange}
+              onSubmitEditing={() => { if (taskInput.trim()) addTask(taskInput); }}
+              returnKeyType="done"
+            />
+            <Text style={st.inputHint}>Tap suggestions or type your own</Text>
+            <SuggestionChips suggestions={SUGGESTED_TASKS} selected={formData.capabilities} onToggle={addTask} />
           </View>
 
-          {/* SECTION 4: Availability */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Availability</Text>
-            <View style={styles.availabilityGrid}>
-              {/* Header */}
-              <View style={styles.availabilityRow}>
-                <View style={styles.availabilityCorner} />
-                {TIME_SLOTS.map((slot) => (
-                  <View key={slot.value} style={styles.availabilityHeaderCell}>
-                    <Text style={styles.availabilityHeaderText}>{slot.label}</Text>
-                    <Text style={styles.availabilityTimeText}>{slot.time}</Text>
-                  </View>
-                ))}
-              </View>
+          {/* Keywords */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>Keywords</Text>
+            <Text style={st.inputHint}>Help agencies find you by adding searchable keywords</Text>
+            {formData.keywords.length > 0 && (
+              <TagChips tags={formData.keywords} onRemove={removeKeyword} color={colors.info[600]} />
+            )}
+            <TextInput
+              ref={keywordInputRef}
+              style={st.tagInput}
+              placeholder="Type a keyword and press comma..."
+              placeholderTextColor={colors.text.disabled}
+              value={keywordInput}
+              onChangeText={handleKeywordInputChange}
+              onSubmitEditing={() => { if (keywordInput.trim()) addKeyword(keywordInput); }}
+              returnKeyType="done"
+            />
+            <SuggestionChips suggestions={SUGGESTED_KEYWORDS} selected={formData.keywords} onToggle={addKeyword} />
+          </View>
 
-              {/* Days */}
-              {DAYS.map((day) => (
-                <View key={day} style={styles.availabilityRow}>
-                  <Text style={styles.availabilityDayLabel}>{DAY_LABELS[day]}</Text>
-                  {TIME_SLOTS.map((slot) => {
-                    const isSelected = (formData.availability[day] || []).includes(slot.value);
+          {/* Availability */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>Availability</Text>
+            <Text style={st.inputHint}>Max 8 hrs/day (4 slots)</Text>
+
+            {/* Presets */}
+            <View style={st.presetsRow}>
+              {SCHEDULE_PRESETS.map(preset => (
+                <Pressable
+                  key={preset.label}
+                  style={[st.presetChip, activePreset === preset.label && st.presetChipActive]}
+                  onPress={() => applyPreset(preset)}
+                >
+                  <Text style={[st.presetLabel, activePreset === preset.label && st.presetLabelActive]}>{preset.label}</Text>
+                  <Text style={[st.presetDesc, activePreset === preset.label && st.presetDescActive]}>{preset.desc}</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Grid */}
+            <View style={st.availGrid}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View>
+                  <View style={st.availRow}>
+                    <View style={st.availDayCell} />
+                    {TIME_SLOTS.map(slot => (
+                      <View key={slot.value} style={st.availHeaderCell}>
+                        <Text style={st.availHeaderText}>{slot.label}</Text>
+                      </View>
+                    ))}
+                    <View style={st.availHoursCell}>
+                      <Text style={st.availHoursHeader}>Hrs</Text>
+                    </View>
+                  </View>
+                  {DAYS.map(day => {
+                    const daySlots = formData.availability[day] || [];
+                    const hours = daySlots.length * 2;
+                    const atMax = daySlots.length >= MAX_SLOTS_PER_DAY;
                     return (
-                      <Pressable
-                        key={slot.value}
-                        style={[
-                          styles.availabilityCell,
-                          isSelected && {
-                            backgroundColor: CAREGIVER_COLOR,
-                          },
-                        ]}
-                        onPress={() => toggleAvailabilitySlot(day, slot.value)}
-                      >
-                        {isSelected && (
-                          <View
-                            style={[
-                              styles.availabilityDot,
-                              { backgroundColor: colors.white },
-                            ]}
-                          />
-                        )}
-                      </Pressable>
+                      <View key={day} style={st.availRow}>
+                        <View style={st.availDayCell}>
+                          <Text style={st.availDayText}>{DAY_LABELS[day]}</Text>
+                        </View>
+                        {TIME_SLOTS.map(slot => {
+                          const isSelected = daySlots.includes(slot.value);
+                          const isDisabled = !isSelected && atMax;
+                          return (
+                            <Pressable
+                              key={slot.value}
+                              style={[
+                                st.availCell,
+                                isSelected && st.availCellSelected,
+                                isDisabled && st.availCellDisabled,
+                              ]}
+                              onPress={() => !isDisabled && toggleAvailabilitySlot(day, slot.value)}
+                            >
+                              {isSelected && <CheckIcon size={12} color={colors.white} />}
+                            </Pressable>
+                          );
+                        })}
+                        <View style={st.availHoursCell}>
+                          <Text style={[
+                            st.availHoursText,
+                            hours > 0 && { color: CAREGIVER_COLOR, fontWeight: '700' as const },
+                          ]}>{hours}h</Text>
+                        </View>
+                      </View>
                     );
                   })}
                 </View>
-              ))}
+              </ScrollView>
             </View>
           </View>
 
-          {/* SECTION 5: About */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About You</Text>
+          {/* About */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>About You</Text>
 
-            {/* Experience Summary */}
             <View>
-              <Text style={styles.label}>Experience Summary</Text>
+              <Text style={st.label}>Experience Summary</Text>
               <TextInput
-                style={styles.multilineInput}
+                style={st.multilineInput}
                 placeholder="Describe your caregiving experience..."
                 value={formData.experienceSummary}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, experienceSummary: text })
-                }
+                onChangeText={text => setFormData({ ...formData, experienceSummary: text })}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -593,27 +596,28 @@ export default function CaregiverMyProfileScreen() {
               />
             </View>
 
-            {/* Bio */}
-            <View>
-              <Text style={styles.label}>Bio</Text>
+            <View style={{ marginTop: spacing[4] }}>
+              <Text style={st.label}>Bio</Text>
               <TextInput
-                ref={bioInputRef}
-                style={styles.multilineInput}
+                style={st.bioInput}
                 placeholder="Tell agencies about yourself..."
                 value={formData.bio}
-                onChangeText={(text) => setFormData({ ...formData, bio: text })}
+                onChangeText={text => setFormData({ ...formData, bio: text })}
                 multiline
-                numberOfLines={3}
+                numberOfLines={6}
                 textAlignVertical="top"
                 placeholderTextColor={colors.text.disabled}
               />
+              <Text style={st.bioGuide}>
+                Share what makes you unique — your personality, approach to care, and why you love caregiving
+              </Text>
             </View>
           </View>
 
-          {/* Your Ratings (Read-Only) */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Ratings</Text>
-            <View style={styles.ratingsCard}>
+          {/* Ratings */}
+          <View style={st.section}>
+            <Text style={st.sectionTitle}>Your Ratings</Text>
+            <View style={st.ratingsCard}>
               <RatingSummary
                 caregiverProfileId={profileId || undefined}
                 ratingCount={ratingCount}
@@ -622,14 +626,13 @@ export default function CaregiverMyProfileScreen() {
                 onViewReviews={() => setShowReviewsList(true)}
               />
             </View>
-            <Text style={styles.ratingsNote}>
+            <Text style={st.ratingsNote}>
               Ratings are submitted by agency owners and other users. You cannot modify or delete them.
             </Text>
           </View>
 
           {/* Actions */}
-          <View style={styles.actionSection}>
-            {/* Save Button */}
+          <View style={st.actionSection}>
             <Button
               title="Save Changes"
               variant="primary"
@@ -640,20 +643,11 @@ export default function CaregiverMyProfileScreen() {
               style={{ backgroundColor: CAREGIVER_COLOR }}
             />
 
-            {/* Deactivate Toggle */}
             <Pressable
               onPress={handleToggleActive}
-              style={[
-                styles.deactivateButton,
-                !formData.isActive && styles.deactivateButtonActive,
-              ]}
+              style={[st.deactivateButton, !formData.isActive && st.deactivateButtonActive]}
             >
-              <Text
-                style={[
-                  styles.deactivateButtonText,
-                  !formData.isActive && styles.deactivateButtonTextActive,
-                ]}
-              >
+              <Text style={[st.deactivateButtonText, !formData.isActive && st.deactivateButtonTextActive]}>
                 {formData.isActive ? 'Deactivate Profile' : 'Reactivate Profile'}
               </Text>
             </Pressable>
@@ -661,7 +655,6 @@ export default function CaregiverMyProfileScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Reviews List Modal */}
       {profileId && (
         <ReviewsList
           caregiverProfileId={profileId}
@@ -674,14 +667,11 @@ export default function CaregiverMyProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
+const st = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  keyboardView: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
   headerBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -696,20 +686,15 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontWeight: '600',
   },
+
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
     paddingBottom: spacing[8],
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  section: {
-    marginBottom: spacing[8],
-  },
+
+  section: { marginBottom: spacing[8] },
   sectionTitle: {
     ...typography.caregiver.heading,
     fontSize: 18,
@@ -720,32 +705,26 @@ const styles = StyleSheet.create({
     ...typography.styles.label,
     color: colors.text.primary,
     marginBottom: spacing[2],
+    fontWeight: '600',
   },
-  photoSection: {
-    alignItems: 'center',
-    marginBottom: spacing[6],
-  },
-  photoButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.neutral[100],
-    borderWidth: 2,
-    borderColor: colors.neutral[200],
-    overflow: 'hidden',
+  inputHint: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
     marginBottom: spacing[2],
   },
-  photoImage: {
-    width: '100%',
-    height: '100%',
+
+  // Photo
+  photoSection: { alignItems: 'center', marginBottom: spacing[6] },
+  photoButton: {
+    width: 120, height: 120, borderRadius: 60,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: colors.neutral[100],
+    borderWidth: 2, borderColor: colors.neutral[200],
+    overflow: 'hidden', marginBottom: spacing[2],
   },
-  photoPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 1,
-  },
+  photoImage: { width: '100%', height: '100%' },
+  photoPlaceholder: { justifyContent: 'center', alignItems: 'center', flex: 1 },
   photoPlaceholderText: {
     ...typography.caregiver.heading,
     fontSize: 48,
@@ -756,136 +735,146 @@ const styles = StyleSheet.create({
     color: CAREGIVER_COLOR,
     fontWeight: '600',
   },
-  npiRow: {
-    flexDirection: 'row',
-    gap: spacing[2],
-    alignItems: 'flex-end',
-  },
-  verifyButton: {
-    marginBottom: 0,
-  },
-  npiSuccess: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginTop: spacing[2],
-    padding: spacing[2],
-    backgroundColor: colors.success[50],
-    borderRadius: 8,
-  },
-  npiSuccessText: {
-    flex: 1,
-  },
-  npiVerifiedLabel: {
-    ...typography.styles.caption,
-    color: colors.success[600],
-    fontWeight: '600',
-  },
-  npiVerifiedValue: {
-    ...typography.styles.bodySmall,
-    color: colors.success[600],
-  },
-  currencyIcon: {
+
+  currencyIcon: { ...typography.styles.body, color: colors.text.secondary },
+
+  // Tag input
+  tagInput: {
     ...typography.styles.body,
-    color: colors.text.secondary,
-  },
-  capabilitiesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing[2],
-  },
-  capabilityChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: 20,
-    backgroundColor: colors.neutral[100],
+    color: colors.text.primary,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.neutral[200],
+    borderRadius: 10,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2.5] || 10,
+    minHeight: 44,
   },
-  capabilityChipText: {
+
+  // Tag chips
+  tagChipsRow: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    gap: spacing[2], marginBottom: spacing[2],
+  },
+  tagChip: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1.5] || 6,
+    borderRadius: 16, borderWidth: 1,
+  },
+  tagChipText: { ...typography.styles.caption, fontWeight: '600' },
+
+  // Suggestion chips
+  suggestionsRow: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    gap: spacing[1.5] || 6,
+  },
+  suggestionChip: {
+    paddingHorizontal: spacing[2.5] || 10,
+    paddingVertical: spacing[1],
+    borderRadius: 14,
+    backgroundColor: colors.neutral[100],
+    borderWidth: 1, borderColor: colors.neutral[200],
+  },
+  suggestionChipText: {
     ...typography.styles.caption,
-    color: colors.text.primary,
-    fontWeight: '500',
+    color: colors.text.secondary,
+    fontSize: 12,
   },
-  capabilityChipTextSelected: {
-    color: colors.white,
+
+  // Schedule presets
+  presetsRow: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    gap: spacing[2], marginBottom: spacing[4],
   },
-  availabilityGrid: {
+  presetChip: {
+    paddingHorizontal: spacing[3], paddingVertical: spacing[2],
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.neutral[200],
+    minWidth: 100,
+  },
+  presetChipActive: {
+    backgroundColor: CAREGIVER_COLOR + '12',
+    borderColor: CAREGIVER_COLOR,
+  },
+  presetLabel: { ...typography.styles.caption, fontWeight: '700', color: colors.text.primary },
+  presetLabelActive: { color: CAREGIVER_COLOR },
+  presetDesc: { ...typography.styles.caption, color: colors.text.tertiary, fontSize: 10, marginTop: 1 },
+  presetDescActive: { color: CAREGIVER_COLOR },
+
+  // Availability grid
+  availGrid: {
     backgroundColor: colors.surface,
     borderRadius: 12,
-    padding: spacing[3],
+    borderWidth: 1, borderColor: colors.neutral[200],
+    padding: spacing[2],
   },
-  availabilityRow: {
-    flexDirection: 'row',
-    marginVertical: 6,
-    alignItems: 'center',
+  availRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 2 },
+  availDayCell: { width: 36, alignItems: 'center', justifyContent: 'center' },
+  availDayText: { ...typography.styles.caption, color: colors.text.secondary, fontWeight: '600', fontSize: 11 },
+  availHeaderCell: { width: 36, alignItems: 'center', justifyContent: 'center', marginHorizontal: 1 },
+  availHeaderText: { ...typography.styles.caption, color: colors.text.tertiary, fontWeight: '600', fontSize: 9 },
+  availHoursCell: { width: 28, alignItems: 'center', justifyContent: 'center' },
+  availHoursHeader: { ...typography.styles.caption, color: colors.text.tertiary, fontWeight: '600', fontSize: 9 },
+  availHoursText: { ...typography.styles.caption, color: colors.text.tertiary, fontSize: 11 },
+  availCell: {
+    width: 36, height: 32, marginHorizontal: 1,
+    borderRadius: 6, backgroundColor: colors.neutral[100],
+    justifyContent: 'center', alignItems: 'center',
   },
-  availabilityCorner: {
-    width: 50,
-  },
-  availabilityHeaderCell: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  availabilityHeaderText: {
-    ...typography.styles.caption,
-    color: colors.text.primary,
-    fontWeight: '600',
-    fontSize: 11,
-  },
-  availabilityTimeText: {
-    ...typography.styles.bodySmall,
-    color: colors.text.secondary,
-    fontSize: 9,
-  },
-  availabilityDayLabel: {
-    width: 50,
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  availabilityCell: {
-    flex: 1,
-    height: 40,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    backgroundColor: colors.neutral[100],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  availabilityDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
+  availCellSelected: { backgroundColor: CAREGIVER_COLOR },
+  availCellDisabled: { opacity: 0.35 },
+
+  // Multiline inputs
   multilineInput: {
     ...typography.styles.body,
     color: colors.text.primary,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
+    borderWidth: 1, borderColor: colors.neutral[200],
     borderRadius: 12,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[3], paddingVertical: spacing[3],
     minHeight: 100,
-    fontFamily: 'System',
   },
-  actionSection: {
-    gap: spacing[3],
-    marginTop: spacing[6],
-  },
-  deactivateButton: {
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    paddingVertical: spacing[3],
+  bioInput: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: colors.neutral[200],
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: spacing[3], paddingVertical: spacing[3],
+    minHeight: 150,
+  },
+  bioGuide: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    marginTop: spacing[2],
+    fontStyle: 'italic',
+    lineHeight: 18,
+  },
+
+  // Ratings
+  ratingsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: spacing[4],
+    borderWidth: 1, borderColor: colors.neutral[200],
+    marginBottom: spacing[2],
+  },
+  ratingsNote: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontStyle: 'italic',
+  },
+
+  // Actions
+  actionSection: { gap: spacing[3], marginTop: spacing[6] },
+  deactivateButton: {
+    borderWidth: 1, borderColor: colors.neutral[300],
+    paddingVertical: spacing[3], borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
     minHeight: 56,
   },
   deactivateButtonActive: {
@@ -897,20 +886,5 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     fontWeight: '600',
   },
-  deactivateButtonTextActive: {
-    color: colors.warning[700],
-  },
-  ratingsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: spacing[4],
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    marginBottom: spacing[2],
-  },
-  ratingsNote: {
-    ...typography.styles.caption,
-    color: colors.text.tertiary,
-    fontStyle: 'italic',
-  },
+  deactivateButtonTextActive: { color: colors.warning[700] },
 });

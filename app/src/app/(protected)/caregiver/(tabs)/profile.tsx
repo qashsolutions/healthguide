@@ -17,7 +17,6 @@ export default function CaregiverProfileScreen() {
   const { user, signOut } = useAuth();
   const [profileStatus, setProfileStatus] = useState<{
     active: boolean;
-    npiVerified: boolean;
   } | null>(null);
 
   // Fetch marketplace profile status on mount
@@ -26,14 +25,13 @@ export default function CaregiverProfileScreen() {
       try {
         const { data } = await supabase
           .from('caregiver_profiles')
-          .select('is_active, npi_verified')
+          .select('is_active')
           .eq('user_id', user?.id)
           .single();
 
         if (data) {
           setProfileStatus({
             active: data.is_active ?? true,
-            npiVerified: data.npi_verified ?? false,
           });
         }
       } catch (err) {
@@ -106,7 +104,10 @@ export default function CaregiverProfileScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}><StarIcon size={16} color="#F59E0B" /> {stats.rating}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <StarIcon size={16} color="#F59E0B" />
+              <Text style={[styles.statValue, { marginLeft: 4 }]}>{stats.rating}</Text>
+            </View>
             <Text style={styles.statLabel}>Rating</Text>
           </View>
         </View>
