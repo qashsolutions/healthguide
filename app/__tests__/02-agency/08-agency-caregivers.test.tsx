@@ -108,10 +108,10 @@ describe('Batch 9: Agency Caregivers List', () => {
   });
 
   // Feature #88: Caregiver count displays
-  it('#88 - Caregiver count shows 0 / 15', async () => {
+  it('#88 - Caregiver count shows available caregivers', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('0 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('0 Available Caregivers')).toBeTruthy();
     });
   });
 
@@ -119,7 +119,7 @@ describe('Batch 9: Agency Caregivers List', () => {
   it('#89 - Search caregivers input renders', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search caregivers...')).toBeTruthy();
+      expect(screen.getByPlaceholderText('Search name, zip code, or "available"')).toBeTruthy();
     });
   });
 

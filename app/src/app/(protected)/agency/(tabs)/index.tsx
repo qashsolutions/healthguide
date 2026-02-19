@@ -99,12 +99,11 @@ export default function AgencyDashboard() {
         visitsResult,
         activityResult,
       ] = await Promise.all([
-        // Caregivers count (via user_profiles since caregiver_profiles has no agency_id)
+        // Caregivers count (via caregiver_agency_links — same source as Caregivers tab)
         supabase
-          .from('user_profiles')
-          .select('id, is_active', { count: 'exact' })
-          .eq('agency_id', agency.id)
-          .eq('role', 'caregiver'),
+          .from('caregiver_agency_links')
+          .select('id, is_active, caregiver_profile:caregiver_profiles(is_active)', { count: 'exact' })
+          .eq('agency_id', agency.id),
 
         // Elders count
         supabase
@@ -145,9 +144,13 @@ export default function AgencyDashboard() {
           .limit(10),
       ]);
 
-      // Process caregivers
-      const caregivers = caregiversResult.data || [];
-      const activeCaregivers = caregivers.filter((c: any) => c.is_active).length;
+      // Process caregivers (from caregiver_agency_links)
+      const caregiverLinks = caregiversResult.data || [];
+      const caregivers = caregiverLinks.filter((l: any) => l.is_active);
+      const activeCaregivers = caregivers.filter((l: any) => {
+        const profile = Array.isArray(l.caregiver_profile) ? l.caregiver_profile[0] : l.caregiver_profile;
+        return profile?.is_active !== false;
+      }).length;
 
       // Process elders
       const elders = eldersResult.data || [];
