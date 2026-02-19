@@ -428,6 +428,7 @@ export default function AgencyDashboard() {
             <StatCard
               title="Active Visits"
               value={stats.inProgressToday}
+              subtitle="caregivers checked in"
               icon={<CheckIcon size={24} color={colors.success[500]} />}
               color={colors.success[500]}
             />
