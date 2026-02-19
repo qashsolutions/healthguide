@@ -438,14 +438,16 @@ export default function AgencyDashboard() {
               color={roleColors.caregiver}
             />
             <StatCard
-              title="Elders (max 20)"
-              value={`${stats.activeElders} / 20`}
+              title="Active Elders"
+              value={`${stats.activeElders} of ${stats.totalElders}`}
+              subtitle="max 20"
               icon={<PersonIcon size={24} color={roleColors.careseeker} />}
               color={roleColors.careseeker}
             />
             <StatCard
-              title="Today's Visits"
-              value={`${stats.completedToday}/${stats.visitsToday}`}
+              title="Visits Completed"
+              value={`${stats.completedToday} / ${stats.visitsToday}`}
+              subtitle="scheduled today"
               icon={<CalendarIcon size={24} color={roleColors.agency_owner} />}
               color={roleColors.agency_owner}
             />
@@ -599,11 +601,13 @@ export default function AgencyDashboard() {
 function StatCard({
   title,
   value,
+  subtitle,
   icon,
   color,
 }: {
   title: string;
   value: string | number;
+  subtitle?: string;
   icon: React.ReactNode;
   color: string;
 }) {
@@ -614,6 +618,7 @@ function StatCard({
       </View>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statTitle}>{title}</Text>
+      {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
     </Card>
   );
 }
@@ -739,6 +744,14 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  statSubtitle: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    textAlign: 'center',
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   section: {
     marginBottom: spacing[6],
