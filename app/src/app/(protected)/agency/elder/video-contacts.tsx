@@ -8,8 +8,8 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -45,6 +45,14 @@ export default function VideoContactsScreen() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ContactForm>(EMPTY_FORM);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Inline toast for web-friendly feedback
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     if (elder_id) fetchContacts();
@@ -69,13 +77,13 @@ export default function VideoContactsScreen() {
 
   async function handleSave() {
     if (!form.name || !form.video_call_link) {
-      Alert.alert('Error', 'Name and video call link are required');
+      showToast('Name and video call link are required', 'error');
       return;
     }
 
     // Basic URL validation
     if (!form.video_call_link.startsWith('http') && !form.video_call_link.startsWith('facetime:')) {
-      Alert.alert('Error', 'Please enter a valid link (e.g., https://zoom.us/j/... or facetime:...)');
+      showToast('Please enter a valid link (e.g., https://zoom.us/j/... or facetime:...)', 'error');
       return;
     }
 
@@ -92,6 +100,7 @@ export default function VideoContactsScreen() {
           .eq('id', editingId);
 
         if (error) throw error;
+        showToast('Contact updated', 'success');
       } else {
         const { error } = await supabase
           .from('family_video_contacts')
@@ -103,6 +112,7 @@ export default function VideoContactsScreen() {
           });
 
         if (error) throw error;
+        showToast('Contact added', 'success');
       }
 
       setForm(EMPTY_FORM);
@@ -110,32 +120,26 @@ export default function VideoContactsScreen() {
       setEditingId(null);
       await fetchContacts();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Could not save contact');
+      showToast(err.message || 'Could not save contact', 'error');
     }
     setSaving(false);
   }
 
-  async function handleDelete(contactId: string) {
-    Alert.alert('Delete Contact', 'Are you sure you want to remove this contact?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const { error } = await supabase
-              .from('family_video_contacts')
-              .delete()
-              .eq('id', contactId);
+  async function confirmDelete() {
+    if (!deletingId) return;
+    try {
+      const { error } = await supabase
+        .from('family_video_contacts')
+        .delete()
+        .eq('id', deletingId);
 
-            if (error) throw error;
-            await fetchContacts();
-          } catch (err) {
-            Alert.alert('Error', 'Could not delete contact');
-          }
-        },
-      },
-    ]);
+      if (error) throw error;
+      showToast('Contact removed', 'success');
+      await fetchContacts();
+    } catch (err) {
+      showToast('Could not delete contact', 'error');
+    }
+    setDeletingId(null);
   }
 
   function startEdit(contact: VideoContact) {
@@ -190,7 +194,7 @@ export default function VideoContactsScreen() {
                     </View>
                     <Pressable
                       style={styles.deleteButton}
-                      onPress={() => handleDelete(contact.id)}
+                      onPress={() => setDeletingId(contact.id)}
                     >
                       <TrashIcon size={20} color={colors.error[500]} />
                     </Pressable>
@@ -273,6 +277,31 @@ export default function VideoContactsScreen() {
             />
           )}
         </ScrollView>
+
+        {/* Inline Toast */}
+        {toast && (
+          <View style={[styles.toastContainer, toast.type === 'success' ? styles.toastSuccess : styles.toastError]}>
+            <Text style={styles.toastText}>{toast.message}</Text>
+          </View>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <Modal visible={!!deletingId} transparent animationType="fade" onRequestClose={() => setDeletingId(null)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Delete Contact</Text>
+              <Text style={styles.modalBody}>Are you sure you want to remove this contact?</Text>
+              <View style={styles.modalActions}>
+                <Pressable style={styles.modalCancel} onPress={() => setDeletingId(null)}>
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </Pressable>
+                <Pressable style={styles.modalDelete} onPress={confirmDelete}>
+                  <Text style={styles.modalDeleteText}>Delete</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </>
   );
@@ -354,5 +383,82 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     gap: spacing[2],
     marginTop: spacing[3],
+  },
+
+  // Toast
+  toastContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: spacing[4],
+    right: spacing[4],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  toastSuccess: {
+    backgroundColor: colors.success[600],
+  },
+  toastError: {
+    backgroundColor: colors.error[600],
+  },
+  toastText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  // Delete modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing[5],
+  },
+  modalBox: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing[5],
+  },
+  modalTitle: {
+    ...typography.styles.h4,
+    color: colors.text.primary,
+    fontWeight: '600',
+    marginBottom: spacing[3],
+  },
+  modalBody: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    marginBottom: spacing[5],
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing[3],
+  },
+  modalCancel: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+  },
+  modalCancelText: {
+    ...typography.styles.label,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  modalDelete: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.error[600],
+  },
+  modalDeleteText: {
+    ...typography.styles.label,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

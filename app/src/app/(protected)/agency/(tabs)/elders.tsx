@@ -10,8 +10,8 @@ import {
   RefreshControl,
   TextInput,
   Pressable,
-  Alert,
   Switch,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -44,6 +44,13 @@ export default function EldersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Inline toast for web-friendly feedback
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -118,10 +125,7 @@ export default function EldersScreen() {
 
     // If re-enabling, check the limit
     if (newActive && activeCount >= MAX_ACTIVE_ELDERS) {
-      Alert.alert(
-        'Limit Reached',
-        `You can have at most ${MAX_ACTIVE_ELDERS} active elders. Please disable another elder first.`,
-      );
+      showToast(`Limit reached — max ${MAX_ACTIVE_ELDERS} active elders. Disable another first.`, 'error');
       return;
     }
 
@@ -133,47 +137,46 @@ export default function EldersScreen() {
         .eq('id', elder.id);
 
       if (error) {
-        Alert.alert('Error', error.message);
+        showToast(error.message, 'error');
       } else {
         // Optimistic update
         setElders((prev) =>
           prev.map((e) => (e.id === elder.id ? { ...e, is_active: newActive } : e)),
         );
+        if (newActive) {
+          showToast(`${elder.full_name} has been re-enabled and is now visible.`, 'success');
+        } else {
+          showToast(`${elder.full_name} has been disabled. Their profile and data will not be visible in assignments or schedules.`, 'info');
+        }
       }
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update elder status');
+      showToast(err.message || 'Failed to update elder status', 'error');
     }
     setTogglingId(null);
   }
 
-  function handleDeleteElder(elder: Elder) {
-    Alert.alert(
-      'Delete Elder',
-      `Are you sure you want to permanently delete ${elder.full_name}? This will remove all their visit history, care plans, and family connections. This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const { error } = await supabase
-                .from('elders')
-                .delete()
-                .eq('id', elder.id);
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<Elder | null>(null);
 
-              if (error) {
-                Alert.alert('Error', error.message);
-              } else {
-                setElders((prev) => prev.filter((e) => e.id !== elder.id));
-              }
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete elder');
-            }
-          },
-        },
-      ],
-    );
+  async function confirmDeleteElder() {
+    if (!deleteConfirm) return;
+    try {
+      const { error } = await supabase
+        .from('elders')
+        .delete()
+        .eq('id', deleteConfirm.id);
+
+      if (error) {
+        showToast(error.message, 'error');
+      } else {
+        const name = deleteConfirm.full_name;
+        setElders((prev) => prev.filter((e) => e.id !== deleteConfirm.id));
+        showToast(`${name} has been permanently deleted.`, 'info');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete elder', 'error');
+    }
+    setDeleteConfirm(null);
   }
 
   const renderElder = ({ item }: { item: Elder }) => {
@@ -185,7 +188,7 @@ export default function EldersScreen() {
         padding="md"
         onPress={() => {
           if (!item.is_active) {
-            Alert.alert('Elder Disabled', `${item.full_name} is currently inactive. Re-enable them to view their data.`);
+            showToast(`${item.full_name} is disabled. Re-enable to view their data.`, 'info');
             return;
           }
           router.push(`/(protected)/agency/elder/${item.id}`);
@@ -226,8 +229,11 @@ export default function EldersScreen() {
           </View>
         </View>
 
-        {/* Toggle & Delete Controls */}
-        <View style={styles.controls}>
+        {/* Toggle & Delete Controls — Pressable wrapper stops click from bubbling to Card onPress */}
+        <Pressable
+          style={styles.controls}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={styles.toggleRow}>
             <Text style={styles.toggleLabel}>{item.is_active ? 'Active' : 'Disabled'}</Text>
             <Switch
@@ -240,11 +246,11 @@ export default function EldersScreen() {
           </View>
           <Pressable
             style={styles.deleteButton}
-            onPress={() => handleDeleteElder(item)}
+            onPress={(e) => { e.stopPropagation(); setDeleteConfirm(item); }}
           >
             <Text style={styles.deleteButtonText}>Delete</Text>
           </Pressable>
-        </View>
+        </Pressable>
       </Card>
     );
   };
@@ -309,6 +315,38 @@ export default function EldersScreen() {
           </View>
         }
       />
+
+      {/* Inline Toast */}
+      {toast && (
+        <View style={[
+          styles.toastContainer,
+          toast.type === 'success' && styles.toastSuccess,
+          toast.type === 'error' && styles.toastError,
+          toast.type === 'info' && styles.toastInfo,
+        ]}>
+          <Text style={styles.toastText}>{toast.message}</Text>
+        </View>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal visible={!!deleteConfirm} transparent animationType="fade" onRequestClose={() => setDeleteConfirm(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Delete Elder</Text>
+            <Text style={styles.modalBody}>
+              Are you sure you want to permanently delete {deleteConfirm?.full_name}? This will remove all their visit history, care plans, and family connections. This action cannot be undone.
+            </Text>
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalCancel} onPress={() => setDeleteConfirm(null)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </Pressable>
+              <Pressable style={styles.modalDelete} onPress={confirmDeleteElder}>
+                <Text style={styles.modalDeleteText}>Delete</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -476,5 +514,86 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     color: colors.text.secondary,
     marginTop: spacing[1],
+  },
+
+  // Toast
+  toastContainer: {
+    position: 'absolute',
+    bottom: 100,
+    left: spacing[4],
+    right: spacing[4],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: 8,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  toastSuccess: {
+    backgroundColor: colors.success[600],
+  },
+  toastError: {
+    backgroundColor: colors.error[600],
+  },
+  toastInfo: {
+    backgroundColor: colors.neutral[700],
+  },
+  toastText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  // Delete confirmation modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing[5],
+  },
+  modalBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: spacing[5],
+  },
+  modalTitle: {
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    fontWeight: '600',
+    marginBottom: spacing[3],
+  },
+  modalBody: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    lineHeight: 22,
+    marginBottom: spacing[5],
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing[3],
+  },
+  modalCancel: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+  },
+  modalCancelText: {
+    ...typography.styles.label,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  modalDelete: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: 8,
+    backgroundColor: colors.error[600],
+  },
+  modalDeleteText: {
+    ...typography.styles.label,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

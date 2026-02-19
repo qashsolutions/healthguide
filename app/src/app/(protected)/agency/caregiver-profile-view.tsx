@@ -13,7 +13,7 @@ import {
   Image,
   FlatList,
   Modal,
-  Alert,
+
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -97,6 +97,19 @@ export default function CaregiverProfileViewScreen() {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [reportSubmitting, setReportSubmitting] = useState(false);
 
+  // Eligibility tracking
+  const [completedHours, setCompletedHours] = useState<number>(0);
+  const [hasCompletedVisits, setHasCompletedVisits] = useState(false);
+  // Positive rating: any completed visit. Negative rating + reporting: 4+ hours.
+  const canGiveNegativeOrReport = completedHours >= 4;
+
+  // Inline toast for web-friendly feedback
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
   useEffect(() => {
     if (id) {
       fetchProfile();
@@ -116,6 +129,33 @@ export default function CaregiverProfileViewScreen() {
       if (error) throw error;
 
       setProfile(data);
+
+      // Check eligibility: completed visits for this caregiver under this agency
+      if (data?.user_id && user?.agency_id) {
+        const { data: visits } = await supabase
+          .from('visits')
+          .select('scheduled_start, scheduled_end, actual_start, actual_end')
+          .eq('caregiver_id', data.user_id)
+          .eq('agency_id', user.agency_id)
+          .eq('status', 'completed');
+
+        if (visits && visits.length > 0) {
+          setHasCompletedVisits(true);
+          let totalHours = 0;
+          for (const v of visits) {
+            if (v.actual_start && v.actual_end) {
+              const diff = new Date(v.actual_end).getTime() - new Date(v.actual_start).getTime();
+              totalHours += diff / (1000 * 60 * 60);
+            } else if (v.scheduled_start && v.scheduled_end) {
+              // Fallback to scheduled times
+              const [sh, sm] = v.scheduled_start.split(':').map(Number);
+              const [eh, em] = v.scheduled_end.split(':').map(Number);
+              totalHours += (eh * 60 + em - sh * 60 - sm) / 60;
+            }
+          }
+          setCompletedHours(Math.round(totalHours * 10) / 10);
+        }
+      }
     } catch (error) {
       console.error('Error fetching caregiver profile:', error);
     } finally {
@@ -152,19 +192,15 @@ export default function CaregiverProfileViewScreen() {
     try {
       const { error } = await supabase.from('caregiver_reports').insert({
         caregiver_profile_id: profile.id,
-        reported_by: user?.id,
         reason: selectedReason,
       });
       if (error) throw error;
       setShowReportModal(false);
       setSelectedReason(null);
-      Alert.alert(
-        'Report Submitted',
-        'Thank you for reporting. Our team will review this caregiver profile.'
-      );
+      showToast('Report submitted. Our team will review this profile and it will be flagged for future assignments.', 'success');
     } catch (err) {
       console.error('Error submitting report:', err);
-      Alert.alert('Error', 'Could not submit report. Please try again.');
+      showToast('Could not submit report. Please try again.', 'error');
     } finally {
       setReportSubmitting(false);
     }
@@ -331,12 +367,21 @@ export default function CaregiverProfileViewScreen() {
             mode="full"
             onViewReviews={() => setShowReviewsList(true)}
           />
-          <Pressable
-            style={styles.rateButton}
-            onPress={() => setShowRatingModal(true)}
-          >
-            <Text style={styles.rateButtonText}>Rate This Caregiver</Text>
-          </Pressable>
+          {hasCompletedVisits ? (
+            <Pressable
+              style={styles.rateButton}
+              onPress={() => setShowRatingModal(true)}
+            >
+              <Text style={styles.rateButtonText}>Rate This Caregiver</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.eligibilityNotice}>
+              <AlertIcon size={14} color={colors.text.tertiary} />
+              <Text style={styles.eligibilityText}>
+                Rating requires at least one completed visit with your agency
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Availability Section */}
@@ -487,15 +532,24 @@ export default function CaregiverProfileViewScreen() {
           </View>
         )}
 
-        {/* Report / Flag Caregiver */}
-        <Pressable
-          style={styles.reportButton}
-          onPress={() => setShowReportModal(true)}
-        >
-          <AlertIcon size={16} color={colors.error[600]} />
-          <Text style={styles.reportButtonText}>Report / Flag This Caregiver</Text>
-        </Pressable>
+        {/* Report / Flag Caregiver — requires 4+ completed service hours */}
+        {canGiveNegativeOrReport && (
+          <Pressable
+            style={styles.reportButton}
+            onPress={() => setShowReportModal(true)}
+          >
+            <AlertIcon size={16} color={colors.error[600]} />
+            <Text style={styles.reportButtonText}>Report / Flag This Caregiver</Text>
+          </Pressable>
+        )}
       </ScrollView>
+
+      {/* Inline Toast — web-friendly feedback */}
+      {toast && (
+        <View style={[styles.toastContainer, toast.type === 'success' ? styles.toastSuccess : styles.toastError]}>
+          <Text style={styles.toastText}>{toast.message}</Text>
+        </View>
+      )}
 
       {/* Rating Modal */}
       <RatingModal
@@ -507,6 +561,7 @@ export default function CaregiverProfileViewScreen() {
           // Refresh profile to get updated rating counts
           fetchProfile();
         }}
+        allowNegative={canGiveNegativeOrReport}
       />
 
       {/* Reviews List Modal */}
@@ -1029,5 +1084,49 @@ const styles = StyleSheet.create({
   },
   reportSubmitTextDisabled: {
     color: colors.text.tertiary,
+  },
+
+  // Eligibility notice
+  eligibilityNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginTop: spacing[3],
+    padding: spacing[3],
+    backgroundColor: colors.neutral[50],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  eligibilityText: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    flex: 1,
+    lineHeight: 18,
+  },
+
+  // Toast
+  toastContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: spacing[4],
+    right: spacing[4],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  toastSuccess: {
+    backgroundColor: colors.success[600],
+  },
+  toastError: {
+    backgroundColor: colors.error[600],
+  },
+  toastText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

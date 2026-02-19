@@ -6,9 +6,9 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Alert,
   Text,
   Pressable,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -87,6 +87,14 @@ export default function ElderDetailScreen() {
     special_instructions: '',
     is_active: true,
   });
+  const [showActivateModal, setShowActivateModal] = useState(false);
+
+  // Inline toast for web-friendly feedback
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     if (!isNew) {
@@ -123,7 +131,7 @@ export default function ElderDetailScreen() {
       }
     } catch (error) {
       console.error('Error fetching elder:', error);
-      Alert.alert('Error', 'Could not load elder details');
+      showToast('Could not load elder details', 'error');
     }
     setLoading(false);
   }
@@ -165,7 +173,7 @@ export default function ElderDetailScreen() {
         `)
         .eq('elder_id', id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (!error && group) {
         setCareGroup(group);
@@ -194,20 +202,26 @@ export default function ElderDetailScreen() {
 
   async function handleSave() {
     if (!form.first_name || !form.address) {
-      Alert.alert('Error', 'First name and address are required');
+      showToast('First name and address are required', 'error');
       return;
     }
 
     setSaving(true);
     try {
-      // Geocode address for EVV
-      let coords = null;
+      // Geocode address for EVV (using free Nominatim API)
+      let coords: { latitude: number; longitude: number } | null = null;
       try {
-        const Location = await import('expo-location');
-        const results = await Location.geocodeAsync(
+        const q = encodeURIComponent(
           `${form.address}, ${form.city}, ${form.state} ${form.zip_code}`
         );
-        coords = results[0];
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`,
+          { headers: { 'User-Agent': 'HealthGuide/1.0' } }
+        );
+        const json = await res.json();
+        if (json.length > 0) {
+          coords = { latitude: parseFloat(json[0].lat), longitude: parseFloat(json[0].lon) };
+        }
       } catch (geoError) {
         console.warn('Geocoding failed:', geoError);
       }
@@ -248,16 +262,19 @@ export default function ElderDetailScreen() {
           .eq('id', id);
 
         if (error) throw error;
-        router.back();
+        showToast('Changes saved', 'success');
+        // Navigate back to elders list after a brief delay so user sees the toast
+        setTimeout(() => router.replace('/(protected)/agency/(tabs)/elders'), 1200);
       }
     } catch (error) {
       console.error('Error saving elder:', error);
-      Alert.alert('Error', 'Could not save elder');
+      showToast('Could not save elder', 'error');
     }
     setSaving(false);
   }
 
   async function handleActivate() {
+    setShowActivateModal(false);
     try {
       const { error } = await supabase
         .from('elders')
@@ -266,22 +283,11 @@ export default function ElderDetailScreen() {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Elder activated! Care can now begin.');
+      showToast('Elder activated! Care can now begin.', 'success');
       setForm({ ...form, is_active: true });
     } catch (error) {
-      Alert.alert('Error', 'Could not activate elder');
+      showToast('Could not activate elder', 'error');
     }
-  }
-
-  function promptActivate() {
-    Alert.alert(
-      'Activate Elder',
-      'Confirm that the care agreement is in place and activate this elder?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Activate', onPress: handleActivate },
-      ]
-    );
   }
 
   function toggleCareNeed(need: string) {
@@ -334,7 +340,7 @@ export default function ElderDetailScreen() {
                 title="Activate Elder"
                 variant="primary"
                 size="sm"
-                onPress={promptActivate}
+                onPress={() => setShowActivateModal(true)}
               />
             </Card>
           )}
@@ -544,6 +550,33 @@ export default function ElderDetailScreen() {
             />
           </View>
         </ScrollView>
+
+        {/* Inline Toast */}
+        {toast && (
+          <View style={[styles.toastContainer, toast.type === 'success' ? styles.toastSuccess : styles.toastError]}>
+            <Text style={styles.toastText}>{toast.message}</Text>
+          </View>
+        )}
+
+        {/* Activate Confirmation Modal */}
+        <Modal visible={showActivateModal} transparent animationType="fade" onRequestClose={() => setShowActivateModal(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Activate Elder</Text>
+              <Text style={styles.modalBody}>
+                Confirm that the care agreement is in place and activate this elder?
+              </Text>
+              <View style={styles.modalActions}>
+                <Pressable style={styles.modalCancel} onPress={() => setShowActivateModal(false)}>
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </Pressable>
+                <Pressable style={styles.modalConfirm} onPress={handleActivate}>
+                  <Text style={styles.modalConfirmText}>Activate</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </>
   );
@@ -712,5 +745,83 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     marginTop: spacing[4],
     marginBottom: spacing[8],
+  },
+
+  // Toast
+  toastContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: spacing[4],
+    right: spacing[4],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: 8,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  toastSuccess: {
+    backgroundColor: colors.success[600],
+  },
+  toastError: {
+    backgroundColor: colors.error[600],
+  },
+  toastText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing[5],
+  },
+  modalBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: spacing[5],
+  },
+  modalTitle: {
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    fontWeight: '600',
+    marginBottom: spacing[3],
+  },
+  modalBody: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    lineHeight: 22,
+    marginBottom: spacing[5],
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing[3],
+  },
+  modalCancel: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+  },
+  modalCancelText: {
+    ...typography.styles.label,
+    color: colors.text.secondary,
+    fontWeight: '600',
+  },
+  modalConfirm: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: 8,
+    backgroundColor: colors.primary[500],
+  },
+  modalConfirmText: {
+    ...typography.styles.label,
+    color: colors.white,
+    fontWeight: '600',
   },
 });

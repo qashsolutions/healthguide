@@ -50,6 +50,8 @@ interface Props {
   isVisible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /** When false, thumbs-down is disabled (requires 4+ service hours) */
+  allowNegative?: boolean;
 }
 
 export function RatingModal({
@@ -58,6 +60,7 @@ export function RatingModal({
   isVisible,
   onClose,
   onSuccess,
+  allowNegative = true,
 }: Props) {
   const { user } = useAuth();
   const [isPositive, setIsPositive] = useState<boolean | null>(null);
@@ -85,7 +88,8 @@ export function RatingModal({
       .maybeSingle();
 
     if (data) {
-      setIsPositive(data.is_positive);
+      // If negative not allowed but existing rating was negative, reset to null
+      setIsPositive(!allowNegative && !data.is_positive ? null : data.is_positive);
       setSelectedTags((data.tags || []) as RatingTag[]);
       setComment(data.comment || '');
     } else {
@@ -206,20 +210,29 @@ export function RatingModal({
                 style={[
                   styles.thumbButton,
                   isPositive === false && styles.thumbButtonActiveDown,
+                  !allowNegative && styles.thumbButtonDisabled,
                 ]}
-                onPress={() => setIsPositive(false)}
+                onPress={allowNegative ? () => setIsPositive(false) : undefined}
+                disabled={!allowNegative}
               >
-                <ThumbsDownIcon size={32} color={isPositive === false ? '#DC2626' : '#6B7280'} />
+                <ThumbsDownIcon size={32} color={!allowNegative ? '#D1D5DB' : isPositive === false ? '#DC2626' : '#6B7280'} />
                 <Text
                   style={[
                     styles.thumbLabel,
                     isPositive === false && styles.thumbLabelActive,
+                    !allowNegative && styles.thumbLabelDisabled,
                   ]}
                 >
                   Needs Improvement
                 </Text>
               </Pressable>
             </View>
+
+            {!allowNegative && (
+              <Text style={styles.negativeNotice}>
+                Negative feedback requires 4+ completed service hours with your agency.
+              </Text>
+            )}
 
             {/* Tags */}
             <Text style={styles.sectionLabel}>
@@ -373,6 +386,22 @@ const styles = StyleSheet.create({
   thumbLabelActive: {
     color: '#111827',
     fontWeight: '600',
+  },
+  thumbButtonDisabled: {
+    opacity: 0.45,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
+  },
+  thumbLabelDisabled: {
+    color: '#D1D5DB',
+  },
+  negativeNotice: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: -12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   tagsGrid: {
     flexDirection: 'row',

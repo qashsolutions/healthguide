@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import * as Location from 'expo-location';
+// Geocoding via free Nominatim API (expo-location geocoding removed in SDK 49)
 import { LargeInput } from '@/components/ui/LargeInput';
 import { Button } from '@/components/ui/Button';
 import Svg, { Path } from 'react-native-svg';
@@ -57,12 +57,17 @@ export function AddressStep({ data, onUpdate, onNext, onBack }: Props) {
 
     try {
       const fullAddress = `${data.address}, ${data.city}, ${data.state} ${data.zip_code}`;
-      const results = await Location.geocodeAsync(fullAddress);
+      const q = encodeURIComponent(fullAddress);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`,
+        { headers: { 'User-Agent': 'HealthGuide/1.0' } }
+      );
+      const results = await res.json();
 
       if (results.length > 0) {
         onUpdate({
-          latitude: results[0].latitude,
-          longitude: results[0].longitude,
+          latitude: parseFloat(results[0].lat),
+          longitude: parseFloat(results[0].lon),
         });
         setVerified(true);
         setTimeout(() => onNext(), 500); // Brief pause to show checkmark
