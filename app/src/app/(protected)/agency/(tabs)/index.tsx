@@ -235,6 +235,8 @@ export default function AgencyDashboard() {
       };
 
       // Categorize visits into check-in groups (Red / Amber / Green)
+      // Only visits whose scheduled start has passed OR are in_progress/completed are categorized.
+      // Future visits (scheduled start hasn't arrived yet) are excluded from RAG cards.
       const now = new Date();
       const groups: CheckinGroups = { red: [], amber: [], green: [] };
 
@@ -250,24 +252,31 @@ export default function AgencyDashboard() {
         const scheduledTime = new Date();
         scheduledTime.setHours(parseInt(hours), parseInt(minutes), 0);
         const formattedTime = format(scheduledTime, 'h:mm a');
-        const diffMinutes = Math.max(0, (now.getTime() - scheduledTime.getTime()) / 60000);
+        const diffMinutes = (now.getTime() - scheduledTime.getTime()) / 60000;
 
         const detail: CheckinDetail = {
           id: v.id,
           caregiverName,
           elderName,
           scheduledTime: formattedTime,
-          minutesLate: Math.round(diffMinutes),
+          minutesLate: Math.round(Math.max(0, diffMinutes)),
           status: v.status,
         };
 
-        if (v.status === 'scheduled' && diffMinutes > 30) {
-          groups.red.push(detail);
-        } else if (v.status === 'scheduled' && diffMinutes > 15) {
-          groups.amber.push(detail);
-        } else {
+        // Actually checked in or completed — green
+        if (v.status === 'in_progress' || v.status === 'completed') {
           groups.green.push(detail);
         }
+        // Scheduled start has passed but caregiver hasn't checked in
+        else if (v.status === 'scheduled' && diffMinutes > 0) {
+          if (diffMinutes > 30) {
+            groups.red.push(detail);
+          } else {
+            // 0–30 min late, no check-in yet
+            groups.amber.push(detail);
+          }
+        }
+        // Future visits and pending_acceptance — skip (not in RAG cards)
       });
 
       setStats(calculatedStats);
@@ -350,9 +359,43 @@ export default function AgencyDashboard() {
           </View>
         </GradientHeader>
 
-        {/* Check-in Summary Cards */}
+        {/* Stats Grid — high-level overview first */}
+        {stats && (
+          <View style={styles.statsGrid}>
+            <StatCard
+              title="Active Elders"
+              value={`${stats.activeElders} of ${stats.totalElders}`}
+              subtitle="max 20"
+              icon={<PersonIcon size={24} color={roleColors.careseeker} />}
+              color={roleColors.careseeker}
+            />
+            <StatCard
+              title="Visits Completed"
+              value={`${stats.completedToday} / ${stats.visitsToday}`}
+              subtitle="scheduled today"
+              icon={<CalendarIcon size={24} color={roleColors.agency_owner} />}
+              color={roleColors.agency_owner}
+            />
+            <StatCard
+              title="Active Visits"
+              value={stats.inProgressToday}
+              subtitle="caregivers checked in"
+              icon={<CheckIcon size={24} color={colors.success[500]} />}
+              color={colors.success[500]}
+            />
+            <StatCard
+              title="Caregivers"
+              value={stats.totalCaregivers}
+              icon={<UsersIcon size={24} color={roleColors.caregiver} />}
+              color={roleColors.caregiver}
+            />
+          </View>
+        )}
+
+        {/* Check-in RAG Cards — operational detail below */}
         {stats && stats.visitsToday > 0 && (
           <View style={styles.checkinSection}>
+            <Text style={styles.checkinSectionTitle}>Check-in Status</Text>
             <View style={styles.checkinSummaryRow}>
               <Pressable
                 style={[
@@ -390,7 +433,7 @@ export default function AgencyDashboard() {
                 onPress={() => setExpandedCard(expandedCard === 'green' ? null : 'green')}
               >
                 <Text style={styles.checkinCount}>{checkinGroups.green.length}</Text>
-                <Text style={[styles.checkinLabel, { color: colors.success[700] }]}>On Time</Text>
+                <Text style={[styles.checkinLabel, { color: colors.success[700] }]}>Checked In</Text>
               </Pressable>
             </View>
 
@@ -412,46 +455,13 @@ export default function AgencyDashboard() {
                     <Text style={styles.checkinDetailTime}>
                       Scheduled {detail.scheduledTime}
                       {expandedCard === 'green'
-                        ? ` · ${detail.status === 'scheduled' ? 'Upcoming' : detail.status.replace('_', ' ')}`
+                        ? ` · ${detail.status === 'completed' ? 'completed' : detail.status === 'in_progress' ? 'checked in' : 'on time'}`
                         : ` · ${detail.minutesLate} min late`}
                     </Text>
                   </View>
                 ))}
               </View>
             )}
-          </View>
-        )}
-
-        {/* Stats Grid */}
-        {stats && (
-          <View style={styles.statsGrid}>
-            <StatCard
-              title="Active Visits"
-              value={stats.inProgressToday}
-              subtitle="caregivers checked in"
-              icon={<CheckIcon size={24} color={colors.success[500]} />}
-              color={colors.success[500]}
-            />
-            <StatCard
-              title="Caregivers"
-              value={stats.totalCaregivers}
-              icon={<UsersIcon size={24} color={roleColors.caregiver} />}
-              color={roleColors.caregiver}
-            />
-            <StatCard
-              title="Active Elders"
-              value={`${stats.activeElders} of ${stats.totalElders}`}
-              subtitle="max 20"
-              icon={<PersonIcon size={24} color={roleColors.careseeker} />}
-              color={roleColors.careseeker}
-            />
-            <StatCard
-              title="Visits Completed"
-              value={`${stats.completedToday} / ${stats.visitsToday}`}
-              subtitle="scheduled today"
-              icon={<CalendarIcon size={24} color={roleColors.agency_owner} />}
-              color={roleColors.agency_owner}
-            />
           </View>
         )}
 
@@ -656,6 +666,11 @@ const styles = StyleSheet.create({
   },
   checkinSection: {
     marginBottom: spacing[4],
+  },
+  checkinSectionTitle: {
+    ...typography.styles.h4,
+    color: colors.text.primary,
+    marginBottom: spacing[3],
   },
   checkinSummaryRow: {
     flexDirection: 'row',
