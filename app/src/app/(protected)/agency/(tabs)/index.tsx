@@ -380,8 +380,9 @@ export default function AgencyDashboard() {
               color={colors.success[500]}
             />
             <StatCard
-              title="Caregivers"
-              value={stats.totalCaregivers}
+              title="Agency Caregivers"
+              value={`${stats.activeCaregivers} of ${stats.totalCaregivers}`}
+              subtitle="linked of total"
               icon={<UsersIcon size={24} color={roleColors.caregiver} />}
               color={roleColors.caregiver}
             />
