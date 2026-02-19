@@ -28,8 +28,8 @@ const CATEGORIES: TaskCategory[] = [
   'nutrition',
   'mobility',
   'personal_care',
-  'health',
   'errands',
+  'childcare',
   'other',
 ];
 

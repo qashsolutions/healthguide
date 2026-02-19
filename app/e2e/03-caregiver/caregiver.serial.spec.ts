@@ -115,20 +115,28 @@ test.describe('Caregiver E2E', () => {
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test('B12-F2: shows Having trouble fallback text', async () => {
-    // Check-in page unique text — not present on Today tab
-    await expect(page.getByText('Having trouble?')).toBeVisible();
-  });
-
-  test('B12-F3: shows Use QR Code Instead option', async () => {
-    await expect(page.getByText('Use QR Code Instead')).toBeVisible();
-  });
-
-  test('B12-F4: shows check-in instructions', async () => {
-    // Use regex to handle apostrophe variations
+  test('B12-F2: shows location error or fallback on web (no GPS)', async () => {
+    // On web, expo-location throws → error state with permission message
+    // On native, proximity tracking shows "Having trouble with GPS?"
     await expect(
-      page.getByText(/Make sure you.*at the client/)
-        .or(page.getByText('Use QR Code Instead'))
+      page.getByText('Location permission is required', { exact: false })
+        .or(page.getByText('Having trouble', { exact: false }))
+        .first()
+    ).toBeVisible();
+  });
+
+  test('B12-F3: shows QR Code fallback option', async () => {
+    // Error state shows "QR Code" button; proximity state shows "Use QR Code Instead"
+    await expect(
+      page.getByText('QR Code', { exact: false }).first()
+    ).toBeVisible();
+  });
+
+  test('B12-F4: shows Try Again or check-in instructions', async () => {
+    // Error state shows "Try Again"; proximity state shows move-closer instruction
+    await expect(
+      page.getByText('Try Again')
+        .or(page.getByText('Move closer', { exact: false }))
         .first()
     ).toBeVisible();
   });

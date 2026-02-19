@@ -15,6 +15,7 @@ import {
   mockTasks,
   mockSupportGroups,
   mockCareGroup,
+  mockCaregiverProfiles,
   createMockSession,
 } from './test-data';
 
@@ -85,7 +86,7 @@ function getTableData(table: string, params: URLSearchParams): unknown {
     case 'invitations':
       return [];
     case 'caregiver_profiles':
-      return [];
+      return mockCaregiverProfiles;
     default:
       return [];
   }

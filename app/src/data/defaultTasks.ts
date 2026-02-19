@@ -1,5 +1,5 @@
 // HealthGuide Default Tasks
-// Per healthguide-agency/task-library skill
+// Non-critical services only — caregivers are NOT verified
 
 export type TaskCategory =
   | 'companionship'
@@ -7,8 +7,8 @@ export type TaskCategory =
   | 'nutrition'
   | 'mobility'
   | 'personal_care'
-  | 'health'
   | 'errands'
+  | 'childcare'
   | 'other';
 
 export interface TaskDefinitionTemplate {
@@ -36,7 +36,7 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
   },
   {
     name: 'Accompany to Appointments',
-    description: 'Escort to medical appointments or social activities',
+    description: 'Escort to appointments or social activities',
     category: 'companionship',
     icon_name: 'car',
     requires_license: false,
@@ -47,12 +47,12 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
 
   // Household
   {
-    name: 'Light Housekeeping',
-    description: 'Dusting, vacuuming, tidying up living spaces',
+    name: 'House Cleaning',
+    description: 'Dusting, vacuuming, mopping, tidying up living spaces',
     category: 'household',
     icon_name: 'cleaning',
     requires_license: false,
-    estimated_duration_minutes: 45,
+    estimated_duration_minutes: 60,
     is_active: true,
     sort_order: 10,
   },
@@ -76,11 +76,21 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
     is_active: true,
     sort_order: 12,
   },
+  {
+    name: 'Lawn & Yard Care',
+    description: 'Mowing, raking, light gardening, watering plants',
+    category: 'household',
+    icon_name: 'garden',
+    requires_license: false,
+    estimated_duration_minutes: 60,
+    is_active: true,
+    sort_order: 13,
+  },
 
-  // Nutrition
+  // Nutrition & Meals
   {
     name: 'Meal Preparation',
-    description: 'Prepare nutritious meals according to dietary needs',
+    description: 'Prepare nutritious meals according to dietary preferences',
     category: 'nutrition',
     icon_name: 'meal',
     requires_license: false,
@@ -89,24 +99,14 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
     sort_order: 20,
   },
   {
-    name: 'Feeding Assistance',
-    description: 'Help with eating if needed',
-    category: 'nutrition',
-    icon_name: 'feeding',
-    requires_license: false,
-    estimated_duration_minutes: 30,
-    is_active: true,
-    sort_order: 21,
-  },
-  {
-    name: 'Grocery Shopping',
-    description: 'Purchase groceries from a provided list',
+    name: 'Grocery Shopping & Errands',
+    description: 'Purchase groceries and household essentials',
     category: 'nutrition',
     icon_name: 'shopping',
     requires_license: false,
     estimated_duration_minutes: 60,
     is_active: true,
-    sort_order: 22,
+    sort_order: 21,
   },
 
   // Mobility
@@ -122,7 +122,7 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
   },
   {
     name: 'Exercise Assistance',
-    description: 'Assist with prescribed exercises or light stretching',
+    description: 'Assist with light stretching or walking exercises',
     category: 'mobility',
     icon_name: 'exercise',
     requires_license: false,
@@ -133,79 +133,27 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
 
   // Personal Care
   {
-    name: 'Bathing Assistance',
-    description: 'Help with bathing or showering',
+    name: 'Personal Care',
+    description: 'Assist with bathing, grooming, and dressing',
     category: 'personal_care',
-    icon_name: 'bathing',
+    icon_name: 'person',
     requires_license: false,
     estimated_duration_minutes: 30,
     is_active: true,
     sort_order: 40,
   },
-  {
-    name: 'Dressing Assistance',
-    description: 'Help with getting dressed',
-    category: 'personal_care',
-    icon_name: 'dressing',
-    requires_license: false,
-    estimated_duration_minutes: 15,
-    is_active: true,
-    sort_order: 41,
-  },
-  {
-    name: 'Grooming',
-    description: 'Hair care, shaving, nail care',
-    category: 'personal_care',
-    icon_name: 'grooming',
-    requires_license: false,
-    estimated_duration_minutes: 20,
-    is_active: true,
-    sort_order: 42,
-  },
-  {
-    name: 'Toileting Assistance',
-    description: 'Help with bathroom needs',
-    category: 'personal_care',
-    icon_name: 'toileting',
-    requires_license: false,
-    estimated_duration_minutes: 15,
-    is_active: true,
-    sort_order: 43,
-  },
 
-  // Health (Non-medical)
+  // Errands & Transportation
   {
-    name: 'Medication Reminders',
-    description: 'Remind to take medications (NOT administer)',
-    category: 'health',
-    icon_name: 'medication_reminder',
+    name: 'Transportation & Driving',
+    description: 'Drive to appointments, shopping, or social events',
+    category: 'errands',
+    icon_name: 'car',
     requires_license: false,
-    estimated_duration_minutes: 5,
+    estimated_duration_minutes: 60,
     is_active: true,
     sort_order: 50,
   },
-  {
-    name: 'Medication Administration',
-    description: 'Administer medications as prescribed',
-    category: 'health',
-    icon_name: 'medication',
-    requires_license: true, // LICENSED ONLY
-    estimated_duration_minutes: 10,
-    is_active: false, // Off by default
-    sort_order: 51,
-  },
-  {
-    name: 'Vital Signs Monitoring',
-    description: 'Check blood pressure, temperature, etc.',
-    category: 'health',
-    icon_name: 'vitals',
-    requires_license: true, // LICENSED ONLY
-    estimated_duration_minutes: 10,
-    is_active: false,
-    sort_order: 52,
-  },
-
-  // Errands
   {
     name: 'Run Errands',
     description: 'Pick up prescriptions, mail packages, etc.',
@@ -214,7 +162,7 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
     requires_license: false,
     estimated_duration_minutes: 45,
     is_active: true,
-    sort_order: 60,
+    sort_order: 51,
   },
   {
     name: 'Pet Care',
@@ -223,6 +171,38 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
     icon_name: 'pet',
     requires_license: false,
     estimated_duration_minutes: 20,
+    is_active: true,
+    sort_order: 52,
+  },
+  {
+    name: 'Tech Help',
+    description: 'Help with phones, tablets, computers, and smart devices',
+    category: 'errands',
+    icon_name: 'tech',
+    requires_license: false,
+    estimated_duration_minutes: 30,
+    is_active: true,
+    sort_order: 53,
+  },
+
+  // Childcare & Education
+  {
+    name: 'Nanny / Childcare',
+    description: 'Supervise and care for children in the home',
+    category: 'childcare',
+    icon_name: 'child',
+    requires_license: false,
+    estimated_duration_minutes: 120,
+    is_active: true,
+    sort_order: 60,
+  },
+  {
+    name: 'Tutoring',
+    description: 'Help with homework, reading, or learning activities',
+    category: 'childcare',
+    icon_name: 'book',
+    requires_license: false,
+    estimated_duration_minutes: 60,
     is_active: true,
     sort_order: 61,
   },
@@ -234,8 +214,8 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
   nutrition: 'Nutrition & Meals',
   mobility: 'Mobility',
   personal_care: 'Personal Care',
-  health: 'Health',
-  errands: 'Errands',
+  errands: 'Errands & Transport',
+  childcare: 'Childcare & Education',
   other: 'Other',
 };
 
@@ -245,7 +225,7 @@ export const CATEGORY_ICONS: Record<TaskCategory, string> = {
   nutrition: 'meal',
   mobility: 'mobility',
   personal_care: 'person',
-  health: 'health',
   errands: 'car',
+  childcare: 'child',
   other: 'more',
 };

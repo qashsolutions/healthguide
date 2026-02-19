@@ -21,7 +21,7 @@ import { supabase } from '@/lib/supabase';
 import { Button, Input } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing } from '@/theme/spacing';
+import { spacing, shadows } from '@/theme/spacing';
 import { ArrowLeftIcon, CheckIcon, CloseIcon } from '@/components/icons';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -122,6 +122,27 @@ const SCHEDULE_PRESETS = [
   },
 ];
 
+interface WorkEntry {
+  title: string;
+  employer: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface EducationEntry {
+  institution: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface ReferenceEntry {
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
 interface FormData {
   fullName: string;
   zipCode: string;
@@ -134,6 +155,9 @@ interface FormData {
   availability: Record<string, string[]>;
   experienceSummary: string;
   bio: string;
+  workHistory: WorkEntry[];
+  education: EducationEntry[];
+  references: ReferenceEntry[];
 }
 
 export default function CaregiverProfileSetupScreen() {
@@ -180,6 +204,9 @@ export default function CaregiverProfileSetupScreen() {
     },
     experienceSummary: '',
     bio: '',
+    workHistory: [{ title: '', employer: '', location: '', startDate: '', endDate: '' }],
+    education: [{ institution: '', location: '', startDate: '', endDate: '' }],
+    references: [{ name: '', phone: '', relationship: '' }],
   });
 
   // Fetch task names from agency's task_library if caregiver is linked
@@ -283,12 +310,76 @@ export default function CaregiverProfileSetupScreen() {
     setFormData({ ...formData, availability: preset.build() });
   };
 
+  // --- Work/Education/Reference helpers ---
+  const updateWorkEntry = (index: number, field: keyof WorkEntry, value: string) => {
+    const updated = [...formData.workHistory];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, workHistory: updated });
+  };
+
+  const addWorkEntry = () => {
+    if (formData.workHistory.length < 3) {
+      setFormData({ ...formData, workHistory: [...formData.workHistory, { title: '', employer: '', location: '', startDate: '', endDate: '' }] });
+    }
+  };
+
+  const removeWorkEntry = (index: number) => {
+    if (formData.workHistory.length > 1) {
+      setFormData({ ...formData, workHistory: formData.workHistory.filter((_, i) => i !== index) });
+    }
+  };
+
+  const updateEducationEntry = (index: number, field: keyof EducationEntry, value: string) => {
+    const updated = [...formData.education];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, education: updated });
+  };
+
+  const addEducationEntry = () => {
+    if (formData.education.length < 2) {
+      setFormData({ ...formData, education: [...formData.education, { institution: '', location: '', startDate: '', endDate: '' }] });
+    }
+  };
+
+  const removeEducationEntry = (index: number) => {
+    if (formData.education.length > 1) {
+      setFormData({ ...formData, education: formData.education.filter((_, i) => i !== index) });
+    }
+  };
+
+  const updateReference = (index: number, field: keyof ReferenceEntry, value: string) => {
+    const updated = [...formData.references];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, references: updated });
+  };
+
+  const addReference = () => {
+    if (formData.references.length < 2) {
+      setFormData({ ...formData, references: [...formData.references, { name: '', phone: '', relationship: '' }] });
+    }
+  };
+
+  const removeReference = (index: number) => {
+    if (formData.references.length > 1) {
+      setFormData({ ...formData, references: formData.references.filter((_, i) => i !== index) });
+    }
+  };
+
   // --- Validation ---
-  const isStep1Valid = formData.fullName.trim().length > 0 && formData.zipCode.length === 5;
+  const isStep1Valid = formData.fullName.trim().length > 0 && formData.zipCode.length === 5 && formData.photoUri !== null;
+
+  const isStep2Valid = () => {
+    // At least 1 reference with name and phone
+    return formData.references.some(r => r.name.trim().length > 0 && r.phone.trim().length >= 10);
+  };
 
   const handleNext = () => {
     if (step === 1 && !isStep1Valid) return;
-    if (step < 3) setStep(step + 1);
+    if (step === 2 && !isStep2Valid()) {
+      showToast('At least one reference with name and phone is required', 'error');
+      return;
+    }
+    if (step < 4) setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -304,7 +395,7 @@ export default function CaregiverProfileSetupScreen() {
       const max = parseFloat(formData.hourlyRateMax);
       if (max < min) {
         setRateError(`Must be ≥ $${formData.hourlyRateMin}`);
-        setStep(2); // Jump back to step 2 if submitting from step 3
+        setStep(3); // Jump back to step 3 if submitting from step 4
         return;
       }
     }
@@ -326,6 +417,34 @@ export default function CaregiverProfileSetupScreen() {
         photoUrl = uploadData?.path || null;
       }
 
+      // Clean work history / education / references — only include entries with content
+      const cleanWorkHistory = formData.workHistory
+        .filter(w => w.title.trim() || w.employer.trim())
+        .map(w => ({
+          title: w.title.trim(),
+          employer: w.employer.trim(),
+          location: w.location.trim(),
+          start_date: w.startDate.trim(),
+          end_date: w.endDate.trim() || 'Present',
+        }));
+
+      const cleanEducation = formData.education
+        .filter(e => e.institution.trim())
+        .map(e => ({
+          institution: e.institution.trim(),
+          location: e.location.trim(),
+          start_date: e.startDate.trim(),
+          end_date: e.endDate.trim() || 'Present',
+        }));
+
+      const cleanReferences = formData.references
+        .filter(r => r.name.trim() && r.phone.trim())
+        .map(r => ({
+          name: r.name.trim(),
+          phone: r.phone.trim(),
+          relationship: r.relationship.trim() || 'Reference',
+        }));
+
       const { error: insertError } = await supabase
         .from('caregiver_profiles')
         .insert({
@@ -341,6 +460,9 @@ export default function CaregiverProfileSetupScreen() {
           availability: formData.availability,
           experience_summary: formData.experienceSummary || null,
           bio: formData.bio || null,
+          work_history: cleanWorkHistory,
+          education: cleanEducation,
+          caregiver_references: cleanReferences,
         });
       if (insertError) throw insertError;
 
@@ -404,14 +526,14 @@ export default function CaregiverProfileSetupScreen() {
             </Pressable>
           ) : <View style={{ width: 24 }} />}
           <Text style={s.headerTitle}>
-            {step === 1 ? 'Basic Info' : step === 2 ? 'Skills & Rate' : 'Schedule & About'}
+            {step === 1 ? 'Basic Info' : step === 2 ? 'Experience' : step === 3 ? 'Skills & Rate' : 'Schedule & About'}
           </Text>
-          <Text style={s.stepLabel}>{step}/3</Text>
+          <Text style={s.stepLabel}>{step}/4</Text>
         </View>
 
         {/* Progress bar */}
         <View style={s.progressBar}>
-          <View style={[s.progressFill, { width: `${(step / 3) * 100}%` }]} />
+          <View style={[s.progressFill, { width: `${(step / 4) * 100}%` }]} />
         </View>
 
         <ScrollView
@@ -449,8 +571,9 @@ export default function CaregiverProfileSetupScreen() {
                 />
 
                 <View>
-                  <Text style={s.label}>Photo (Optional)</Text>
-                  <Pressable onPress={handlePickImage} style={s.photoButton}>
+                  <Text style={s.label}>Photo *</Text>
+                  <Text style={s.inputHint}>Required — helps agencies identify you</Text>
+                  <Pressable onPress={handlePickImage} style={[s.photoButton, !formData.photoUri && s.photoButtonRequired]}>
                     {formData.photoUri ? (
                       <Image source={{ uri: formData.photoUri }} style={s.photoImage} />
                     ) : (
@@ -464,8 +587,192 @@ export default function CaregiverProfileSetupScreen() {
             </View>
           )}
 
-          {/* STEP 2: Skills & Rate */}
+          {/* STEP 2: Experience & References */}
           {step === 2 && (
+            <View style={s.stepContainer}>
+              <Text style={s.stepTitle}>Your background</Text>
+              <Text style={s.stepSubtitle}>Work history, education, and references</Text>
+
+              <View style={s.form}>
+                {/* Work History */}
+                <View>
+                  <Text style={s.label}>Work History</Text>
+                  {formData.workHistory.map((job, index) => (
+                    <View key={`work-${index}`} style={s.entryCard}>
+                      <View style={s.entryCardHeader}>
+                        <Text style={s.entryCardTitle}>Position {index + 1}</Text>
+                        {formData.workHistory.length > 1 && (
+                          <Pressable onPress={() => removeWorkEntry(index)} hitSlop={8}>
+                            <CloseIcon size={18} color={colors.error[500]} />
+                          </Pressable>
+                        )}
+                      </View>
+                      <Input
+                        label="Job Title"
+                        placeholder="e.g. Home Care Aid"
+                        value={job.title}
+                        onChangeText={text => updateWorkEntry(index, 'title', text)}
+                        size="caregiver"
+                      />
+                      <Input
+                        label="Employer"
+                        placeholder="e.g. Comfort Keepers"
+                        value={job.employer}
+                        onChangeText={text => updateWorkEntry(index, 'employer', text)}
+                        size="caregiver"
+                      />
+                      <Input
+                        label="Location"
+                        placeholder="e.g. Charlotte, NC"
+                        value={job.location}
+                        onChangeText={text => updateWorkEntry(index, 'location', text)}
+                        size="caregiver"
+                      />
+                      <View style={s.dateRow}>
+                        <View style={{ flex: 1 }}>
+                          <Input
+                            label="Start"
+                            placeholder="Jan 2020"
+                            value={job.startDate}
+                            onChangeText={text => updateWorkEntry(index, 'startDate', text)}
+                            size="caregiver"
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Input
+                            label="End"
+                            placeholder="Present"
+                            value={job.endDate}
+                            onChangeText={text => updateWorkEntry(index, 'endDate', text)}
+                            size="caregiver"
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                  {formData.workHistory.length < 3 && (
+                    <Pressable onPress={addWorkEntry} style={s.addEntryButton}>
+                      <Text style={s.addEntryText}>+ Add Another Position</Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                {/* Education */}
+                <View>
+                  <Text style={s.label}>Education</Text>
+                  {formData.education.map((edu, index) => (
+                    <View key={`edu-${index}`} style={s.entryCard}>
+                      <View style={s.entryCardHeader}>
+                        <Text style={s.entryCardTitle}>School {index + 1}</Text>
+                        {formData.education.length > 1 && (
+                          <Pressable onPress={() => removeEducationEntry(index)} hitSlop={8}>
+                            <CloseIcon size={18} color={colors.error[500]} />
+                          </Pressable>
+                        )}
+                      </View>
+                      <Input
+                        label="Institution"
+                        placeholder="e.g. Central Piedmont CC"
+                        value={edu.institution}
+                        onChangeText={text => updateEducationEntry(index, 'institution', text)}
+                        size="caregiver"
+                      />
+                      <Input
+                        label="Location"
+                        placeholder="e.g. Charlotte, NC"
+                        value={edu.location}
+                        onChangeText={text => updateEducationEntry(index, 'location', text)}
+                        size="caregiver"
+                      />
+                      <View style={s.dateRow}>
+                        <View style={{ flex: 1 }}>
+                          <Input
+                            label="Start"
+                            placeholder="Aug 2018"
+                            value={edu.startDate}
+                            onChangeText={text => updateEducationEntry(index, 'startDate', text)}
+                            size="caregiver"
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Input
+                            label="End"
+                            placeholder="May 2020"
+                            value={edu.endDate}
+                            onChangeText={text => updateEducationEntry(index, 'endDate', text)}
+                            size="caregiver"
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                  {formData.education.length < 2 && (
+                    <Pressable onPress={addEducationEntry} style={s.addEntryButton}>
+                      <Text style={s.addEntryText}>+ Add Another School</Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                {/* References */}
+                <View>
+                  <Text style={s.label}>References * (at least 1)</Text>
+                  <Text style={s.inputHint}>Provide at least one reference with name and phone number</Text>
+                  {formData.references.map((ref, index) => (
+                    <View key={`ref-${index}`} style={s.entryCard}>
+                      <View style={s.entryCardHeader}>
+                        <Text style={s.entryCardTitle}>Reference {index + 1}</Text>
+                        {formData.references.length > 1 && (
+                          <Pressable onPress={() => removeReference(index)} hitSlop={8}>
+                            <CloseIcon size={18} color={colors.error[500]} />
+                          </Pressable>
+                        )}
+                      </View>
+                      <Input
+                        label="Name *"
+                        placeholder="e.g. Patricia Anderson"
+                        value={ref.name}
+                        onChangeText={text => updateReference(index, 'name', text)}
+                        autoCapitalize="words"
+                        size="caregiver"
+                      />
+                      <Input
+                        label="Phone *"
+                        placeholder="(704) 555-1234"
+                        value={ref.phone}
+                        onChangeText={text => {
+                          const digits = text.replace(/\D/g, '').slice(0, 10);
+                          let formatted = digits;
+                          if (digits.length >= 6) {
+                            formatted = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+                          } else if (digits.length >= 3) {
+                            formatted = `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+                          }
+                          updateReference(index, 'phone', formatted);
+                        }}
+                        keyboardType="phone-pad"
+                        size="caregiver"
+                      />
+                      <Input
+                        label="Relationship"
+                        placeholder="e.g. Former Supervisor"
+                        value={ref.relationship}
+                        onChangeText={text => updateReference(index, 'relationship', text)}
+                        size="caregiver"
+                      />
+                    </View>
+                  ))}
+                  {formData.references.length < 2 && (
+                    <Pressable onPress={addReference} style={s.addEntryButton}>
+                      <Text style={s.addEntryText}>+ Add Second Reference</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* STEP 3: Skills & Rate */}
+          {step === 3 && (
             <View style={s.stepContainer}>
               <Text style={s.stepTitle}>Your skills</Text>
               <Text style={s.stepSubtitle}>Tell agencies what you can do</Text>
@@ -589,8 +896,8 @@ export default function CaregiverProfileSetupScreen() {
             </View>
           )}
 
-          {/* STEP 3: Availability & About */}
-          {step === 3 && (
+          {/* STEP 4: Availability & About */}
+          {step === 4 && (
             <View style={s.stepContainer}>
               <Text style={s.stepTitle}>Your schedule</Text>
               <Text style={s.stepSubtitle}>Set your availability (max {MAX_HOURS_PER_DAY}hrs/day)</Text>
@@ -710,18 +1017,18 @@ export default function CaregiverProfileSetupScreen() {
 
           {/* Navigation */}
           <View style={s.buttonContainer}>
-            {step < 3 ? (
+            {step < 4 ? (
               <>
                 <Button
                   title="Continue"
                   variant="primary"
                   size="caregiver"
                   fullWidth
-                  disabled={step === 1 && !isStep1Valid}
+                  disabled={(step === 1 && !isStep1Valid) || (step === 2 && !isStep2Valid())}
                   onPress={handleNext}
                   style={{ backgroundColor: CAREGIVER_COLOR }}
                 />
-                {step > 1 && (
+                {step > 2 && (
                   <Pressable onPress={() => setStep(step + 1)} style={s.skipButton}>
                     <Text style={s.skipText}>Skip for now</Text>
                   </Pressable>
@@ -828,6 +1135,47 @@ const s = StyleSheet.create({
     marginBottom: spacing[2],
   },
 
+  // Entry cards (work, education, references)
+  entryCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    padding: spacing[4],
+    marginBottom: spacing[3],
+    gap: spacing[3],
+  },
+  entryCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing[1],
+  },
+  entryCardTitle: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    gap: spacing[3],
+  },
+  addEntryButton: {
+    paddingVertical: spacing[3],
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: CAREGIVER_COLOR,
+    borderStyle: 'dashed',
+    borderRadius: 10,
+  },
+  addEntryText: {
+    ...typography.styles.caption,
+    color: CAREGIVER_COLOR,
+    fontWeight: '600',
+  },
+
   // Photo
   photoButton: {
     width: 100,
@@ -840,6 +1188,10 @@ const s = StyleSheet.create({
     borderColor: colors.neutral[200],
     borderStyle: 'dashed',
     overflow: 'hidden',
+  },
+  photoButtonRequired: {
+    borderColor: colors.error[300],
+    borderWidth: 2,
   },
   photoImage: { width: '100%', height: '100%' },
   photoPlaceholder: { justifyContent: 'center', alignItems: 'center', flex: 1 },
@@ -1081,11 +1433,7 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
+    ...shadows.md,
   },
   toastSuccess: {
     backgroundColor: CAREGIVER_COLOR,

@@ -10,6 +10,8 @@ export interface MockUser {
   phone?: string;
   role: UserRole;
   full_name: string;
+  first_name?: string;
+  last_name?: string;
   agency_id?: string;
   avatar_url?: string;
   created_at: string;
@@ -32,6 +34,8 @@ export const mockUsers: Record<UserRole, MockUser> = {
     email: 'owner@agency.com',
     role: 'agency_owner',
     full_name: 'Test Agency Owner',
+    first_name: 'Test',
+    last_name: 'Agency Owner',
     agency_id: 'agency-1',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
@@ -41,6 +45,8 @@ export const mockUsers: Record<UserRole, MockUser> = {
     phone: '+15551234567',
     role: 'caregiver',
     full_name: 'Test Caregiver',
+    first_name: 'Test',
+    last_name: 'Caregiver',
     agency_id: 'agency-1',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
@@ -50,6 +56,8 @@ export const mockUsers: Record<UserRole, MockUser> = {
     email: 'elder@test.com',
     role: 'careseeker',
     full_name: 'Test Elder',
+    first_name: 'Test',
+    last_name: 'Elder',
     agency_id: 'agency-1',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
@@ -59,6 +67,8 @@ export const mockUsers: Record<UserRole, MockUser> = {
     phone: '+15559876543',
     role: 'volunteer',
     full_name: 'Test Volunteer',
+    first_name: 'Test',
+    last_name: 'Volunteer',
     agency_id: 'agency-1',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
@@ -68,6 +78,8 @@ export const mockUsers: Record<UserRole, MockUser> = {
     phone: '+15555551234',
     role: 'family_member',
     full_name: 'Test Family Member',
+    first_name: 'Test',
+    last_name: 'Family Member',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
   },
@@ -146,6 +158,35 @@ export const mockElders = [
     emergency_contact: 'Sarah Williams',
     emergency_phone: '+15554444444',
     created_at: '2025-01-02T00:00:00Z',
+  },
+];
+
+// Mock caregiver_profiles (marketplace profiles — separate from user_profiles)
+export const mockCaregiverProfiles = [
+  {
+    id: 'cp-1',
+    user_id: 'user-caregiver-1',
+    full_name: 'Test Caregiver',
+    phone: '+15551234567',
+    email: '',
+    photo_url: null,
+    zip_code: '43209',
+    npi_number: null,
+    npi_verified: false,
+    npi_data: null,
+    certifications: ['CNA', 'HHA'],
+    experience_summary: '5 years of elder care experience',
+    capabilities: ['Companionship', 'Meal Preparation', 'Medication Reminder'],
+    availability: {},
+    bio: 'Compassionate caregiver dedicated to elder wellness.',
+    is_active: true,
+    rating_count: 10,
+    positive_count: 9,
+    keywords: ['experienced', 'compassionate'],
+    hourly_rate_min: 20,
+    hourly_rate_max: 35,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
   },
 ];
 

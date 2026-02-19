@@ -163,8 +163,8 @@ describe('Batch 30: Default Tasks', () => {
       'nutrition',
       'mobility',
       'personal_care',
-      'health',
       'errands',
+      'childcare',
       'other',
     ];
     DEFAULT_TASKS.forEach((task) => {
