@@ -16,7 +16,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { format, startOfDay, endOfDay, isToday } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Card, Badge } from '@/components/ui';
+import { Card } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, shadows, layout } from '@/theme/spacing';
@@ -39,7 +39,6 @@ interface DashboardStats {
   inProgressToday: number;
   upcomingToday: number;
   pendingToday: number;
-  completionRate: number;
 }
 
 interface TodayVisit {
@@ -229,9 +228,6 @@ export default function AgencyDashboard() {
         inProgressToday,
         upcomingToday,
         pendingToday,
-        completionRate: visits.length > 0
-          ? Math.round((completedToday / visits.length) * 100)
-          : 0,
       };
 
       // Categorize visits into check-in groups (Red / Amber / Green)
@@ -527,47 +523,6 @@ export default function AgencyDashboard() {
             </ScrollView>
           )}
         </View>
-
-        {/* Completion Rate */}
-        {stats && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Today's Progress</Text>
-            <Card variant="outlined" padding="md">
-              <View style={styles.progressRow}>
-                <Text style={styles.progressLabel}>Completion Rate</Text>
-                <Text style={styles.progressValue}>{stats.completionRate}%</Text>
-              </View>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${stats.completionRate}%` },
-                  ]}
-                />
-              </View>
-              <View style={styles.progressStats}>
-                <View style={styles.progressStat}>
-                  <Badge label="Completed" variant="success" size="sm" />
-                  <Text style={styles.progressStatValue}>{stats.completedToday}</Text>
-                </View>
-                <View style={styles.progressStat}>
-                  <Badge label="In Progress" variant="warning" size="sm" />
-                  <Text style={styles.progressStatValue}>{stats.inProgressToday}</Text>
-                </View>
-                <View style={styles.progressStat}>
-                  <Badge label="Upcoming" variant="info" size="sm" />
-                  <Text style={styles.progressStatValue}>{stats.upcomingToday}</Text>
-                </View>
-                {stats.pendingToday > 0 && (
-                  <View style={styles.progressStat}>
-                    <Badge label="Pending" variant="neutral" size="sm" />
-                    <Text style={styles.progressStatValue}>{stats.pendingToday}</Text>
-                  </View>
-                )}
-              </View>
-            </Card>
-          </View>
-        )}
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (
@@ -874,44 +829,6 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     fontWeight: '500',
     textTransform: 'capitalize',
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing[2],
-  },
-  progressLabel: {
-    ...typography.styles.body,
-    color: colors.text.secondary,
-  },
-  progressValue: {
-    ...typography.styles.h4,
-    color: colors.success[600],
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: colors.neutral[200],
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: spacing[3],
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.success[500],
-    borderRadius: 4,
-  },
-  progressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  progressStat: {
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  progressStatValue: {
-    ...typography.styles.h4,
-    color: colors.text.primary,
   },
   activityCard: {
     marginBottom: spacing[2],
