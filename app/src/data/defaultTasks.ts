@@ -5,10 +5,8 @@ export type TaskCategory =
   | 'companionship'
   | 'household'
   | 'nutrition'
-  | 'mobility'
-  | 'personal_care'
   | 'errands'
-  | 'childcare'
+  | 'education'
   | 'other';
 
 export interface TaskDefinitionTemplate {
@@ -109,40 +107,6 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
     sort_order: 21,
   },
 
-  // Mobility
-  {
-    name: 'Mobility Assistance',
-    description: 'Help with walking, transferring, or using mobility aids',
-    category: 'mobility',
-    icon_name: 'mobility',
-    requires_license: false,
-    estimated_duration_minutes: 15,
-    is_active: true,
-    sort_order: 30,
-  },
-  {
-    name: 'Exercise Assistance',
-    description: 'Assist with light stretching or walking exercises',
-    category: 'mobility',
-    icon_name: 'exercise',
-    requires_license: false,
-    estimated_duration_minutes: 30,
-    is_active: true,
-    sort_order: 31,
-  },
-
-  // Personal Care
-  {
-    name: 'Personal Care',
-    description: 'Assist with bathing, grooming, and dressing',
-    category: 'personal_care',
-    icon_name: 'person',
-    requires_license: false,
-    estimated_duration_minutes: 30,
-    is_active: true,
-    sort_order: 40,
-  },
-
   // Errands & Transportation
   {
     name: 'Transportation & Driving',
@@ -174,32 +138,11 @@ export const DEFAULT_TASKS: TaskDefinitionTemplate[] = [
     is_active: true,
     sort_order: 52,
   },
-  {
-    name: 'Tech Help',
-    description: 'Help with phones, tablets, computers, and smart devices',
-    category: 'errands',
-    icon_name: 'tech',
-    requires_license: false,
-    estimated_duration_minutes: 30,
-    is_active: true,
-    sort_order: 53,
-  },
-
-  // Childcare & Education
-  {
-    name: 'Nanny / Childcare',
-    description: 'Supervise and care for children in the home',
-    category: 'childcare',
-    icon_name: 'child',
-    requires_license: false,
-    estimated_duration_minutes: 120,
-    is_active: true,
-    sort_order: 60,
-  },
+  // Education
   {
     name: 'Tutoring',
     description: 'Help with homework, reading, or learning activities',
-    category: 'childcare',
+    category: 'education',
     icon_name: 'book',
     requires_license: false,
     estimated_duration_minutes: 60,
@@ -212,10 +155,8 @@ export const CATEGORY_LABELS: Record<TaskCategory, string> = {
   companionship: 'Companionship',
   household: 'Household',
   nutrition: 'Nutrition & Meals',
-  mobility: 'Mobility',
-  personal_care: 'Personal Care',
   errands: 'Errands & Transport',
-  childcare: 'Childcare & Education',
+  education: 'Education',
   other: 'Other',
 };
 
@@ -223,9 +164,7 @@ export const CATEGORY_ICONS: Record<TaskCategory, string> = {
   companionship: 'heart',
   household: 'home',
   nutrition: 'meal',
-  mobility: 'mobility',
-  personal_care: 'person',
   errands: 'car',
-  childcare: 'child',
+  education: 'book',
   other: 'more',
 };

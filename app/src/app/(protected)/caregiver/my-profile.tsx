@@ -33,8 +33,7 @@ const CAREGIVER_COLOR = roleColors.caregiver;
 
 const SUGGESTED_TASKS = [
   'Companionship', 'Meal Preparation', 'Light Housekeeping', 'Errands & Shopping',
-  'Mobility Assistance', 'Personal Care', 'Medication Reminders', 'Medication Administration',
-  'Bathing Assistance', 'Transportation', 'Wound Care', 'Dementia Care', 'Vital Signs Monitoring',
+  'Transportation', 'Pet Care', 'Lawn & Yard Care', 'Grocery Shopping & Errands', 'Tutoring',
 ];
 
 const SUGGESTED_KEYWORDS = [

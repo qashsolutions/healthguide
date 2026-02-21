@@ -60,17 +60,16 @@ interface TaskItem {
 
 const CATEGORY_TO_CAPABILITIES: Record<string, string[]> = {
   companionship: ['companionship', 'Companionship'],
-  personal_care: ['personal_care', 'Personal Care', 'Bathing Assistance'],
   nutrition: ['meal_preparation', 'Meal Preparation'],
-  medication: ['medication_reminders', 'medication_administration', 'Medication Reminders', 'Medication Administration'],
-  mobility: ['mobility_assistance', 'Mobility Assistance'],
   housekeeping: ['light_housekeeping', 'Light Housekeeping'],
   transportation: ['transportation', 'Transportation'],
   errands: ['errands', 'Errands & Shopping'],
-  vitals: ['vital_signs', 'Vital Signs Monitoring', 'Wound Care'],
+  pet_care: ['pet_care', 'Pet Care'],
+  lawn_yard: ['lawn_yard', 'Lawn & Yard Care'],
+  education: ['tutoring', 'Tutoring'],
 };
 
-const LIABILITY_CATEGORIES = new Set(['personal_care', 'medication', 'nutrition', 'vitals']);
+const LIABILITY_CATEGORIES = new Set(['medication', 'nutrition', 'vitals']);
 
 const TIME_OPTIONS = [
   '06:00', '06:30', '07:00', '07:30', '08:00', '08:30',

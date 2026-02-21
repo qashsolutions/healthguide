@@ -31,10 +31,10 @@ export const CAPABILITY_LABELS: Record<string, string> = {
   meal_preparation: 'Meal Prep',
   light_housekeeping: 'Light Housekeeping',
   errands: 'Errands & Shopping',
-  mobility_assistance: 'Mobility Assist',
-  personal_care: 'Personal Care',
-  medication_reminders: 'Med Reminders',
-  medication_administration: 'Med Admin',
+  transportation: 'Transportation',
+  pet_care: 'Pet Care',
+  lawn_yard: 'Lawn & Yard Care',
+  tutoring: 'Tutoring',
 };
 
 /** All available capabilities */
@@ -43,8 +43,8 @@ export const ALL_CAPABILITIES = [
   'meal_preparation',
   'light_housekeeping',
   'errands',
-  'mobility_assistance',
-  'personal_care',
-  'medication_reminders',
-  'medication_administration',
+  'transportation',
+  'pet_care',
+  'lawn_yard',
+  'tutoring',
 ] as const;

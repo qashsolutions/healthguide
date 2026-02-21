@@ -64,8 +64,8 @@ interface ElderTask {
 
 const ALL_SERVICES = [
   'Companionship', 'Grocery Shopping & Errands', 'House Cleaning', 'Laundry',
-  'Lawn & Yard Care', 'Meal Preparation', 'Mobility Assistance', 'Nanny / Childcare',
-  'Personal Care', 'Pet Care', 'Tech Help', 'Transportation & Driving', 'Tutoring',
+  'Lawn & Yard Care', 'Meal Preparation',
+  'Pet Care', 'Transportation & Driving', 'Tutoring',
 ];
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -74,23 +74,29 @@ const DAY_MAP: Record<string, string> = {
   Fri: 'friday', Sat: 'saturday', Sun: 'sunday',
 };
 
-const TIME_SLOTS = [
-  { label: '6–8a', value: '6am-8am' },
-  { label: '8–10a', value: '8am-10am' },
-  { label: '10–12p', value: '10am-12pm' },
-  { label: '12–2p', value: '12pm-2pm' },
-  { label: '2–4p', value: '2pm-4pm' },
-  { label: '4–6p', value: '4pm-6pm' },
-  { label: '6–8p', value: '6pm-8pm' },
-  { label: '8–10p', value: '8pm-10pm' },
-  { label: 'Overnight', value: '10pm-6am' },
+const TIME_SLOT_GROUPS = [
+  { heading: 'Morning', slots: [
+    { label: '6–8a', value: '6am-8am' },
+    { label: '8–10a', value: '8am-10am' },
+    { label: '10–12p', value: '10am-12pm' },
+  ]},
+  { heading: 'Afternoon', slots: [
+    { label: '12–2p', value: '12pm-2pm' },
+    { label: '2–4p', value: '2pm-4pm' },
+    { label: '4–6p', value: '4pm-6pm' },
+  ]},
+  { heading: 'Evening', slots: [
+    { label: '6–8p', value: '6pm-8pm' },
+    { label: '8–10p', value: '8pm-10pm' },
+    { label: 'Overnight', value: '10pm-6am' },
+  ]},
 ];
 
 interface FilterState {
   zipCode: string;
   selectedDays: string[];       // e.g. ['Mon', 'Wed']
   selectedTimeSlots: string[];  // e.g. ['6am-8am', '8am-10am']
-  selectedServices: string[];   // e.g. ['Meal Preparation', 'Personal Care']
+  selectedServices: string[];   // e.g. ['Meal Preparation', 'Companionship']
   maxRate: string;
 }
 
@@ -590,23 +596,28 @@ export default function CaregiverDirectoryScreen() {
               </View>
               {/* Divider */}
               <View style={styles.scheduleDivider} />
-              {/* Time slots — 2 rows of 4 */}
-              <View style={styles.schedTimesGrid}>
-                {TIME_SLOTS.map((slot) => {
-                  const active = filters.selectedTimeSlots.includes(slot.value);
-                  return (
-                    <Pressable
-                      key={slot.value}
-                      style={[styles.schedTimeBtn, active && styles.schedTimeBtnActive]}
-                      onPress={() => setFilters({ ...filters, selectedTimeSlots: toggleArrayItem(filters.selectedTimeSlots, slot.value) })}
-                    >
-                      <Text style={[styles.schedTimeText, active && styles.schedTimeTextActive]}>
-                        {slot.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              {/* Time slots — grouped by period */}
+              {TIME_SLOT_GROUPS.map((group, gi) => (
+                <View key={group.heading} style={gi > 0 ? { marginTop: spacing[2] } : undefined}>
+                  <Text style={styles.schedGroupHeading}>{group.heading}</Text>
+                  <View style={styles.schedTimesRow}>
+                    {group.slots.map((slot) => {
+                      const active = filters.selectedTimeSlots.includes(slot.value);
+                      return (
+                        <Pressable
+                          key={slot.value}
+                          style={[styles.schedTimeBtn, active && styles.schedTimeBtnActive]}
+                          onPress={() => setFilters({ ...filters, selectedTimeSlots: toggleArrayItem(filters.selectedTimeSlots, slot.value) })}
+                        >
+                          <Text style={[styles.schedTimeText, active && styles.schedTimeTextActive]}>
+                            {slot.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ))}
             </View>
           </View>
 
@@ -1082,7 +1093,7 @@ const styles = StyleSheet.create({
   servicesPickerModal: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    maxHeight: 480,
+    maxHeight: 600,
     overflow: 'hidden',
   },
   servicesPickerTitle: {
@@ -1096,7 +1107,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.neutral[100],
   },
   servicesPickerList: {
-    maxHeight: 360,
+    maxHeight: 500,
   },
   servicesPickerItem: {
     flexDirection: 'row',
@@ -1191,13 +1202,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral[200],
     marginVertical: spacing[3],
   },
-  schedTimesGrid: {
+  schedGroupHeading: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontWeight: '500',
+    fontSize: 11,
+    marginBottom: 4,
+    marginLeft: 2,
+  },
+  schedTimesRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 6,
   },
   schedTimeBtn: {
-    width: '23%' as any,
+    flex: 1,
     alignItems: 'center',
     paddingVertical: spacing[2],
     borderRadius: borderRadius.md,

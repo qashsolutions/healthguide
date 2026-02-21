@@ -168,13 +168,7 @@ export default function AgencyDashboard() {
         // Pending applications (companion_to_agency)
         supabase
           .from('agency_invites')
-          .select(`
-            id,
-            companion_id,
-            message,
-            created_at,
-            companion:caregiver_profiles!companion_id(full_name, caregiver_type)
-          `)
+          .select('id, companion_id, message, created_at')
           .eq('agency_id', agency.id)
           .eq('status', 'pending')
           .eq('direction', 'companion_to_agency')
@@ -258,9 +252,21 @@ export default function AgencyDashboard() {
         };
       });
 
-      // Process pending applications
-      const apps: PendingApplication[] = (applicationsResult.data || []).map((a: any) => {
-        const comp = Array.isArray(a.companion) ? a.companion[0] : a.companion;
+      // Process pending applications — fetch companion profiles separately
+      const appInvites = applicationsResult.data || [];
+      const companionIds = appInvites.map((a: any) => a.companion_id).filter(Boolean);
+      let companionMap: Record<string, { full_name: string; caregiver_type: string | null }> = {};
+      if (companionIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('caregiver_profiles')
+          .select('id, full_name, caregiver_type')
+          .in('id', companionIds);
+        (profiles || []).forEach((p: any) => {
+          companionMap[p.id] = { full_name: p.full_name, caregiver_type: p.caregiver_type };
+        });
+      }
+      const apps: PendingApplication[] = appInvites.map((a: any) => {
+        const comp = companionMap[a.companion_id];
         return {
           id: a.id,
           companion_id: a.companion_id,

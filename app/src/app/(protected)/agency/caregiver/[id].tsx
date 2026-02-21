@@ -51,9 +51,10 @@ const DEFAULT_CAPABILITIES = [
   'meal_preparation',
   'light_housekeeping',
   'errands',
-  'mobility_assistance',
-  'personal_care',
-  'medication_reminders',
+  'transportation',
+  'pet_care',
+  'lawn_yard',
+  'tutoring',
 ];
 
 const CAPABILITY_LABELS: Record<string, string> = {
@@ -61,10 +62,10 @@ const CAPABILITY_LABELS: Record<string, string> = {
   meal_preparation: 'Meal Preparation',
   light_housekeeping: 'Light Housekeeping',
   errands: 'Errands & Shopping',
-  mobility_assistance: 'Mobility Assistance',
-  personal_care: 'Personal Care',
-  medication_reminders: 'Medication Reminders',
-  medication_administration: 'Medication Administration',
+  transportation: 'Transportation',
+  pet_care: 'Pet Care',
+  lawn_yard: 'Lawn & Yard Care',
+  tutoring: 'Tutoring',
 };
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;

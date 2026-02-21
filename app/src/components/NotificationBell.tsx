@@ -11,13 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-
-// Inline bell icon (Svg not needed — use text)
-function BellIcon({ size = 24, color = colors.text.primary }: { size?: number; color?: string }) {
-  return (
-    <Text style={{ fontSize: size - 4, lineHeight: size, color }}>{'\uD83D\uDD14'}</Text>
-  );
-}
+import { BellIcon } from '@/components/icons';
 
 export function NotificationBell() {
   const { user } = useAuth();
@@ -55,7 +49,7 @@ export function NotificationBell() {
       onPress={() => router.push('/(protected)/notifications' as any)}
       accessibilityLabel={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
     >
-      <BellIcon size={26} color={colors.text.primary} />
+      <BellIcon size={24} color={colors.text.primary} />
       {unreadCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>

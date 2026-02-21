@@ -47,9 +47,10 @@ const DEFAULT_CARE_NEEDS = [
   'meal_preparation',
   'light_housekeeping',
   'errands',
-  'mobility_assistance',
-  'personal_care',
-  'medication_reminders',
+  'transportation',
+  'pet_care',
+  'lawn_yard',
+  'tutoring',
 ];
 
 const CARE_NEED_LABELS: Record<string, string> = {
@@ -57,9 +58,10 @@ const CARE_NEED_LABELS: Record<string, string> = {
   meal_preparation: 'Meal Preparation',
   light_housekeeping: 'Light Housekeeping',
   errands: 'Errands & Shopping',
-  mobility_assistance: 'Mobility Assistance',
-  personal_care: 'Personal Care',
-  medication_reminders: 'Medication Reminders',
+  transportation: 'Transportation',
+  pet_care: 'Pet Care',
+  lawn_yard: 'Lawn & Yard Care',
+  tutoring: 'Tutoring',
 };
 
 const MAX_FAMILY_CONTACTS = 3;

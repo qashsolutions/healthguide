@@ -35,15 +35,11 @@ const FALLBACK_TASKS = [
   'Meal Preparation',
   'Light Housekeeping',
   'Errands & Shopping',
-  'Mobility Assistance',
-  'Personal Care',
-  'Medication Reminders',
-  'Medication Administration',
-  'Bathing Assistance',
   'Transportation',
-  'Wound Care',
-  'Dementia Care',
-  'Vital Signs Monitoring',
+  'Pet Care',
+  'Lawn & Yard Care',
+  'Tutoring',
+  'Grocery Shopping & Errands',
 ];
 
 // Suggested keywords for discoverability

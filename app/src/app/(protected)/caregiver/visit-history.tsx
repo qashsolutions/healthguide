@@ -134,7 +134,7 @@ export default function VisitHistoryScreen() {
         actual_start: i === 3 ? null : date.toISOString(),
         actual_end: i === 3 ? null : date.toISOString(),
         elder_name: ['Margaret Johnson', 'Robert Williams', 'Dorothy Smith', 'James Brown'][i % 4],
-        task_summary: ['Medication, Personal Care, Vitals', 'Companionship, Meal Prep', 'Mobility, Exercise', 'Personal Care, Housekeeping'][i % 4],
+        task_summary: ['Companionship, Meal Prep', 'Errands, Transportation', 'Housekeeping, Pet Care', 'Companionship, Lawn Care'][i % 4],
         task_count: [3, 2, 2, 2][i % 4],
       };
     });

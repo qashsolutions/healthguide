@@ -42,12 +42,10 @@ interface Props {
 }
 
 const CATEGORIES: { id: string; label: string; Icon: React.ComponentType<IconProps> }[] = [
-  { id: 'personal_care', label: 'Personal Care', Icon: HandCareIcon },
-  { id: 'mobility', label: 'Mobility', Icon: WalkingIcon },
-  { id: 'nutrition', label: 'Nutrition', Icon: AppleIcon },
-  { id: 'medication', label: 'Medication', Icon: PillIcon },
-  { id: 'housekeeping', label: 'Housekeeping', Icon: HomeIcon },
   { id: 'companionship', label: 'Companionship', Icon: MessageIcon },
+  { id: 'housekeeping', label: 'Housekeeping', Icon: HomeIcon },
+  { id: 'nutrition', label: 'Nutrition', Icon: AppleIcon },
+  { id: 'errands', label: 'Errands & Transport', Icon: WalkingIcon },
 ];
 
 export function TaskPreferencesStep({
@@ -59,7 +57,7 @@ export function TaskPreferencesStep({
 }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('personal_care');
+  const [activeCategory, setActiveCategory] = useState('companionship');
 
   useEffect(() => {
     fetchTasks();
