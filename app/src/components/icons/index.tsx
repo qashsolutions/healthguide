@@ -1318,3 +1318,45 @@ export function FlowerHibiscusIcon({ size = 24, color = '#DC2626' }: IconProps) 
     </Svg>
   );
 }
+
+// Student - Graduation cap
+export function StudentIcon({ size = 24, color = colors.white }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 3L1 9L5 11.18V17.18L12 21L19 17.18V11.18L21 10.09V17H23V9L12 3Z"
+        fill={color}
+      />
+      <Path
+        d="M12 3L1 9L12 15L21 10.09V17H23V9L12 3Z"
+        fill={color}
+        opacity={0.85}
+      />
+      <Path
+        d="M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z"
+        fill={color}
+        opacity={0.6}
+      />
+    </Svg>
+  );
+}
+
+// 55+ Companion - Two people / handshake
+export function CompanionIcon({ size = 24, color = colors.white }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="9" cy="7" r="3" fill={color} opacity={0.85} />
+      <Circle cx="17" cy="7" r="2.5" fill={color} opacity={0.6} />
+      <Path
+        d="M2 19C2 15.68 5.58 14 9 14C12.42 14 16 15.68 16 19V20H2V19Z"
+        fill={color}
+        opacity={0.85}
+      />
+      <Path
+        d="M16 14.04C18.39 14.24 22 15.74 22 19V20H18V19C18 16.72 17.22 15.14 16 14.04Z"
+        fill={color}
+        opacity={0.6}
+      />
+    </Svg>
+  );
+}

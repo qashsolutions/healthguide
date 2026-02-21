@@ -2,7 +2,7 @@
 // Entry point for a visit - shows summary and start button
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, ActivityIndicator, Alert, Platform, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '@/lib/supabase';
@@ -10,7 +10,10 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { PersonIcon, LocationIcon, ClockIcon, ArrowLeftIcon } from '@/components/icons';
+import { PersonIcon, LocationIcon, ClockIcon, ArrowLeftIcon, AlertIcon } from '@/components/icons';
+import { cancelVisit, isLateCancellation } from '@/lib/cancelVisit';
+import { cancelRecurringSeries } from '@/lib/recurringVisits';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   MealIcon,
   CompanionshipIcon,
@@ -24,6 +27,8 @@ interface VisitData {
   scheduled_start: string;
   scheduled_end: string;
   special_instructions?: string;
+  is_recurring?: boolean;
+  parent_visit_id?: string | null;
   elder: {
     id: string;
     first_name: string;
@@ -59,8 +64,10 @@ const TaskIcon = ({ category, size = 32 }: { category: string; size?: number }) 
 export default function VisitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuth();
   const [visit, setVisit] = useState<VisitData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   const fetchVisit = useCallback(async () => {
     if (!id) return;
@@ -75,6 +82,8 @@ export default function VisitDetailScreen() {
           scheduled_start,
           scheduled_end,
           special_instructions,
+          is_recurring,
+          parent_visit_id,
           elder:elders (
             id,
             first_name,
@@ -126,6 +135,8 @@ export default function VisitDetailScreen() {
         scheduled_start: assignmentData.scheduled_start,
         scheduled_end: assignmentData.scheduled_end,
         special_instructions: assignmentData.special_instructions,
+        is_recurring: assignmentData.is_recurring,
+        parent_visit_id: assignmentData.parent_visit_id,
         elder: elderData,
         tasks: formattedTasks,
       });
@@ -161,6 +172,95 @@ export default function VisitDetailScreen() {
   useEffect(() => {
     fetchVisit();
   }, [fetchVisit]);
+
+  const doSingleCancel = async () => {
+    if (!id || !user?.id) return;
+    setCancelling(true);
+    const result = await cancelVisit(id, 'companion', user.id);
+    setCancelling(false);
+
+    if (result.success) {
+      const msg = result.isLate
+        ? 'Visit cancelled. A negative rating has been recorded due to short notice.'
+        : 'Visit cancelled successfully.';
+      Platform.OS === 'web' ? alert(msg) : Alert.alert('Cancelled', msg);
+      router.back();
+    } else {
+      const errMsg = result.error || 'Could not cancel visit';
+      Platform.OS === 'web' ? alert(errMsg) : Alert.alert('Error', errMsg);
+    }
+  };
+
+  const doCancelSeries = async () => {
+    if (!visit) return;
+    const parentId = visit.is_recurring ? visit.id : visit.parent_visit_id;
+    if (!parentId) return;
+
+    setCancelling(true);
+    const result = await cancelRecurringSeries(parentId);
+    setCancelling(false);
+
+    if (result.success) {
+      const msg = `Recurring series cancelled. ${result.cancelled} future visit${result.cancelled !== 1 ? 's' : ''} removed.`;
+      Platform.OS === 'web' ? alert(msg) : Alert.alert('Series Cancelled', msg);
+      router.back();
+    } else {
+      const errMsg = result.error || 'Could not cancel series';
+      Platform.OS === 'web' ? alert(errMsg) : Alert.alert('Error', errMsg);
+    }
+  };
+
+  async function handleCancelVisit() {
+    if (!id || !user?.id || !visit) return;
+
+    const isRecurringChild = !!visit.parent_visit_id;
+    const isRecurringParent = !!visit.is_recurring;
+    const isPartOfSeries = isRecurringChild || isRecurringParent;
+
+    const late = isLateCancellation(visit.scheduled_start);
+
+    if (isPartOfSeries) {
+      // Show "this visit only" vs "all future visits" choice
+      if (Platform.OS === 'web') {
+        const choice = window.prompt(
+          'This is a recurring visit.\n\nType "1" to cancel this visit only\nType "2" to cancel all future visits in this series',
+          '1',
+        );
+        if (choice === '1') doSingleCancel();
+        else if (choice === '2') doCancelSeries();
+      } else {
+        Alert.alert(
+          'Cancel Recurring Visit?',
+          late
+            ? 'This is a recurring visit. Cancelling this visit with short notice will result in a negative rating.'
+            : 'This is a recurring visit.',
+          [
+            { text: 'Keep', style: 'cancel' },
+            { text: 'This Visit Only', onPress: doSingleCancel },
+            { text: 'All Future Visits', style: 'destructive', onPress: doCancelSeries },
+          ],
+        );
+      }
+    } else {
+      // Regular non-recurring cancel
+      const warningMsg = late
+        ? 'Cancelling less than 30 minutes before the visit will result in a negative rating. Are you sure?'
+        : 'Are you sure you want to cancel this visit?';
+
+      if (Platform.OS === 'web') {
+        if (window.confirm(warningMsg)) doSingleCancel();
+      } else {
+        Alert.alert(
+          'Cancel Visit?',
+          warningMsg,
+          [
+            { text: 'Keep Visit', style: 'cancel' },
+            { text: 'Cancel Visit', style: 'destructive', onPress: doSingleCancel },
+          ],
+        );
+      }
+    }
+  }
 
   // Format time for display
   const formatTime = (time: string) => {
@@ -232,11 +332,16 @@ export default function VisitDetailScreen() {
               <Text style={styles.elderName}>
                 {visit.elder.first_name} {visit.elder.last_name}
               </Text>
-              <Badge
-                label={visit.status === 'scheduled' ? 'Scheduled' : visit.status === 'checked_in' ? 'In Progress' : visit.status}
-                variant={visit.status === 'scheduled' ? 'info' : visit.status === 'checked_in' ? 'warning' : 'neutral'}
-                size="md"
-              />
+              <View style={{ flexDirection: 'row', gap: spacing[2], flexWrap: 'wrap' }}>
+                <Badge
+                  label={visit.status === 'scheduled' ? 'Scheduled' : visit.status === 'checked_in' ? 'In Progress' : visit.status}
+                  variant={visit.status === 'scheduled' ? 'info' : visit.status === 'checked_in' ? 'warning' : 'neutral'}
+                  size="md"
+                />
+                {(visit.is_recurring || visit.parent_visit_id) && (
+                  <Badge label={'\uD83D\uDD01 Recurring'} variant="neutral" size="md" />
+                )}
+              </View>
             </View>
           </View>
 
@@ -281,15 +386,28 @@ export default function VisitDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Start Visit Button */}
+      {/* Footer Actions */}
       <View style={styles.footer}>
-        <Button
-          title="Start Visit"
-          variant="success"
-          size="caregiver"
-          fullWidth
-          onPress={() => router.push(`/(protected)/caregiver/visit/${id}/check-in`)}
-        />
+        {visit.status === 'scheduled' && (
+          <>
+            <Button
+              title="Start Visit"
+              variant="success"
+              size="caregiver"
+              fullWidth
+              onPress={() => router.push(`/(protected)/caregiver/visit/${id}/check-in`)}
+            />
+            <Pressable
+              style={styles.cancelLink}
+              onPress={handleCancelVisit}
+              disabled={cancelling}
+            >
+              <Text style={styles.cancelLinkText}>
+                {cancelling ? 'Cancelling...' : 'Cancel Visit'}
+              </Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -409,5 +527,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.neutral[200],
+  },
+  cancelLink: {
+    marginTop: spacing[3],
+    alignItems: 'center',
+    paddingVertical: spacing[2],
+  },
+  cancelLinkText: {
+    ...typography.styles.body,
+    color: colors.error[500],
+    fontWeight: '600',
   },
 });

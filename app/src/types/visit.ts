@@ -2,13 +2,19 @@
 // Per healthguide-caregiver/evv and task-completion skills
 
 export type VisitStatus =
+  | 'pending_acceptance'
   | 'scheduled'
   | 'checked_in'
   | 'in_progress'
   | 'checked_out'
   | 'completed'
   | 'cancelled'
-  | 'no_show';
+  | 'cancelled_late'
+  | 'no_show'
+  | 'elder_unavailable'
+  | 'declined'
+  | 'missed'
+  | 'emergency';
 
 export type CheckInMethod = 'gps' | 'qr_code';
 

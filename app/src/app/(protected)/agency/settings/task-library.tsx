@@ -9,30 +9,26 @@ import {
   SectionList,
   Switch,
   RefreshControl,
-  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, Stack, useRouter } from 'expo-router';
+import { useFocusEffect, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, Button } from '@/components/ui';
+import { Card } from '@/components/ui';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, shadows } from '@/theme/spacing';
-import { AlertIcon, ClockIcon, CheckIcon } from '@/components/icons';
-import { TaskCategory, CATEGORY_LABELS, DEFAULT_TASKS } from '@/data/defaultTasks';
+import { CheckIcon } from '@/components/icons';
+import { ALLOWED_CATEGORY_LABELS } from '@/constants/tasks';
 
 interface TaskDefinition {
   id: string;
   agency_id: string;
   name: string;
   description: string;
-  category: TaskCategory;
-  icon_name: string;
-  requires_license: boolean;
-  estimated_duration_minutes?: number;
+  category: string;
+  icon: string;
   is_active: boolean;
-  sort_order: number;
 }
 
 interface SectionData {
@@ -41,7 +37,6 @@ interface SectionData {
 }
 
 export default function TaskLibraryScreen() {
-  const router = useRouter();
   const { user } = useAuth();
   const [tasks, setTasks] = useState<TaskDefinition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,39 +53,11 @@ export default function TaskLibraryScreen() {
 
     try {
       const { data, error } = await supabase
-        .from('task_definitions')
-        .select('*')
+        .from('task_library')
+        .select('id, agency_id, name, description, category, icon, is_active')
         .eq('agency_id', user.agency_id)
-        .order('sort_order');
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setTasks(data);
-      } else {
-        // Initialize with default tasks if none exist
-        await initializeDefaultTasks();
-      }
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    }
-
-    setLoading(false);
-  }
-
-  async function initializeDefaultTasks() {
-    if (!user?.agency_id) return;
-
-    try {
-      const tasksToInsert = DEFAULT_TASKS.map((task) => ({
-        ...task,
-        agency_id: user.agency_id,
-      }));
-
-      const { data, error } = await supabase
-        .from('task_definitions')
-        .insert(tasksToInsert)
-        .select();
+        .in('category', ['companionship', 'housekeeping', 'errands'])
+        .order('name');
 
       if (error) throw error;
 
@@ -98,8 +65,10 @@ export default function TaskLibraryScreen() {
         setTasks(data);
       }
     } catch (error) {
-      console.error('Error initializing tasks:', error);
+      console.error('Error fetching tasks:', error);
     }
+
+    setLoading(false);
   }
 
   async function onRefresh() {
@@ -111,7 +80,7 @@ export default function TaskLibraryScreen() {
   async function toggleTask(taskId: string, isActive: boolean) {
     try {
       const { error } = await supabase
-        .from('task_definitions')
+        .from('task_library')
         .update({ is_active: isActive })
         .eq('id', taskId);
 
@@ -128,51 +97,28 @@ export default function TaskLibraryScreen() {
   // Group tasks by category
   const sections: SectionData[] = Object.entries(
     tasks.reduce((acc, task) => {
-      const category = task.category as TaskCategory;
+      const category = task.category;
       if (!acc[category]) acc[category] = [];
       acc[category].push(task);
       return acc;
-    }, {} as Record<TaskCategory, TaskDefinition[]>)
+    }, {} as Record<string, TaskDefinition[]>)
   )
     .map(([category, data]) => ({
-      title: CATEGORY_LABELS[category as TaskCategory] || category,
+      title: ALLOWED_CATEGORY_LABELS[category] || category,
       data,
-    }))
-    .sort((a, b) => {
-      // Sort sections by first task's sort_order
-      const aOrder = a.data[0]?.sort_order ?? 999;
-      const bOrder = b.data[0]?.sort_order ?? 999;
-      return aOrder - bOrder;
-    });
+    }));
 
   const activeCount = tasks.filter((t) => t.is_active).length;
-  const licensedCount = tasks.filter((t) => t.requires_license && t.is_active).length;
 
   const renderTask = ({ item }: { item: TaskDefinition }) => (
     <View style={styles.taskCard}>
       <View style={styles.taskContent}>
-        <View style={styles.taskHeader}>
-          <Text style={[styles.taskName, !item.is_active && styles.taskNameDisabled]}>
-            {item.name}
-          </Text>
-          {item.requires_license && (
-            <View style={styles.licenseBadge}>
-              <AlertIcon size={12} color={colors.warning[600]} />
-              <Text style={styles.licenseText}>Licensed</Text>
-            </View>
-          )}
-        </View>
+        <Text style={[styles.taskName, !item.is_active && styles.taskNameDisabled]}>
+          {item.name}
+        </Text>
         <Text style={[styles.taskDescription, !item.is_active && styles.taskDescriptionDisabled]}>
           {item.description}
         </Text>
-        {item.estimated_duration_minutes && (
-          <View style={styles.durationRow}>
-            <ClockIcon size={12} color={colors.text.secondary} />
-            <Text style={styles.durationText}>
-              ~{item.estimated_duration_minutes} min
-            </Text>
-          </View>
-        )}
       </View>
       <Switch
         value={item.is_active}
@@ -204,19 +150,13 @@ export default function TaskLibraryScreen() {
         {/* Summary Header */}
         <View style={styles.summaryHeader}>
           <Text style={styles.summaryText}>
-            Configure which services your agency offers. Careseekers will select from active tasks.
+            Companions provide companionship, light cleaning, and grocery help only.
           </Text>
           <View style={styles.summaryStats}>
             <View style={styles.statItem}>
               <CheckIcon size={16} color={colors.success[500]} />
-              <Text style={styles.statText}>{activeCount} active</Text>
+              <Text style={styles.statText}>{activeCount} of {tasks.length} active</Text>
             </View>
-            {licensedCount > 0 && (
-              <View style={styles.statItem}>
-                <AlertIcon size={16} color={colors.warning[500]} />
-                <Text style={styles.statText}>{licensedCount} require license</Text>
-              </View>
-            )}
           </View>
         </View>
 
@@ -240,14 +180,11 @@ export default function TaskLibraryScreen() {
           }
         />
 
-        {/* Add Custom Task Button */}
+        {/* Footer info */}
         <View style={styles.footer}>
-          <Button
-            title="+ Add Custom Task"
-            variant="outline"
-            fullWidth
-            onPress={() => router.push('/(protected)/agency/settings/add-task')}
-          />
+          <Text style={styles.footerText}>
+            Tasks are restricted to non-medical companionship services.
+          </Text>
         </View>
       </SafeAreaView>
     </>
@@ -317,32 +254,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: spacing[3],
   },
-  taskHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginBottom: 4,
-  },
   taskName: {
     ...typography.styles.label,
     color: colors.text.primary,
+    marginBottom: 4,
   },
   taskNameDisabled: {
     color: colors.text.secondary,
-  },
-  licenseBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    backgroundColor: colors.warning[100],
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  licenseText: {
-    fontSize: 10,
-    color: colors.warning[700],
-    fontWeight: '500',
   },
   taskDescription: {
     ...typography.styles.caption,
@@ -350,16 +268,6 @@ const styles = StyleSheet.create({
   },
   taskDescriptionDisabled: {
     color: colors.neutral[400],
-  },
-  durationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
-  },
-  durationText: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -374,5 +282,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.neutral[200],
     backgroundColor: colors.surface,
+  },
+  footerText: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    textAlign: 'center',
   },
 });

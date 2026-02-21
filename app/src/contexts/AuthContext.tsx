@@ -209,6 +209,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: {
           full_name: profile.full_name,
           role: profile.role,
+          ...(profile.caregiver_type ? { caregiver_type: profile.caregiver_type } : {}),
+          ...(profile.phone ? { phone: profile.phone } : {}),
         },
       },
     });

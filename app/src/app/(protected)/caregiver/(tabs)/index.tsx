@@ -20,6 +20,8 @@ import {
 import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { OfflineIndicator } from '@/components/sync';
+import { NotificationBell } from '@/components/NotificationBell';
+import { registerForPushNotifications } from '@/lib/notifications';
 
 interface Assignment {
   id: string;
@@ -27,6 +29,8 @@ interface Assignment {
   scheduled_start: string;
   scheduled_end: string;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  is_recurring?: boolean;
+  parent_visit_id?: string | null;
   elder: {
     id: string;
     first_name: string;
@@ -65,6 +69,12 @@ export default function CaregiverTodayScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [caregiverType, setCaregiverType] = useState<string | null>(null);
+  const [upcomingVisits, setUpcomingVisits] = useState<any[]>([]);
+  const [totalCompleted, setTotalCompleted] = useState(0);
+  const [totalHours, setTotalHours] = useState(0);
+  const [avgRating, setAvgRating] = useState<number | null>(null);
+  const [linkedAgencies, setLinkedAgencies] = useState<{ id: string; name: string }[]>([]);
 
   const fetchTodayAssignments = useCallback(async () => {
     if (!user?.id) {
@@ -83,6 +93,8 @@ export default function CaregiverTodayScreen() {
           scheduled_start,
           scheduled_end,
           status,
+          is_recurring,
+          parent_visit_id,
           elder:elders (
             id,
             first_name,
@@ -121,6 +133,8 @@ export default function CaregiverTodayScreen() {
     }
   }, [user?.id]);
 
+  const [requestCount, setRequestCount] = useState(0);
+
   const fetchPendingInvitations = useCallback(async () => {
     if (!user?.id) return;
 
@@ -140,20 +154,130 @@ export default function CaregiverTodayScreen() {
     }
   }, [user?.id]);
 
+  const fetchVisitRequests = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const { count } = await supabase
+        .from('visit_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('companion_id', user.id)
+        .eq('status', 'pending');
+      setRequestCount(count || 0);
+    } catch {
+      // Non-critical
+    }
+  }, [user?.id]);
+
+  const fetchProfileAndStats = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      // Get caregiver profile
+      const { data: profile } = await supabase
+        .from('caregiver_profiles')
+        .select('id, caregiver_type')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        setCaregiverType(profile.caregiver_type);
+
+        // Linked agencies
+        const { data: links } = await supabase
+          .from('caregiver_agency_links')
+          .select('agencies(id, name)')
+          .eq('caregiver_profile_id', profile.id)
+          .eq('status', 'active');
+
+        if (links) {
+          setLinkedAgencies(
+            links
+              .map((l: any) => {
+                const a = Array.isArray(l.agencies) ? l.agencies[0] : l.agencies;
+                return a ? { id: a.id, name: a.name } : null;
+              })
+              .filter(Boolean) as { id: string; name: string }[]
+          );
+        }
+      }
+
+      // Completed visits stats
+      const { data: completedVisits } = await supabase
+        .from('visits')
+        .select('id, duration_minutes')
+        .eq('caregiver_id', user.id)
+        .eq('status', 'completed');
+
+      setTotalCompleted(completedVisits?.length || 0);
+      setTotalHours(
+        Math.round(
+          (completedVisits?.reduce((sum, v: any) => sum + (v.duration_minutes || 0), 0) || 0) / 60
+        )
+      );
+
+      // Average rating
+      const { data: ratingSummary } = await supabase
+        .from('user_ratings_summary')
+        .select('avg_rating, total_ratings')
+        .eq('rated_user', user.id)
+        .maybeSingle();
+
+      if (ratingSummary) {
+        setAvgRating(ratingSummary.avg_rating);
+      }
+
+      // Upcoming visits (next 7 days, excluding today)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const weekOut = new Date();
+      weekOut.setDate(weekOut.getDate() + 7);
+
+      const { data: upcoming } = await supabase
+        .from('visits')
+        .select(`
+          id, scheduled_date, scheduled_start, scheduled_end, status,
+          elder:elders(first_name, last_name)
+        `)
+        .eq('caregiver_id', user.id)
+        .eq('status', 'scheduled')
+        .gte('scheduled_date', format(tomorrow, 'yyyy-MM-dd'))
+        .lte('scheduled_date', format(weekOut, 'yyyy-MM-dd'))
+        .order('scheduled_date', { ascending: true })
+        .limit(5);
+
+      if (upcoming) {
+        setUpcomingVisits(
+          upcoming.map((v: any) => ({
+            ...v,
+            elder: Array.isArray(v.elder) ? v.elder[0] : v.elder,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching profile/stats:', error);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     fetchTodayAssignments();
     fetchPendingInvitations();
-  }, [fetchTodayAssignments, fetchPendingInvitations]);
+    fetchVisitRequests();
+    fetchProfileAndStats();
+    // Register for push notifications (no-op on web)
+    if (user?.id) {
+      registerForPushNotifications(user.id, 'caregiver');
+    }
+  }, [fetchTodayAssignments, fetchPendingInvitations, fetchVisitRequests, fetchProfileAndStats]);
 
   useFocusEffect(
     useCallback(() => {
       fetchPendingInvitations();
-    }, [fetchPendingInvitations])
+      fetchVisitRequests();
+    }, [fetchPendingInvitations, fetchVisitRequests])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchTodayAssignments(), fetchPendingInvitations()]);
+    await Promise.all([fetchTodayAssignments(), fetchPendingInvitations(), fetchVisitRequests(), fetchProfileAndStats()]);
     setRefreshing(false);
   };
 
@@ -201,6 +325,19 @@ export default function CaregiverTodayScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Pending Visit Requests Banner */}
+        {requestCount > 0 && (
+          <Pressable
+            style={styles.requestBanner}
+            onPress={() => router.push('/(protected)/caregiver/requests' as any)}
+          >
+            <PersonIcon size={20} color={colors.primary[600]} />
+            <Text style={styles.requestBannerText}>
+              {requestCount} new visit request{requestCount > 1 ? 's' : ''} — tap to respond
+            </Text>
+          </Pressable>
+        )}
+
         {/* Pending Invitations Banner */}
         {pendingCount > 0 && (
           <Pressable
@@ -214,6 +351,17 @@ export default function CaregiverTodayScreen() {
           </Pressable>
         )}
 
+        {/* Find Agencies link — for companion types */}
+        {(user?.caregiver_type === 'student' || user?.caregiver_type === 'companion_55') && (
+          <Pressable
+            style={styles.agenciesBanner}
+            onPress={() => router.push('/(protected)/caregiver/agencies-near-me' as any)}
+          >
+            <LocationIcon size={18} color="#059669" />
+            <Text style={styles.agenciesBannerText}>Find agencies near you</Text>
+          </Pressable>
+        )}
+
         {/* Header - Large, easy to read */}
         <GradientHeader roleColor={roleColors.caregiver}>
           <View style={styles.header}>
@@ -221,7 +369,10 @@ export default function CaregiverTodayScreen() {
               <Text style={styles.greeting}>
                 {getGreeting()}, {user?.full_name?.split(' ')[0] || 'there'}!
               </Text>
-              <OfflineIndicator size="small" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[1] }}>
+                <NotificationBell />
+                <OfflineIndicator size="small" />
+              </View>
             </View>
             <Text style={styles.subtitle}>
               You have {assignments.length} visit{assignments.length !== 1 ? 's' : ''} today
@@ -249,7 +400,7 @@ export default function CaregiverTodayScreen() {
               </View>
               <View style={styles.elderInfo}>
                 <Text style={styles.elderName}>
-                  {visit.elder.first_name} {visit.elder.last_name}
+                  {(visit.is_recurring || visit.parent_visit_id) ? '\uD83D\uDD01 ' : ''}{visit.elder.first_name} {visit.elder.last_name}
                 </Text>
                 <View style={styles.locationRow}>
                   <LocationIcon size={18} color={colors.text.secondary} />
@@ -307,6 +458,83 @@ export default function CaregiverTodayScreen() {
             </Text>
           </View>
         )}
+
+        {/* Upcoming Visits (Next 7 Days) */}
+        {upcomingVisits.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Upcoming Visits</Text>
+            {upcomingVisits.map((visit) => (
+              <Pressable
+                key={visit.id}
+                style={styles.upcomingCard}
+                onPress={() => router.push(`/(protected)/caregiver/visit/${visit.id}` as any)}
+              >
+                <View style={styles.upcomingDot} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.upcomingElder}>
+                    {visit.elder?.first_name} {visit.elder?.last_name}
+                  </Text>
+                  <Text style={styles.upcomingDate}>
+                    {format(new Date(visit.scheduled_date + 'T00:00:00'), 'EEE, MMM d')} · {formatTime(visit.scheduled_start)}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {/* Quick Stats */}
+        {totalCompleted > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Quick Stats</Text>
+            <Card padding="lg">
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{totalCompleted}</Text>
+                  <Text style={styles.statLabel}>Visits</Text>
+                </View>
+                {avgRating != null && (
+                  <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{avgRating.toFixed(1)}</Text>
+                    <Text style={styles.statLabel}>Avg Rating</Text>
+                  </View>
+                )}
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{totalHours}h</Text>
+                  <Text style={styles.statLabel}>Logged</Text>
+                </View>
+              </View>
+            </Card>
+          </View>
+        )}
+
+        {/* Linked Agencies */}
+        {linkedAgencies.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>My Agencies</Text>
+            {linkedAgencies.map((a) => (
+              <View key={a.id} style={styles.agencyRow}>
+                <CheckIcon size={18} color={colors.success[500]} />
+                <Text style={styles.agencyNameText}>{a.name}</Text>
+              </View>
+            ))}
+            <Pressable
+              style={styles.browseLink}
+              onPress={() => router.push('/(protected)/caregiver/agencies-near-me' as any)}
+            >
+              <Text style={styles.browseLinkText}>Browse Agencies →</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* Time Credits Teaser for 55+ */}
+        {caregiverType === 'companion_55' && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.timeCreditsCard}>
+              <Text style={styles.timeCreditsText}>⏳ Time Credits: Coming Soon</Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -320,6 +548,23 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: spacing[4],
     paddingBottom: spacing[8],
+  },
+  requestBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.primary[50],
+    padding: spacing[3],
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+    marginBottom: spacing[3],
+  },
+  requestBannerText: {
+    ...typography.caregiver.body,
+    color: colors.primary[700],
+    fontWeight: '600',
+    flex: 1,
   },
   invitationBanner: {
     flexDirection: 'row',
@@ -335,6 +580,23 @@ const styles = StyleSheet.create({
   invitationBannerText: {
     ...typography.caregiver.body,
     color: colors.warning[700],
+    fontWeight: '600',
+    flex: 1,
+  },
+  agenciesBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: '#05966910',
+    padding: spacing[3],
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#05966930',
+    marginBottom: spacing[3],
+  },
+  agenciesBannerText: {
+    ...typography.caregiver.body,
+    color: '#059669',
     fontWeight: '600',
     flex: 1,
   },
@@ -463,5 +725,87 @@ const styles = StyleSheet.create({
     ...typography.caregiver.body,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  sectionContainer: {
+    marginTop: spacing[6],
+  },
+  sectionTitle: {
+    ...typography.caregiver.heading,
+    color: colors.text.primary,
+    fontSize: 20,
+    marginBottom: spacing[3],
+  },
+  upcomingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    padding: spacing[4],
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing[2],
+    gap: spacing[3],
+  },
+  upcomingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: roleColors.caregiver,
+  },
+  upcomingElder: {
+    ...typography.caregiver.body,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  upcomingDate: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    ...typography.caregiver.heading,
+    color: colors.text.primary,
+    fontSize: 24,
+  },
+  statLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  agencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.surface,
+    padding: spacing[3],
+    borderRadius: borderRadius.md,
+    marginBottom: spacing[2],
+  },
+  agencyNameText: {
+    ...typography.caregiver.body,
+    color: colors.text.primary,
+  },
+  browseLink: {
+    marginTop: spacing[2],
+    alignItems: 'center',
+  },
+  browseLinkText: {
+    ...typography.styles.label,
+    color: roleColors.caregiver,
+  },
+  timeCreditsCard: {
+    backgroundColor: colors.neutral[100],
+    padding: spacing[4],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+  },
+  timeCreditsText: {
+    ...typography.caregiver.body,
+    color: colors.text.tertiary,
   },
 });

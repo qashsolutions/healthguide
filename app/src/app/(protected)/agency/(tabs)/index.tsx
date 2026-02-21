@@ -28,6 +28,7 @@ import {
   CheckIcon,
   ClockIcon,
 } from '@/components/icons';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface DashboardStats {
   totalCaregivers: number;
@@ -39,6 +40,17 @@ interface DashboardStats {
   inProgressToday: number;
   upcomingToday: number;
   pendingToday: number;
+  linkedCompanions: number;
+  pendingInvites: number;
+}
+
+interface PendingApplication {
+  id: string;
+  companion_id: string;
+  companion_name: string;
+  caregiver_type: string | null;
+  message: string | null;
+  created_at: string;
 }
 
 interface TodayVisit {
@@ -85,6 +97,7 @@ export default function AgencyDashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [checkinGroups, setCheckinGroups] = useState<CheckinGroups>({ red: [], amber: [], green: [] });
   const [expandedCard, setExpandedCard] = useState<'red' | 'amber' | 'green' | null>(null);
+  const [pendingApplications, setPendingApplications] = useState<PendingApplication[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     if (!agency?.id) return;
@@ -98,6 +111,8 @@ export default function AgencyDashboard() {
         eldersResult,
         visitsResult,
         activityResult,
+        pendingInvitesResult,
+        applicationsResult,
       ] = await Promise.all([
         // Caregivers count (via caregiver_agency_links — same source as Caregivers tab)
         supabase
@@ -142,6 +157,29 @@ export default function AgencyDashboard() {
           .in('status', ['completed', 'in_progress'])
           .order('updated_at', { ascending: false })
           .limit(10),
+
+        // Pending invites/applications count
+        supabase
+          .from('agency_invites')
+          .select('id', { count: 'exact', head: true })
+          .eq('agency_id', agency.id)
+          .eq('status', 'pending'),
+
+        // Pending applications (companion_to_agency)
+        supabase
+          .from('agency_invites')
+          .select(`
+            id,
+            companion_id,
+            message,
+            created_at,
+            companion:caregiver_profiles!companion_id(full_name, caregiver_type)
+          `)
+          .eq('agency_id', agency.id)
+          .eq('status', 'pending')
+          .eq('direction', 'companion_to_agency')
+          .order('created_at', { ascending: false })
+          .limit(5),
       ]);
 
       // Process caregivers (from caregiver_agency_links)
@@ -220,6 +258,20 @@ export default function AgencyDashboard() {
         };
       });
 
+      // Process pending applications
+      const apps: PendingApplication[] = (applicationsResult.data || []).map((a: any) => {
+        const comp = Array.isArray(a.companion) ? a.companion[0] : a.companion;
+        return {
+          id: a.id,
+          companion_id: a.companion_id,
+          companion_name: comp?.full_name || 'Unknown',
+          caregiver_type: comp?.caregiver_type || null,
+          message: a.message,
+          created_at: a.created_at,
+        };
+      });
+      setPendingApplications(apps);
+
       // Calculate stats
       const calculatedStats: DashboardStats = {
         totalCaregivers: caregivers.length,
@@ -231,6 +283,8 @@ export default function AgencyDashboard() {
         inProgressToday,
         upcomingToday,
         pendingToday,
+        linkedCompanions: activeCaregivers,
+        pendingInvites: pendingInvitesResult.count || 0,
       };
 
       // Categorize visits into check-in groups (Red / Amber / Green)
@@ -348,13 +402,16 @@ export default function AgencyDashboard() {
       >
         {/* Welcome Section */}
         <GradientHeader roleColor={roleColors.agency_owner}>
-          <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeText}>
-              Welcome back, {user?.full_name?.split(' ')[0] || 'there'}!
-            </Text>
-            <Text style={styles.agencyName}>
-              {agency?.name || 'Your Agency'}
-            </Text>
+          <View style={[styles.welcomeSection, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+            <View>
+              <Text style={styles.welcomeText}>
+                Welcome back, {user?.full_name?.split(' ')[0] || 'there'}!
+              </Text>
+              <Text style={styles.agencyName}>
+                {agency?.name || 'Your Agency'}
+              </Text>
+            </View>
+            <NotificationBell />
           </View>
         </GradientHeader>
 
@@ -389,6 +446,42 @@ export default function AgencyDashboard() {
               icon={<UsersIcon size={24} color={roleColors.caregiver} />}
               color={roleColors.caregiver}
             />
+            {stats.pendingInvites > 0 && (
+              <StatCard
+                title="Pending Invites"
+                value={stats.pendingInvites}
+                subtitle="awaiting response"
+                icon={<PersonIcon size={24} color={colors.warning[500]} />}
+                color={colors.warning[500]}
+              />
+            )}
+          </View>
+        )}
+
+        {/* Pending Applications */}
+        {pendingApplications.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pending Applications</Text>
+            {pendingApplications.map((app) => (
+              <Card key={app.id} variant="default" padding="md" style={styles.applicationCard}>
+                <View style={styles.applicationContent}>
+                  <View style={styles.applicationAvatar}>
+                    <PersonIcon size={24} color={roleColors.caregiver} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.applicationName}>{app.companion_name}</Text>
+                    <Text style={styles.applicationType}>
+                      {app.caregiver_type === 'student' ? 'Student Companion' :
+                       app.caregiver_type === 'companion_55' ? '55+ Companion' :
+                       app.caregiver_type === 'professional' ? 'Professional' : 'Companion'}
+                    </Text>
+                    {app.message && (
+                      <Text style={styles.applicationMessage} numberOfLines={2}>{app.message}</Text>
+                    )}
+                  </View>
+                </View>
+              </Card>
+            ))}
           </View>
         )}
 
@@ -869,5 +962,36 @@ const styles = StyleSheet.create({
   activityTime: {
     ...typography.styles.caption,
     color: colors.text.secondary,
+  },
+  applicationCard: {
+    marginBottom: spacing[2],
+  },
+  applicationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+  },
+  applicationAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: roleColors.caregiver + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  applicationName: {
+    ...typography.styles.label,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  applicationType: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
+  applicationMessage: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
 });

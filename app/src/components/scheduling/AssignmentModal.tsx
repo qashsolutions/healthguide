@@ -1,5 +1,6 @@
 // HealthGuide Assignment Modal
 // For assigning caregivers to elders on a time slot
+// 3-step flow: select elder → select caregiver → select tasks
 
 import { useState, useEffect } from 'react';
 import {
@@ -44,6 +45,13 @@ interface Elder {
   address: string;
 }
 
+interface TaskOption {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+}
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -51,13 +59,17 @@ interface Props {
   onAssign: () => void;
 }
 
+type Step = 'elder' | 'caregiver' | 'tasks';
+
 export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
   const { user } = useAuth();
-  const [step, setStep] = useState<'elder' | 'caregiver'>('elder');
+  const [step, setStep] = useState<Step>('elder');
   const [elders, setElders] = useState<Elder[]>([]);
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
+  const [taskOptions, setTaskOptions] = useState<TaskOption[]>([]);
   const [selectedElder, setSelectedElder] = useState<string | null>(null);
   const [selectedCaregiver, setSelectedCaregiver] = useState<string | null>(null);
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
 
@@ -65,6 +77,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
     if (visible) {
       fetchElders();
       fetchCaregivers();
+      fetchTasks();
     }
   }, [visible]);
 
@@ -91,17 +104,36 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
       .order('first_name');
 
     if (data) {
-      // Check availability for this slot
       const caregiverList = data.map((cg) => ({
         ...cg,
-        is_available: true, // Would check actual availability here
+        is_available: true,
       }));
       setCaregivers(caregiverList);
     }
   }
 
+  async function fetchTasks() {
+    if (!user?.agency_id) return;
+    const { data, error } = await supabase
+      .from('task_library')
+      .select('id, name, description, category')
+      .eq('agency_id', user.agency_id)
+      .eq('is_active', true)
+      .order('name');
+
+    if (data) setTaskOptions(data);
+  }
+
+  function toggleTask(taskId: string) {
+    setSelectedTasks((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId]
+    );
+  }
+
   async function handleAssign() {
-    if (!selectedElder || !selectedCaregiver) return;
+    if (!selectedElder || !selectedCaregiver || selectedTasks.length === 0) return;
 
     setLoading(true);
 
@@ -119,17 +151,36 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
       if (slotError) throw slotError;
 
       // Create visit record
-      const { error: visitError } = await supabase.from('visits').insert({
-        agency_id: user?.agency_id,
-        elder_id: selectedElder,
-        caregiver_id: selectedCaregiver,
-        scheduled_date: slot.date,
-        scheduled_start: `${slot.date}T${slot.start_time}`,
-        scheduled_end: `${slot.date}T${slot.end_time}`,
-        status: 'scheduled',
-      });
+      const { data: visit, error: visitError } = await supabase
+        .from('visits')
+        .insert({
+          agency_id: user?.agency_id,
+          elder_id: selectedElder,
+          caregiver_id: selectedCaregiver,
+          scheduled_date: slot.date,
+          scheduled_start: `${slot.date}T${slot.start_time}`,
+          scheduled_end: `${slot.date}T${slot.end_time}`,
+          status: 'scheduled',
+        })
+        .select('id')
+        .single();
 
       if (visitError) throw visitError;
+
+      // Create visit_tasks with task_id FK
+      if (visit) {
+        const visitTasks = selectedTasks.map((taskId) => ({
+          visit_id: visit.id,
+          task_id: taskId,
+          status: 'pending',
+        }));
+
+        const { error: tasksError } = await supabase
+          .from('visit_tasks')
+          .insert(visitTasks);
+
+        if (tasksError) throw tasksError;
+      }
 
       onAssign();
       handleClose();
@@ -144,6 +195,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
     setStep('elder');
     setSelectedElder(null);
     setSelectedCaregiver(null);
+    setSelectedTasks([]);
     onClose();
   }
 
@@ -219,6 +271,31 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
     );
   }
 
+  function renderTaskItem({ item }: { item: TaskOption }) {
+    const isSelected = selectedTasks.includes(item.id);
+
+    return (
+      <Pressable
+        style={[styles.taskItem, isSelected && styles.taskItemSelected]}
+        onPress={() => toggleTask(item.id)}
+      >
+        <View style={[styles.taskCheckbox, isSelected && styles.taskCheckboxSelected]}>
+          {isSelected && <CheckMarkIcon size={16} color={colors.white} />}
+        </View>
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemDetail}>{item.description}</Text>
+        </View>
+      </Pressable>
+    );
+  }
+
+  const stepLabels: Record<Step, string> = {
+    elder: 'Select Elder',
+    caregiver: 'Select Caregiver',
+    tasks: 'Select Tasks',
+  };
+
   return (
     <Modal
       visible={visible}
@@ -229,9 +306,7 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
       <SafeAreaView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>
-            {step === 'elder' ? 'Select Elder' : 'Select Caregiver'}
-          </Text>
+          <Text style={styles.title}>{stepLabels[step]}</Text>
           <Pressable onPress={handleClose} style={styles.closeButton}>
             <XIcon color={colors.text.tertiary} />
           </Pressable>
@@ -240,18 +315,34 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
         {/* Step Indicator */}
         <View style={styles.steps}>
           <View
-            style={[styles.step, step === 'elder' ? styles.stepActive : styles.stepCompleted]}
+            style={[
+              styles.step,
+              step === 'elder' ? styles.stepActive : styles.stepCompleted,
+            ]}
           >
             <Text style={styles.stepText}>1. Elder</Text>
           </View>
           <View style={styles.stepDivider} />
-          <View style={[styles.step, step === 'caregiver' && styles.stepActive]}>
+          <View
+            style={[
+              styles.step,
+              step === 'caregiver'
+                ? styles.stepActive
+                : step === 'tasks'
+                  ? styles.stepCompleted
+                  : undefined,
+            ]}
+          >
             <Text style={styles.stepText}>2. Caregiver</Text>
+          </View>
+          <View style={styles.stepDivider} />
+          <View style={[styles.step, step === 'tasks' && styles.stepActive]}>
+            <Text style={styles.stepText}>3. Tasks</Text>
           </View>
         </View>
 
         {/* List */}
-        {step === 'elder' ? (
+        {step === 'elder' && (
           <FlatList
             data={elders}
             keyExtractor={(item) => item.id}
@@ -263,7 +354,8 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
               </View>
             }
           />
-        ) : (
+        )}
+        {step === 'caregiver' && (
           <FlatList
             data={caregivers}
             keyExtractor={(item) => item.id}
@@ -276,17 +368,36 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
             }
           />
         )}
+        {step === 'tasks' && (
+          <>
+            <Text style={styles.taskHint}>
+              Select at least one task for this visit
+            </Text>
+            <FlatList
+              data={taskOptions}
+              keyExtractor={(item) => item.id}
+              renderItem={renderTaskItem}
+              contentContainerStyle={styles.list}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>No tasks available</Text>
+                </View>
+              }
+            />
+          </>
+        )}
 
         {/* Actions */}
         <View style={styles.actions}>
-          {step === 'elder' ? (
+          {step === 'elder' && (
             <Button
               title="Next: Select Caregiver"
               onPress={() => setStep('caregiver')}
               disabled={!selectedElder}
               style={styles.actionButton}
             />
-          ) : (
+          )}
+          {step === 'caregiver' && (
             <View style={styles.actionRow}>
               <Button
                 title="Back"
@@ -295,10 +406,26 @@ export function AssignmentModal({ visible, onClose, slot, onAssign }: Props) {
                 style={styles.backButton}
               />
               <Button
+                title="Next: Select Tasks"
+                onPress={() => setStep('tasks')}
+                disabled={!selectedCaregiver}
+                style={styles.actionButton}
+              />
+            </View>
+          )}
+          {step === 'tasks' && (
+            <View style={styles.actionRow}>
+              <Button
+                title="Back"
+                variant="outline"
+                onPress={() => setStep('caregiver')}
+                style={styles.backButton}
+              />
+              <Button
                 title="Assign Visit"
                 onPress={handleAssign}
                 loading={loading}
-                disabled={!selectedCaregiver}
+                disabled={selectedTasks.length === 0}
                 style={styles.actionButton}
               />
             </View>
@@ -337,7 +464,7 @@ const styles = StyleSheet.create({
   },
   step: {
     paddingVertical: spacing[2],
-    paddingHorizontal: layout.screenPadding,
+    paddingHorizontal: spacing[3],
     borderRadius: borderRadius['2xl'],
     backgroundColor: colors.neutral[100],
   },
@@ -410,6 +537,39 @@ const styles = StyleSheet.create({
   },
   unavailableText: {
     color: colors.error[500],
+  },
+  taskHint: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    paddingHorizontal: layout.screenPadding,
+    paddingBottom: spacing[1],
+  },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: layout.screenPadding,
+    backgroundColor: colors.neutral[50],
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing[2],
+    gap: spacing[3],
+  },
+  taskItemSelected: {
+    backgroundColor: colors.primary[100],
+    borderWidth: 2,
+    borderColor: colors.primary[500],
+  },
+  taskCheckbox: {
+    width: 28,
+    height: 28,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: colors.neutral[300],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  taskCheckboxSelected: {
+    backgroundColor: colors.primary[500],
+    borderColor: colors.primary[500],
   },
   emptyContainer: {
     padding: spacing[10],

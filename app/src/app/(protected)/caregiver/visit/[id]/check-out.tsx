@@ -14,6 +14,7 @@ import { getCurrentLocation } from '@/services/location';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { differenceInMinutes, parseISO, format } from 'date-fns';
+import { EmergencySOS } from '@/components/caregiver/EmergencySOS';
 
 type CheckOutStatus = 'idle' | 'processing' | 'success';
 
@@ -42,6 +43,7 @@ export default function CheckOutScreen() {
   const [assignment, setAssignment] = useState<AssignmentData | null>(null);
   const [taskCounts, setTaskCounts] = useState<TaskCounts>({ completed: 0, total: 0 });
   const [visitDuration, setVisitDuration] = useState('--');
+  const [emergencyContacts, setEmergencyContacts] = useState<{ name: string; phone: string; relationship: string }[]>([]);
 
   // Fetch assignment and task data
   const fetchData = useCallback(async () => {
@@ -58,7 +60,10 @@ export default function CheckOutScreen() {
           elder:elders (
             id,
             first_name,
-            last_name
+            last_name,
+            emergency_contact_name,
+            emergency_contact_phone,
+            emergency_contact_relationship
           )
         `)
         .eq('id', id)
@@ -71,6 +76,29 @@ export default function CheckOutScreen() {
         elder: Array.isArray(assignmentData.elder) ? assignmentData.elder[0] : assignmentData.elder,
       };
       setAssignment(transformed);
+
+      // Fetch emergency contacts
+      const elderData = transformed.elder as any;
+      const contacts: { name: string; phone: string; relationship: string }[] = [];
+      if (elderData?.emergency_contact_name && elderData?.emergency_contact_phone) {
+        contacts.push({
+          name: elderData.emergency_contact_name,
+          phone: elderData.emergency_contact_phone,
+          relationship: elderData.emergency_contact_relationship || 'Emergency Contact',
+        });
+      }
+      if (elderData?.id) {
+        const { data: ecData } = await supabase
+          .from('emergency_contacts')
+          .select('name, phone, relationship')
+          .eq('elder_id', elderData.id);
+        (ecData || []).forEach((ec: any) => {
+          if (!contacts.some((c) => c.phone === ec.phone)) {
+            contacts.push(ec);
+          }
+        });
+      }
+      setEmergencyContacts(contacts);
 
       // Calculate visit duration
       if (transformed?.actual_start) {
@@ -163,9 +191,9 @@ export default function CheckOutScreen() {
 
       setStatus('success');
 
-      // Return to home after delay
+      // Redirect to rate visit after brief success display
       setTimeout(() => {
-        router.replace('/(protected)/caregiver/(tabs)');
+        router.replace(`/(protected)/caregiver/rate-visit?visitId=${id}` as any);
       }, 2500);
 
     } catch (error) {
@@ -282,6 +310,15 @@ export default function CheckOutScreen() {
           </View>
         )}
       </View>
+
+      {/* Emergency SOS — only show before checkout completes */}
+      {status === 'idle' && id && assignment && (
+        <EmergencySOS
+          visitId={id}
+          elderName={clientName}
+          emergencyContacts={emergencyContacts}
+        />
+      )}
     </SafeAreaView>
   );
 }

@@ -20,7 +20,7 @@ import { Card, Badge, Button } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius } from '@/theme/spacing';
-import { PersonIcon, PlusIcon, PhoneIcon, SearchIcon, UsersIcon, CloseIcon, FilterIcon } from '@/components/icons';
+import { PersonIcon, PlusIcon, PhoneIcon, SearchIcon, UsersIcon, CloseIcon, FilterIcon, CompanionIcon } from '@/components/icons';
 
 // --- Constants ---
 
@@ -303,12 +303,21 @@ export default function CaregiversScreen() {
             ? `Showing ${filteredCaregivers.length} of ${caregivers.length} Caregivers`
             : `${caregivers.length} Available Caregivers`}
         </Text>
-        <Button
-          title="+ Add"
-          variant="primary"
-          size="sm"
-          onPress={handleAddCaregiver}
-        />
+        <View style={styles.headerButtons}>
+          <Pressable
+            style={styles.browseButton}
+            onPress={() => router.push('/(protected)/agency/browse-directory' as any)}
+          >
+            <CompanionIcon size={14} color={colors.white} />
+            <Text style={styles.browseButtonText}>Browse</Text>
+          </Pressable>
+          <Button
+            title="+ Add"
+            variant="primary"
+            size="sm"
+            onPress={handleAddCaregiver}
+          />
+        </View>
       </View>
 
       {/* A-Z Alphabet Bar */}
@@ -561,6 +570,26 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     fontWeight: '600',
     color: colors.text.secondary,
+    flex: 1,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  browseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing[3],
+    paddingVertical: 6,
+    borderRadius: borderRadius['2xl'],
+    backgroundColor: '#059669',
+  },
+  browseButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.white,
   },
 
   // A-Z Alphabet Bar

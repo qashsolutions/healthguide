@@ -20,17 +20,14 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing } from '@/theme/spacing';
 import { CheckIcon } from '@/components/icons';
-import { TaskCategory, CATEGORY_LABELS } from '@/data/defaultTasks';
+import { ALLOWED_CATEGORY_LABELS } from '@/constants/tasks';
 
-const CATEGORIES: TaskCategory[] = [
+type AllowedCategory = 'companionship' | 'housekeeping' | 'errands';
+
+const CATEGORIES: AllowedCategory[] = [
   'companionship',
-  'household',
-  'nutrition',
-  'mobility',
-  'personal_care',
+  'housekeeping',
   'errands',
-  'childcare',
-  'other',
 ];
 
 export default function AddTaskScreen() {
@@ -40,9 +37,7 @@ export default function AddTaskScreen() {
   const [form, setForm] = useState({
     name: '',
     description: '',
-    category: 'other' as TaskCategory,
-    requires_license: false,
-    estimated_duration_minutes: '',
+    category: 'companionship' as AllowedCategory,
     is_active: true,
   });
 
@@ -61,7 +56,7 @@ export default function AddTaskScreen() {
     try {
       // Get the highest sort_order for this category
       const { data: existingTasks } = await supabase
-        .from('task_definitions')
+        .from('task_library')
         .select('sort_order')
         .eq('agency_id', user?.agency_id)
         .eq('category', form.category)
@@ -70,18 +65,13 @@ export default function AddTaskScreen() {
 
       const lastSortOrder = existingTasks?.[0]?.sort_order ?? 0;
 
-      const { error } = await supabase.from('task_definitions').insert({
+      const { error } = await supabase.from('task_library').insert({
         agency_id: user?.agency_id,
         name: form.name.trim(),
         description: form.description.trim(),
         category: form.category,
-        icon_name: 'custom', // Default icon for custom tasks
-        requires_license: form.requires_license,
-        estimated_duration_minutes: form.estimated_duration_minutes
-          ? parseInt(form.estimated_duration_minutes, 10)
-          : null,
+        icon: 'ellipsis-horizontal-outline',
         is_active: form.is_active,
-        sort_order: lastSortOrder + 1,
       });
 
       if (error) throw error;
@@ -126,13 +116,6 @@ export default function AddTaskScreen() {
               numberOfLines={3}
             />
 
-            <Input
-              label="Estimated Duration (minutes)"
-              value={form.estimated_duration_minutes}
-              onChangeText={(text: string) => setForm({ ...form, estimated_duration_minutes: text })}
-              placeholder="e.g., 30"
-              keyboardType="numeric"
-            />
           </Card>
 
           {/* Category Selection */}
@@ -162,7 +145,7 @@ export default function AddTaskScreen() {
                         isSelected && styles.categoryTextSelected,
                       ]}
                     >
-                      {CATEGORY_LABELS[category]}
+                      {ALLOWED_CATEGORY_LABELS[category]}
                     </Text>
                   </Pressable>
                 );
@@ -173,23 +156,6 @@ export default function AddTaskScreen() {
           {/* Settings */}
           <Card style={styles.section}>
             <Text style={styles.sectionTitle}>Settings</Text>
-
-            <View style={styles.switchRow}>
-              <View style={styles.switchInfo}>
-                <Text style={styles.switchLabel}>Requires License</Text>
-                <Text style={styles.switchHint}>
-                  Only licensed caregivers can perform this task
-                </Text>
-              </View>
-              <Switch
-                value={form.requires_license}
-                onValueChange={(value) => setForm({ ...form, requires_license: value })}
-                trackColor={{ false: colors.neutral[200], true: colors.warning[300] }}
-                thumbColor={form.requires_license ? colors.warning[500] : colors.neutral[400]}
-              />
-            </View>
-
-            <View style={styles.divider} />
 
             <View style={styles.switchRow}>
               <View style={styles.switchInfo}>
@@ -294,11 +260,6 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     color: colors.text.secondary,
     marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.neutral[200],
-    marginVertical: spacing[2],
   },
   actions: {
     marginTop: spacing[4],

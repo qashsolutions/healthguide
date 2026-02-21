@@ -1,6 +1,5 @@
 // HealthGuide Welcome Screen
-// Role selection for login flow - vertical 3-option layout
-// Per frontend-design skill - professional SVG icons, not emojis
+// Companionship pivot landing — 3 primary cards + 2 secondary links
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
@@ -8,23 +7,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, createShadow } from '@/theme/spacing';
+import { spacing, createShadow, borderRadius } from '@/theme/spacing';
 import {
   AgencyOwnerIcon,
-  CaregiverIcon,
+  StudentIcon,
+  CompanionIcon,
   HealthGuideLogo,
 } from '@/components/icons';
 
-// Role card component for vertical layout
 function RoleCard({
   title,
-  description,
+  subtitle,
   icon,
   onPress,
-  color
+  color,
 }: {
   title: string;
-  description: string;
+  subtitle: string;
   icon: React.ReactNode;
   onPress: () => void;
   color: string;
@@ -32,31 +31,24 @@ function RoleCard({
   return (
     <Pressable
       style={({ pressed }) => [
-        styles.roleCard,
-        { borderColor: color },
-        pressed && styles.roleCardPressed
+        styles.card,
+        pressed && styles.cardPressed,
       ]}
       onPress={onPress}
     >
-      <View style={[styles.roleIconContainer, { backgroundColor: color }]}>
+      <View style={[styles.cardIcon, { backgroundColor: color }]}>
         {icon}
       </View>
-      <Text style={styles.roleTitle}>{title}</Text>
-      <Text style={styles.roleDescription}>{description}</Text>
+      <View style={styles.cardText}>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardSubtitle}>{subtitle}</Text>
+      </View>
     </Pressable>
   );
 }
 
 export default function WelcomeScreen() {
   const router = useRouter();
-
-  const openPrivacyPolicy = () => {
-    router.push('/(auth)/privacy-policy' as any);
-  };
-
-  const openTermsConditions = () => {
-    router.push('/(auth)/terms' as any);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,74 +62,70 @@ export default function WelcomeScreen() {
             <HealthGuideLogo size={48} color={colors.white} />
           </View>
           <Text style={styles.title}>HealthGuide</Text>
-          <Text style={styles.subtitle}>Professional Elder Care Management</Text>
+          <Text style={styles.tagline}>Companionship that matters</Text>
         </View>
 
-        {/* Role Selection - Vertical 3-Option Layout */}
-        <View style={styles.roleSection}>
-          <Text style={styles.sectionTitle}>I am a...</Text>
-
-          {/* Agency Owner Card */}
+        {/* Primary Cards */}
+        <View style={styles.cardsSection}>
           <RoleCard
-            title="Agency Owner"
-            description="Manage your care agency"
+            title="I'm a Student"
+            subtitle="Nursing/health student earning experience"
+            icon={<StudentIcon size={28} color={colors.white} />}
+            color="#7C3AED"
+            onPress={() => router.push('/(auth)/signup-student' as any)}
+          />
+
+          <RoleCard
+            title="I'm a 55+ Companion"
+            subtitle="Share your time & companionship"
+            icon={<CompanionIcon size={28} color={colors.white} />}
+            color={colors.success[600]}
+            onPress={() => router.push('/(auth)/signup-companion' as any)}
+          />
+
+          <RoleCard
+            title="I'm an Agency Owner"
+            subtitle="Manage your companion team"
             icon={<AgencyOwnerIcon size={28} color={colors.white} />}
             color={colors.primary[600]}
             onPress={() => router.push('/(auth)/login')}
           />
-
-          {/* Link below Agency Owner */}
-          <Pressable
-            onPress={() => router.push('/(auth)/register')}
-            style={styles.contextLinkContainer}
-          >
-            <Text style={styles.contextLink}>New agency? Register here</Text>
-          </Pressable>
-
-          {/* Caregiver Card */}
-          <RoleCard
-            title="Caregiver"
-            description="Sign up to offer care services"
-            icon={<CaregiverIcon size={28} color={colors.white} />}
-            color={colors.success[600]}
-            onPress={() => router.push('/(auth)/caregiver-signup' as any)}
-          />
-
-          {/* Link below Caregiver */}
-          <Pressable
-            onPress={() => router.push('/(auth)/phone-login?role=caregiver')}
-            style={styles.contextLinkContainer}
-          >
-            <Text style={styles.contextLink}>Already registered? Sign in</Text>
-          </Pressable>
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Invite Code Button */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.inviteButton,
-              pressed && styles.inviteButtonPressed
-            ]}
-            onPress={() => router.push('/(auth)/join-group' as any)}
-          >
-            <Text style={styles.inviteButtonText}>I have an invite code</Text>
-          </Pressable>
-
-          {/* Subtitle below invite button */}
-          <Text style={styles.inviteSubtitle}>
-            Join as family member or elder
-          </Text>
         </View>
+
+        {/* Secondary Links */}
+        <View style={styles.secondaryLinks}>
+          <Pressable onPress={() => router.push('/(auth)/join-group' as any)}>
+            <Text style={styles.secondaryLink}>I need care</Text>
+          </Pressable>
+          <Text style={styles.linkDot}>{'\u00B7'}</Text>
+          <Pressable onPress={() => router.push('/(auth)/join-group' as any)}>
+            <Text style={styles.secondaryLink}>I'm a family member</Text>
+          </Pressable>
+        </View>
+
+        {/* Sign In */}
+        <Pressable
+          style={styles.signInContainer}
+          onPress={() => router.push('/(auth)/login')}
+        >
+          <Text style={styles.signInText}>
+            Already have an account? <Text style={styles.signInLink}>Sign In</Text>
+          </Text>
+        </Pressable>
 
         {/* Footer - Privacy & Terms */}
         <View style={styles.legalFooter}>
-          <Text style={styles.legalLink} onPress={openPrivacyPolicy}>
+          <Text
+            style={styles.legalLink}
+            onPress={() => router.push('/(auth)/privacy-policy' as any)}
+          >
             Privacy Policy
           </Text>
-          <Text style={styles.legalDivider}>•</Text>
-          <Text style={styles.legalLink} onPress={openTermsConditions}>
+          <Text style={styles.legalDivider}>{'\u2022'}</Text>
+          <Text
+            style={styles.legalLink}
+            onPress={() => router.push('/(auth)/terms' as any)}
+          >
             Terms & Conditions
           </Text>
         </View>
@@ -179,103 +167,84 @@ const styles = StyleSheet.create({
     marginBottom: spacing[1],
     letterSpacing: -1,
   },
-  subtitle: {
+  tagline: {
     ...typography.styles.body,
     color: colors.text.secondary,
     textAlign: 'center',
   },
-  roleSection: {
+  cardsSection: {
+    gap: spacing[3],
     marginBottom: spacing[6],
   },
-  sectionTitle: {
-    ...typography.styles.h4,
-    color: colors.text.primary,
-    marginBottom: spacing[4],
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  roleCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: spacing[4],
+  card: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing[2],
-    ...createShadow(2, 0.08, 8, 3, colors.neutral[900]),
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.lg,
+    padding: spacing[4],
+    gap: spacing[3],
+    minHeight: 80,
+    ...createShadow(2, 0.1, 8, 4, colors.neutral[900]),
   },
-  roleCardPressed: {
-    opacity: 0.8,
+  cardPressed: {
+    opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
-  roleIconContainer: {
-    width: 52,
-    height: 52,
+  cardIcon: {
+    width: 48,
+    height: 48,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing[2],
   },
-  roleTitle: {
-    ...typography.styles.bodyLarge,
+  cardText: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 18,
     fontWeight: '700',
-    color: colors.text.primary,
-    marginBottom: spacing[1],
-    textAlign: 'center',
+    color: colors.neutral[900],
+    marginBottom: 2,
   },
-  roleDescription: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    textAlign: 'center',
+  cardSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.neutral[500],
   },
-  contextLinkContainer: {
-    marginBottom: spacing[4],
-    paddingHorizontal: spacing[2],
-  },
-  contextLink: {
-    ...typography.styles.body,
-    color: colors.primary[600],
-    fontWeight: '600',
-    textAlign: 'center',
-    fontSize: 13,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.neutral[200],
-    marginVertical: spacing[6],
-  },
-  inviteButton: {
-    width: '100%',
-    paddingVertical: spacing[4],
-    paddingHorizontal: spacing[4],
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.primary[600],
+  secondaryLinks: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing[2],
-  },
-  inviteButtonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
-  },
-  inviteButtonText: {
-    ...typography.styles.bodyLarge,
-    color: colors.primary[600],
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  inviteSubtitle: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    textAlign: 'center',
     marginBottom: spacing[4],
+    gap: spacing[2],
+  },
+  secondaryLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary[500],
+  },
+  linkDot: {
+    fontSize: 16,
+    color: colors.neutral[400],
+  },
+  signInContainer: {
+    alignItems: 'center',
+    marginBottom: spacing[6],
+    paddingVertical: spacing[2],
+  },
+  signInText: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+  },
+  signInLink: {
+    color: colors.primary[600],
+    fontWeight: '600',
   },
   legalFooter: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: spacing[4],
-    marginTop: spacing[6],
   },
   legalLink: {
     ...typography.styles.caption,

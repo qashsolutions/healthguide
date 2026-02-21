@@ -31,9 +31,9 @@ export default function ProtectedLayout() {
     const currentRoleSegment = segments[1]; // segments[0] = '(protected)'
 
     // If user is on wrong role route (or none), redirect to correct one
-    if (!currentRoleSegment || !['agency', 'caregiver', 'careseeker', 'family'].includes(currentRoleSegment)) {
+    if (!currentRoleSegment || !['agency', 'caregiver', 'careseeker', 'family', 'notifications'].includes(currentRoleSegment)) {
       router.replace(`/(protected)/${roleRoute}` as any);
-    } else if (currentRoleSegment !== roleRoute) {
+    } else if (currentRoleSegment !== roleRoute && currentRoleSegment !== 'notifications') {
       router.replace(`/(protected)/${roleRoute}` as any);
     }
   }, [user, loading, segments]);
@@ -59,6 +59,7 @@ export default function ProtectedLayout() {
         <Stack.Screen name="caregiver" />
         <Stack.Screen name="careseeker" />
         <Stack.Screen name="family" />
+        <Stack.Screen name="notifications" />
       </Stack>
     </SyncProvider>
   );

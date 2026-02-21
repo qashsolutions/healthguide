@@ -27,7 +27,8 @@ import {
   setupNotificationResponseHandler,
   clearBadge,
 } from '@/lib/notifications';
-import { FileTextIcon, CalendarIcon, SettingsIcon } from '@/components/icons';
+import { FileTextIcon, CalendarIcon, SettingsIcon, CompanionIcon } from '@/components/icons';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface ElderInfo {
   id: string;
@@ -42,6 +43,11 @@ interface RecentVisit {
   actual_start: string;
   actual_end: string;
   status: string;
+  duration_minutes: number | null;
+  check_in_latitude: number | null;
+  check_in_longitude: number | null;
+  check_out_latitude: number | null;
+  check_out_longitude: number | null;
   caregiver: {
     first_name: string;
   };
@@ -49,11 +55,19 @@ interface RecentVisit {
   tasks_total: number;
 }
 
+interface UpcomingVisit {
+  id: string;
+  scheduled_date: string;
+  scheduled_start: string;
+  companion_name: string;
+}
+
 export default function FamilyDashboardScreen() {
   const { user } = useAuth();
   const [elder, setElder] = useState<ElderInfo | null>(null);
   const [recentVisits, setRecentVisits] = useState<RecentVisit[]>([]);
   const [todayVisit, setTodayVisit] = useState<RecentVisit | null>(null);
+  const [upcomingVisits, setUpcomingVisits] = useState<UpcomingVisit[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -111,7 +125,7 @@ export default function FamilyDashboardScreen() {
         const elderData = Array.isArray(familyMember.elder) ? familyMember.elder[0] : familyMember.elder;
         setElder(elderData);
 
-        // Get recent visits
+        // Get recent visits with EVV data
         const { data: visits } = await supabase
           .from('visits')
           .select(`
@@ -120,6 +134,11 @@ export default function FamilyDashboardScreen() {
             actual_start,
             actual_end,
             status,
+            duration_minutes,
+            check_in_latitude,
+            check_in_longitude,
+            check_out_latitude,
+            check_out_longitude,
             caregiver:user_profiles!caregiver_id (first_name),
             visit_tasks (status)
           `)
@@ -131,6 +150,7 @@ export default function FamilyDashboardScreen() {
         if (visits) {
           const formattedVisits = visits.map((v: any) => ({
             ...v,
+            caregiver: Array.isArray(v.caregiver) ? v.caregiver[0] : v.caregiver,
             tasks_completed: v.visit_tasks?.filter((t: any) => t.status === 'completed').length || 0,
             tasks_total: v.visit_tasks?.length || 0,
           }));
@@ -141,6 +161,32 @@ export default function FamilyDashboardScreen() {
           );
           setTodayVisit(today || null);
           setRecentVisits(formattedVisits.filter((v) => v.id !== today?.id));
+        }
+
+        // Upcoming scheduled visits
+        const todayStr = format(new Date(), 'yyyy-MM-dd');
+        const { data: upcoming } = await supabase
+          .from('visits')
+          .select(`
+            id, scheduled_date, scheduled_start,
+            caregiver:user_profiles!caregiver_id (first_name)
+          `)
+          .eq('elder_id', elderData.id)
+          .eq('status', 'scheduled')
+          .gte('scheduled_date', todayStr)
+          .order('scheduled_date', { ascending: true })
+          .limit(3);
+
+        if (upcoming) {
+          setUpcomingVisits(upcoming.map((v: any) => {
+            const cg = Array.isArray(v.caregiver) ? v.caregiver[0] : v.caregiver;
+            return {
+              id: v.id,
+              scheduled_date: v.scheduled_date,
+              scheduled_start: v.scheduled_start,
+              companion_name: cg?.first_name || 'Companion',
+            };
+          }));
         }
       }
     } catch (error) {
@@ -183,10 +229,15 @@ export default function FamilyDashboardScreen() {
       >
         {/* Header */}
         <GradientHeader roleColor={roleColors.family} opacity={0.14}>
-          <Text style={styles.greeting}>Caring for</Text>
-          <Text style={styles.elderName}>
-            {elder?.first_name} {elder?.last_name}
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <Text style={styles.greeting}>Caring for</Text>
+              <Text style={styles.elderName}>
+                {elder?.first_name} {elder?.last_name}
+              </Text>
+            </View>
+            <NotificationBell />
+          </View>
         </GradientHeader>
 
         {/* Today's Visit Status */}
@@ -254,8 +305,46 @@ export default function FamilyDashboardScreen() {
           )}
         </View>
 
+        {/* Upcoming Scheduled Visits */}
+        {upcomingVisits.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Upcoming Visits</Text>
+            {upcomingVisits.map((visit) => (
+              <Card
+                key={visit.id}
+                onPress={() => router.push(`/family/visit/${visit.id}`)}
+                style={styles.visitCard}
+              >
+                <View style={styles.visitHeader}>
+                  <Text style={styles.visitDate}>
+                    {formatVisitDate(visit.scheduled_date)}
+                  </Text>
+                  <Text style={styles.visitCaregiver}>
+                    {visit.companion_name}
+                  </Text>
+                </View>
+                {visit.scheduled_start && (
+                  <Text style={styles.upcomingTime}>
+                    {format(new Date(`2000-01-01T${visit.scheduled_start}`), 'h:mm a')}
+                  </Text>
+                )}
+              </Card>
+            ))}
+          </View>
+        )}
+
         {/* Quick Actions */}
         <View style={styles.actions}>
+          <Card
+            onPress={() => router.push('/family/find-companion' as any)}
+            style={styles.actionCard}
+          >
+            <View style={[styles.actionIconWrap, { backgroundColor: '#059669' + '15' }]}>
+              <CompanionIcon size={28} color="#059669" />
+            </View>
+            <Text style={styles.actionLabel}>Find Companion</Text>
+          </Card>
+
           <Card
             onPress={() => router.push('/family/reports')}
             style={styles.actionCard}
@@ -311,10 +400,23 @@ export default function FamilyDashboardScreen() {
                   <Text style={styles.visitStat}>
                     ✓ {visit.tasks_completed}/{visit.tasks_total} tasks
                   </Text>
-                  {visit.actual_start && visit.actual_end && (
+                  {visit.duration_minutes != null && (
                     <Text style={styles.visitStat}>
-                      {format(new Date(visit.actual_start), 'h:mm a')} -{' '}
-                      {format(new Date(visit.actual_end), 'h:mm a')}
+                      {(visit.duration_minutes / 60).toFixed(1)} hours
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.evvRow}>
+                  {visit.actual_start && (
+                    <Text style={styles.evvText}>
+                      {visit.check_in_latitude ? '🟢' : '⚪'} In: {format(new Date(visit.actual_start), 'h:mm a')}
+                      {visit.check_in_latitude ? ' GPS ✓' : ''}
+                    </Text>
+                  )}
+                  {visit.actual_end && (
+                    <Text style={styles.evvText}>
+                      {visit.check_out_latitude ? '🟢' : '⚪'} Out: {format(new Date(visit.actual_end), 'h:mm a')}
+                      {visit.check_out_latitude ? ' GPS ✓' : ''}
                     </Text>
                   )}
                 </View>
@@ -476,5 +578,20 @@ const styles = StyleSheet.create({
   viewAllText: {
     ...typography.styles.label,
     color: roleColors.family,
+  },
+  upcomingTime: {
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    marginTop: spacing[1],
+  },
+  evvRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing[2],
+  },
+  evvText: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    fontSize: 11,
   },
 });

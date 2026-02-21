@@ -3,11 +3,14 @@
 
 export type UserRole = 'agency_owner' | 'caregiver' | 'careseeker' | 'volunteer' | 'family_member';
 
+export type CaregiverType = 'student' | 'companion_55' | 'professional';
+
 export interface UserProfile {
   id: string;
   email?: string;
   phone?: string;
   role: UserRole;
+  caregiver_type?: CaregiverType; // For signUp metadata pass-through
   agency_id?: string; // Links caregiver/careseeker/volunteer to agency
   first_name: string;
   last_name: string;

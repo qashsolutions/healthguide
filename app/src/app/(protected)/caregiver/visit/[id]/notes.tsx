@@ -14,6 +14,7 @@ import { CheckIcon, ArrowLeftIcon, XIcon } from '@/components/icons';
 import { hapticFeedback } from '@/utils/haptics';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { EmergencySOS } from '@/components/caregiver/EmergencySOS';
 
 interface Observation {
   category: string;
@@ -66,8 +67,9 @@ export default function NotesScreen() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [elderInfo, setElderInfo] = useState<ElderInfo | null>(null);
+  const [emergencyContacts, setEmergencyContacts] = useState<{ name: string; phone: string; relationship: string }[]>([]);
 
-  // Fetch elder info
+  // Fetch elder info + emergency contacts
   const fetchElderInfo = useCallback(async () => {
     if (!id) return;
 
@@ -77,16 +79,39 @@ export default function NotesScreen() {
         elder:elders (
           id,
           first_name,
-          last_name
+          last_name,
+          emergency_contact_name,
+          emergency_contact_phone,
+          emergency_contact_relationship
         )
       `)
       .eq('id', id)
       .single();
 
     if (data?.elder) {
-      // Transform Supabase join (array) to object
       const elderData = Array.isArray(data.elder) ? data.elder[0] : data.elder;
       setElderInfo(elderData);
+
+      const contacts: { name: string; phone: string; relationship: string }[] = [];
+      if (elderData.emergency_contact_name && elderData.emergency_contact_phone) {
+        contacts.push({
+          name: elderData.emergency_contact_name,
+          phone: elderData.emergency_contact_phone,
+          relationship: elderData.emergency_contact_relationship || 'Emergency Contact',
+        });
+      }
+      if (elderData.id) {
+        const { data: ecData } = await supabase
+          .from('emergency_contacts')
+          .select('name, phone, relationship')
+          .eq('elder_id', elderData.id);
+        (ecData || []).forEach((ec) => {
+          if (!contacts.some((c) => c.phone === ec.phone)) {
+            contacts.push(ec);
+          }
+        });
+      }
+      setEmergencyContacts(contacts);
     }
     setLoading(false);
   }, [id]);
@@ -288,6 +313,15 @@ export default function NotesScreen() {
           disabled={saving}
         />
       </View>
+
+      {/* Emergency SOS */}
+      {id && elderInfo && (
+        <EmergencySOS
+          visitId={id}
+          elderName={`${elderInfo.first_name} ${elderInfo.last_name}`}
+          emergencyContacts={emergencyContacts}
+        />
+      )}
     </SafeAreaView>
   );
 }

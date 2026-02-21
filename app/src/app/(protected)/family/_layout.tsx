@@ -51,6 +51,7 @@ export default function FamilyLayout() {
         }}
       />
       {/* Hide sub-routes from tab bar */}
+      <Tabs.Screen name="find-companion" options={{ href: null }} />
       <Tabs.Screen name="settings/profile" options={{ href: null }} />
       <Tabs.Screen name="settings/notifications" options={{ href: null }} />
       <Tabs.Screen name="visit/[id]" options={{ href: null }} />

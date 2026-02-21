@@ -13,6 +13,7 @@ import { CheckIcon, ArrowLeftIcon, FileTextIcon } from '@/components/icons';
 import { hapticFeedback } from '@/utils/haptics';
 import { VisitTask, TaskStatus } from '@/types/visit';
 import { supabase } from '@/lib/supabase';
+import { EmergencySOS } from '@/components/caregiver/EmergencySOS';
 
 interface AssignmentTask {
   id: string;
@@ -36,11 +37,18 @@ interface ElderInfo {
   last_name: string;
 }
 
+interface EmergencyContact {
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
 export default function TasksScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [tasks, setTasks] = useState<VisitTask[]>([]);
   const [elderInfo, setElderInfo] = useState<ElderInfo | null>(null);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch tasks for this assignment
@@ -101,7 +109,7 @@ export default function TasksScreen() {
     setLoading(false);
   }, [id]);
 
-  // Fetch elder info
+  // Fetch elder info + emergency contacts
   const fetchElderInfo = useCallback(async () => {
     if (!id) return;
 
@@ -109,17 +117,45 @@ export default function TasksScreen() {
       .from('visits')
       .select(`
         elder:elders (
+          id,
           first_name,
-          last_name
+          last_name,
+          emergency_contact_name,
+          emergency_contact_phone,
+          emergency_contact_relationship
         )
       `)
       .eq('id', id)
       .single();
 
     if (data?.elder) {
-      // Transform Supabase join (array) to object
       const elderData = Array.isArray(data.elder) ? data.elder[0] : data.elder;
       setElderInfo(elderData);
+
+      // Build emergency contacts from elder fields + emergency_contacts table
+      const contacts: EmergencyContact[] = [];
+      if (elderData.emergency_contact_name && elderData.emergency_contact_phone) {
+        contacts.push({
+          name: elderData.emergency_contact_name,
+          phone: elderData.emergency_contact_phone,
+          relationship: elderData.emergency_contact_relationship || 'Emergency Contact',
+        });
+      }
+
+      // Also fetch from emergency_contacts table
+      if (elderData.id) {
+        const { data: ecData } = await supabase
+          .from('emergency_contacts')
+          .select('name, phone, relationship')
+          .eq('elder_id', elderData.id);
+        (ecData || []).forEach((ec) => {
+          if (!contacts.some((c) => c.phone === ec.phone)) {
+            contacts.push({ name: ec.name, phone: ec.phone, relationship: ec.relationship });
+          }
+        });
+      }
+
+      setEmergencyContacts(contacts);
     }
   }, [id]);
 
@@ -323,6 +359,15 @@ export default function TasksScreen() {
           onPress={handleContinue}
         />
       </View>
+
+      {/* Emergency SOS */}
+      {id && elderInfo && (
+        <EmergencySOS
+          visitId={id}
+          elderName={`${elderInfo.first_name} ${elderInfo.last_name}`}
+          emergencyContacts={emergencyContacts}
+        />
+      )}
     </SafeAreaView>
   );
 }

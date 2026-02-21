@@ -10,6 +10,10 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Pressable,
+  TextInput,
+  Alert,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Location from 'expo-location';
@@ -37,6 +41,7 @@ import {
 import { hapticFeedback, vibrate } from '@/utils/haptics';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { markElderUnavailable } from '@/lib/cancelVisit';
 import { format } from 'date-fns';
 
 type CheckInStatus =
@@ -72,6 +77,9 @@ export default function CheckInScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [assignment, setAssignment] = useState<AssignmentData | null>(null);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
+  const [showUnavailableForm, setShowUnavailableForm] = useState(false);
+  const [unavailableNote, setUnavailableNote] = useState('');
+  const [markingUnavailable, setMarkingUnavailable] = useState(false);
   const watcherRef = useRef<Location.LocationSubscription | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -323,6 +331,46 @@ export default function CheckInScreen() {
     router.push(`/(protected)/caregiver/visit/${id}/qr-checkin`);
   };
 
+  const handleElderUnavailable = async () => {
+    if (!id) return;
+    setMarkingUnavailable(true);
+
+    // Get current coordinates for the record
+    const location = await getCurrentLocation();
+    const coords = location
+      ? { latitude: location.latitude, longitude: location.longitude }
+      : undefined;
+
+    const result = await markElderUnavailable(
+      id,
+      unavailableNote.trim() || 'Elder was not available at time of visit.',
+      coords,
+    );
+    setMarkingUnavailable(false);
+
+    if (result.success) {
+      // Stop watching
+      if (watcherRef.current) {
+        watcherRef.current.remove();
+        watcherRef.current = null;
+      }
+      const msg = 'Visit marked as elder unavailable. No penalty applied.';
+      if (Platform.OS === 'web') {
+        alert(msg);
+      } else {
+        Alert.alert('Elder Unavailable', msg);
+      }
+      router.back();
+    } else {
+      const errMsg = result.error || 'Could not update visit';
+      if (Platform.OS === 'web') {
+        alert(errMsg);
+      } else {
+        Alert.alert('Error', errMsg);
+      }
+    }
+  };
+
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':');
     const date = new Date();
@@ -441,10 +489,57 @@ export default function CheckInScreen() {
                 Move closer to the client's location to check in
               </Text>
             )}
-            {status === 'within_range' && (
+            {status === 'within_range' && !showUnavailableForm && (
               <Text style={[styles.instruction, { color: colors.success[600] }]}>
                 You're close enough - tap the button to check in!
               </Text>
+            )}
+
+            {/* Elder Not Available option */}
+            {status === 'within_range' && !showUnavailableForm && (
+              <Pressable
+                style={styles.unavailableLink}
+                onPress={() => setShowUnavailableForm(true)}
+              >
+                <Text style={styles.unavailableLinkText}>Elder not available?</Text>
+              </Pressable>
+            )}
+
+            {/* Elder Unavailable inline form */}
+            {status === 'within_range' && showUnavailableForm && (
+              <View style={styles.unavailableForm}>
+                <Text style={styles.unavailableTitle}>Elder Not Available</Text>
+                <Text style={styles.unavailableSubtitle}>
+                  Record that you arrived but the elder wasn't home. No penalty applies.
+                </Text>
+                <TextInput
+                  style={styles.unavailableInput}
+                  placeholder="Optional note (e.g., knocked, no answer)"
+                  placeholderTextColor={colors.text.tertiary}
+                  value={unavailableNote}
+                  onChangeText={setUnavailableNote}
+                  multiline
+                  numberOfLines={2}
+                />
+                <Pressable
+                  style={[styles.unavailableConfirmBtn, markingUnavailable && { opacity: 0.6 }]}
+                  onPress={handleElderUnavailable}
+                  disabled={markingUnavailable}
+                >
+                  <Text style={styles.unavailableConfirmText}>
+                    {markingUnavailable ? 'Submitting...' : 'Confirm Elder Unavailable'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.unavailableCancelLink}
+                  onPress={() => {
+                    setShowUnavailableForm(false);
+                    setUnavailableNote('');
+                  }}
+                >
+                  <Text style={styles.unavailableCancelText}>Go back</Text>
+                </Pressable>
+              </View>
             )}
           </>
         )}
@@ -692,5 +787,68 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     color: colors.text.secondary,
     marginBottom: spacing[3],
+  },
+  unavailableLink: {
+    marginTop: spacing[4],
+    paddingVertical: spacing[2],
+  },
+  unavailableLinkText: {
+    ...typography.styles.body,
+    color: colors.warning[600],
+    fontWeight: '600',
+  },
+  unavailableForm: {
+    marginTop: spacing[4],
+    padding: spacing[4],
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.warning[200],
+    width: '100%',
+    alignItems: 'center',
+  },
+  unavailableTitle: {
+    ...typography.caregiver.label,
+    color: colors.warning[700],
+    marginBottom: spacing[1],
+  },
+  unavailableSubtitle: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing[3],
+  },
+  unavailableInput: {
+    ...typography.styles.body,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: colors.neutral[300],
+    borderRadius: borderRadius.md,
+    padding: spacing[3],
+    color: colors.text.primary,
+    minHeight: 60,
+    textAlignVertical: 'top',
+    marginBottom: spacing[3],
+  },
+  unavailableConfirmBtn: {
+    backgroundColor: colors.warning[500],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[6],
+    borderRadius: borderRadius.lg,
+    width: '100%',
+    alignItems: 'center',
+  },
+  unavailableConfirmText: {
+    ...typography.styles.body,
+    color: colors.white,
+    fontWeight: '700',
+  },
+  unavailableCancelLink: {
+    marginTop: spacing[2],
+    paddingVertical: spacing[2],
+  },
+  unavailableCancelText: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
   },
 });
