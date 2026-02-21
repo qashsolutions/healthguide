@@ -1,6 +1,5 @@
-// HealthGuide Companion Directory
-// Browse and filter independent companions by tasks, availability, language, gender, transportation
-// Used by careseeker (elder) and family member roles
+// HealthGuide Public Companion Browse
+// Unauthenticated search: first-name-only, no favorites, signup prompt on card tap
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
@@ -13,15 +12,14 @@ import {
   RefreshControl,
   Image,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/Card';
 import {
   SearchIcon,
-  StarIcon,
   FilterIcon,
   CloseIcon,
   CompanionIcon,
@@ -31,16 +29,16 @@ import {
 } from '@/components/icons';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
-import { spacing, borderRadius, shadows } from '@/theme/spacing';
+import { spacing, borderRadius } from '@/theme/spacing';
 import { ALLOWED_TASKS } from '@/constants/tasks';
 
-interface CompanionCard {
+interface PublicCompanion {
   id: string;
   user_id: string;
   full_name: string;
   photo_url: string | null;
   selfie_url: string | null;
-  caregiver_type: 'student' | 'companion_55' | 'professional';
+  caregiver_type: 'student' | 'companion_55';
   zip_code: string;
   capabilities: string[];
   availability: Record<string, string[]> | null;
@@ -48,11 +46,7 @@ interface CompanionCard {
   bio: string | null;
   has_transportation: boolean;
   gender: string;
-  travel_radius_miles: number;
   college_name?: string;
-  average_rating: number | null;
-  total_visits: number;
-  is_favorite: boolean;
 }
 
 const DAYS_SHORT = [
@@ -91,13 +85,13 @@ const TASK_ICONS: Record<string, string> = {
   groceries: '\uD83D\uDED2',
 };
 
-export default function FindCompanionScreen() {
+export default function BrowseCompanionsScreen() {
   const router = useRouter();
-  const { user } = useAuth();
-  const [companions, setCompanions] = useState<CompanionCard[]>([]);
+  const [companions, setCompanions] = useState<PublicCompanion[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
   // Filters
   const [showFilters, setShowFilters] = useState(false);
@@ -123,14 +117,12 @@ export default function FindCompanionScreen() {
 
   const loadCompanions = useCallback(async () => {
     try {
-      // Fetch active, completed companion profiles
       const { data: profiles, error } = await supabase
         .from('caregiver_profiles')
         .select(`
           id, user_id, full_name, caregiver_type, zip_code,
           capabilities, availability, languages, bio, gender,
-          has_transportation, college_name, photo_url, selfie_url,
-          travel_radius_miles
+          has_transportation, college_name, photo_url, selfie_url
         `)
         .in('caregiver_type', ['student', 'companion_55'])
         .eq('is_active', true)
@@ -138,52 +130,7 @@ export default function FindCompanionScreen() {
 
       if (error) throw error;
 
-      // Fetch favorites for this elder
-      let favoriteIds = new Set<string>();
-      if (user?.id) {
-        // Get elder_id from user — could be the careseeker themselves or via family_members
-        const { data: elderData } = await supabase
-          .from('elders')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        const elderId = elderData?.id;
-        if (elderId) {
-          const { data: favs } = await supabase
-            .from('elder_favorites')
-            .select('companion_id')
-            .eq('elder_id', elderId);
-          favoriteIds = new Set((favs || []).map((f) => f.companion_id));
-        }
-      }
-
-      // Fetch ratings
-      const userIds = (profiles || []).map((p) => p.user_id);
-      let ratingsMap: Record<string, { avg: number; count: number }> = {};
-      if (userIds.length > 0) {
-        const { data: ratings } = await supabase
-          .from('visit_ratings')
-          .select('rated_user, rating')
-          .in('rated_user', userIds);
-
-        if (ratings) {
-          const grouped: Record<string, number[]> = {};
-          ratings.forEach((r) => {
-            if (!grouped[r.rated_user]) grouped[r.rated_user] = [];
-            grouped[r.rated_user].push(r.rating);
-          });
-          Object.entries(grouped).forEach(([uid, vals]) => {
-            ratingsMap[uid] = {
-              avg: vals.reduce((a, b) => a + b, 0) / vals.length,
-              count: vals.length,
-            };
-          });
-        }
-      }
-
-      // Combine into CompanionCard
-      const cards: CompanionCard[] = (profiles || []).map((p) => ({
+      const cards: PublicCompanion[] = (profiles || []).map((p) => ({
         id: p.id,
         user_id: p.user_id,
         full_name: p.full_name || 'Unknown',
@@ -197,11 +144,7 @@ export default function FindCompanionScreen() {
         bio: p.bio,
         has_transportation: p.has_transportation || false,
         gender: p.gender || '',
-        travel_radius_miles: p.travel_radius_miles || 10,
         college_name: p.college_name,
-        average_rating: ratingsMap[p.user_id]?.avg || null,
-        total_visits: ratingsMap[p.user_id]?.count || 0,
-        is_favorite: favoriteIds.has(p.user_id),
       }));
 
       setCompanions(cards);
@@ -209,7 +152,7 @@ export default function FindCompanionScreen() {
       console.error('Error loading companions:', err);
     }
     setLoading(false);
-  }, [user?.id]);
+  }, []);
 
   useEffect(() => {
     loadCompanions();
@@ -219,38 +162,6 @@ export default function FindCompanionScreen() {
     setRefreshing(true);
     await loadCompanions();
     setRefreshing(false);
-  }
-
-  async function toggleFavorite(companion: CompanionCard) {
-    if (!user?.id) return;
-
-    // Get elder_id
-    const { data: elderData } = await supabase
-      .from('elders')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!elderData?.id) return;
-
-    if (companion.is_favorite) {
-      await supabase
-        .from('elder_favorites')
-        .delete()
-        .eq('elder_id', elderData.id)
-        .eq('companion_id', companion.user_id);
-    } else {
-      await supabase
-        .from('elder_favorites')
-        .insert({ elder_id: elderData.id, companion_id: companion.user_id });
-    }
-
-    // Update local state
-    setCompanions((prev) =>
-      prev.map((c) =>
-        c.id === companion.id ? { ...c, is_favorite: !c.is_favorite } : c
-      )
-    );
   }
 
   function clearFilters() {
@@ -265,24 +176,23 @@ export default function FindCompanionScreen() {
   const filtered = useMemo(() => {
     let result = [...companions];
 
-    // 1. Text search (name or zip prefix)
     if (searchText.trim()) {
       const lower = searchText.trim().toLowerCase();
       if (/^\d{1,5}$/.test(searchText.trim())) {
         result = result.filter((c) => c.zip_code?.startsWith(searchText.trim()));
       } else {
-        result = result.filter((c) => c.full_name.toLowerCase().includes(lower));
+        result = result.filter((c) =>
+          c.full_name.split(' ')[0].toLowerCase().includes(lower)
+        );
       }
     }
 
-    // 2. Task filter
     if (taskFilter.length > 0) {
       result = result.filter((c) =>
         taskFilter.every((t) => c.capabilities?.includes(t))
       );
     }
 
-    // 3. Day filter
     if (dayFilter.length > 0) {
       result = result.filter((c) => {
         if (!c.availability) return false;
@@ -292,40 +202,31 @@ export default function FindCompanionScreen() {
       });
     }
 
-    // 4. Language filter
     if (languageFilter) {
       result = result.filter((c) => c.languages?.includes(languageFilter));
     }
 
-    // 5. Gender filter
     if (genderFilter) {
       result = result.filter((c) => c.gender === genderFilter);
     }
 
-    // 6. Transportation filter
     if (transportFilter) {
       result = result.filter((c) => c.has_transportation);
     }
 
-    // Sort: favorites first, then rating
-    result.sort((a, b) => {
-      if (a.is_favorite && !b.is_favorite) return -1;
-      if (!a.is_favorite && b.is_favorite) return 1;
-      return (b.average_rating || 0) - (a.average_rating || 0);
-    });
-
     return result;
   }, [companions, searchText, taskFilter, dayFilter, languageFilter, genderFilter, transportFilter]);
 
-  function renderCompanionCard({ item }: { item: CompanionCard }) {
-    const displayName = item.full_name.split(' ')[0] + (item.full_name.split(' ')[1] ? ` ${item.full_name.split(' ')[1][0]}.` : '');
+  function renderCompanionCard({ item }: { item: PublicCompanion }) {
+    // First name only for unauthenticated users
+    const displayName = item.full_name.split(' ')[0];
     const photo = item.selfie_url || item.photo_url;
     const isStudent = item.caregiver_type === 'student';
 
     return (
       <Card
         style={styles.companionCard}
-        onPress={() => router.push(`/(protected)/careseeker/companion/${item.id}` as any)}
+        onPress={() => setShowSignupModal(true)}
       >
         <View style={styles.cardRow}>
           {/* Photo */}
@@ -341,19 +242,7 @@ export default function FindCompanionScreen() {
 
           {/* Info */}
           <View style={styles.cardInfo}>
-            <View style={styles.cardNameRow}>
-              <Text style={styles.cardName}>{displayName}</Text>
-              <Pressable
-                onPress={() => toggleFavorite(item)}
-                hitSlop={8}
-                style={styles.favButton}
-              >
-                <StarIcon
-                  size={20}
-                  color={item.is_favorite ? colors.warning[500] : colors.neutral[300]}
-                />
-              </Pressable>
-            </View>
+            <Text style={styles.cardName}>{displayName}</Text>
 
             {/* Type badge */}
             <View style={styles.badgeRow}>
@@ -395,13 +284,6 @@ export default function FindCompanionScreen() {
                 "{item.bio}"
               </Text>
             )}
-
-            {/* Rating */}
-            {item.average_rating != null && (
-              <Text style={styles.ratingText}>
-                {'\u2B50'} {item.average_rating.toFixed(1)} ({item.total_visits} visits)
-              </Text>
-            )}
           </View>
         </View>
       </Card>
@@ -412,185 +294,252 @@ export default function FindCompanionScreen() {
   const totalCount = companions.length;
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Find a Companion', headerShown: true, headerBackTitle: 'Back' }} />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
-        {/* Combined search + filter bar */}
-        <View style={styles.searchRow}>
-          <View style={[styles.searchBar, showFilters && styles.searchBarActive]}>
-            <SearchIcon size={20} color={colors.neutral[400]} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search name or zip code..."
-              placeholderTextColor={colors.neutral[400]}
-              value={searchText}
-              onChangeText={setSearchText}
-            />
-            {searchText ? (
-              <Pressable onPress={() => setSearchText('')} hitSlop={8} style={styles.searchAction}>
-                <CloseIcon size={18} color={colors.neutral[400]} />
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.headerBar}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+          hitSlop={8}
+        >
+          <ArrowLeftIcon size={24} color={colors.neutral[700]} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Find a Companion</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* Sign-up banner */}
+      <Pressable
+        style={styles.signupBanner}
+        onPress={() => setShowSignupModal(true)}
+      >
+        <Text style={styles.signupBannerText}>
+          Sign up to see full profiles and request visits
+        </Text>
+      </Pressable>
+
+      {/* Combined search + filter bar */}
+      <View style={styles.searchRow}>
+        <View style={[styles.searchBar, showFilters && styles.searchBarActive]}>
+          <SearchIcon size={20} color={colors.neutral[400]} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search name or zip code..."
+            placeholderTextColor={colors.neutral[400]}
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+          {searchText ? (
+            <Pressable onPress={() => setSearchText('')} hitSlop={8} style={styles.searchAction}>
+              <CloseIcon size={18} color={colors.neutral[400]} />
+            </Pressable>
+          ) : null}
+          <View style={styles.searchDivider} />
+          <Pressable
+            style={[styles.filterToggle, showFilters && styles.filterToggleActive]}
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <FilterIcon size={16} color={showFilters ? colors.white : colors.text.secondary} />
+            <Text style={[styles.filterToggleText, showFilters && styles.filterToggleTextActive]}>
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+            </Text>
+          </Pressable>
+        </View>
+        {hasActiveFilters && (
+          <Pressable onPress={clearFilters} style={styles.clearRow}>
+            <Text style={styles.clearText}>Clear all filters</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Expandable filter panel */}
+      {showFilters && (
+        <ScrollView
+          style={styles.filterPanel}
+          contentContainerStyle={styles.filterPanelContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
+          {/* Tasks */}
+          <Text style={styles.filterLabel}>Tasks</Text>
+          <View style={styles.chipRow}>
+            {ALLOWED_TASKS.map((task) => {
+              const active = taskFilter.includes(task.id);
+              return (
+                <Pressable
+                  key={task.id}
+                  style={[styles.chip, active && styles.chipActive]}
+                  onPress={() => {
+                    if (active) {
+                      setTaskFilter(taskFilter.filter((t) => t !== task.id));
+                    } else {
+                      setTaskFilter([...taskFilter, task.id]);
+                    }
+                  }}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    {task.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Days */}
+          <Text style={styles.filterLabel}>Days Available</Text>
+          <View style={styles.chipRow}>
+            {DAYS_SHORT.map((day) => {
+              const active = dayFilter.includes(day.key);
+              return (
+                <Pressable
+                  key={day.key}
+                  style={[styles.chip, active && styles.chipActive]}
+                  onPress={() => {
+                    if (active) {
+                      setDayFilter(dayFilter.filter((d) => d !== day.key));
+                    } else {
+                      setDayFilter([...dayFilter, day.key]);
+                    }
+                  }}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    {day.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Language */}
+          <Text style={styles.filterLabel}>Language</Text>
+          <View style={styles.chipRow}>
+            {['english', 'spanish', 'mandarin', 'cantonese', 'tagalog', 'vietnamese', 'korean', 'hindi', 'arabic', 'french', 'portuguese', 'russian', 'japanese', 'haitian_creole', 'other'].map((lang) => {
+              const active = languageFilter === lang;
+              return (
+                <Pressable
+                  key={lang}
+                  style={[styles.chip, active && styles.chipActive]}
+                  onPress={() => setLanguageFilter(active ? '' : lang)}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    {LANGUAGE_LABELS[lang]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Gender */}
+          <Text style={styles.filterLabel}>Gender</Text>
+          <View style={styles.chipRow}>
+            {[{ key: 'male', label: 'Male' }, { key: 'female', label: 'Female' }, { key: 'other', label: 'Other' }].map((g) => {
+              const active = genderFilter === g.key;
+              return (
+                <Pressable
+                  key={g.key}
+                  style={[styles.chip, active && styles.chipActive]}
+                  onPress={() => setGenderFilter(active ? '' : g.key)}
+                >
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                    {g.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Transportation */}
+          <Pressable
+            style={[styles.chip, transportFilter && styles.chipActive, { marginTop: spacing[2] }]}
+            onPress={() => setTransportFilter(!transportFilter)}
+          >
+            <Text style={[styles.chipText, transportFilter && styles.chipTextActive]}>
+              {'\uD83D\uDE97'} Has transportation
+            </Text>
+          </Pressable>
+        </ScrollView>
+      )}
+
+      {/* Results count */}
+      <View style={styles.countRow}>
+        <Text style={styles.countText}>
+          {hasActiveFilters || searchText
+            ? `Showing ${resultCount} of ${totalCount} companions`
+            : `${totalCount} companions`}
+        </Text>
+      </View>
+
+      {/* List */}
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={renderCompanionCard}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <CompanionIcon size={48} color={colors.neutral[300]} />
+            <Text style={styles.emptyTitle}>
+              {loading ? 'Loading companions...' : 'No companions found'}
+            </Text>
+            {hasActiveFilters && !loading && (
+              <Pressable onPress={clearFilters}>
+                <Text style={styles.clearFiltersLink}>Clear filters</Text>
               </Pressable>
-            ) : null}
-            <View style={styles.searchDivider} />
+            )}
+          </View>
+        }
+      />
+
+      {/* Signup prompt modal */}
+      <Modal
+        visible={showSignupModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSignupModal(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowSignupModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Sign up to connect</Text>
+            <Text style={styles.modalBody}>
+              Create an account to see full profiles and request visits with companions.
+            </Text>
+
             <Pressable
-              style={[styles.filterToggle, showFilters && styles.filterToggleActive]}
-              onPress={() => setShowFilters(!showFilters)}
+              style={[styles.modalButton, styles.modalButtonPrimary]}
+              onPress={() => {
+                setShowSignupModal(false);
+                router.push('/(auth)/join-group' as any);
+              }}
             >
-              <FilterIcon size={16} color={showFilters ? colors.white : colors.text.secondary} />
-              <Text style={[styles.filterToggleText, showFilters && styles.filterToggleTextActive]}>
-                Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-              </Text>
+              <Text style={styles.modalButtonPrimaryText}>I need care</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.modalButton, styles.modalButtonSecondary]}
+              onPress={() => {
+                setShowSignupModal(false);
+                router.push('/(auth)/join-group' as any);
+              }}
+            >
+              <Text style={styles.modalButtonSecondaryText}>I'm a family member</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.modalCancel}
+              onPress={() => setShowSignupModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Maybe later</Text>
             </Pressable>
           </View>
-          {hasActiveFilters && (
-            <Pressable onPress={clearFilters} style={styles.clearRow}>
-              <Text style={styles.clearText}>Clear all filters</Text>
-            </Pressable>
-          )}
-        </View>
-
-        {/* Expandable filter panel */}
-        {showFilters && (
-          <ScrollView
-            style={styles.filterPanel}
-            contentContainerStyle={styles.filterPanelContent}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled
-          >
-            {/* Tasks */}
-            <Text style={styles.filterLabel}>Tasks</Text>
-            <View style={styles.chipRow}>
-              {ALLOWED_TASKS.map((task) => {
-                const active = taskFilter.includes(task.id);
-                return (
-                  <Pressable
-                    key={task.id}
-                    style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => {
-                      if (active) {
-                        setTaskFilter(taskFilter.filter((t) => t !== task.id));
-                      } else {
-                        setTaskFilter([...taskFilter, task.id]);
-                      }
-                    }}
-                  >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                      {task.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Days */}
-            <Text style={styles.filterLabel}>Days Available</Text>
-            <View style={styles.chipRow}>
-              {DAYS_SHORT.map((day) => {
-                const active = dayFilter.includes(day.key);
-                return (
-                  <Pressable
-                    key={day.key}
-                    style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => {
-                      if (active) {
-                        setDayFilter(dayFilter.filter((d) => d !== day.key));
-                      } else {
-                        setDayFilter([...dayFilter, day.key]);
-                      }
-                    }}
-                  >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                      {day.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Language */}
-            <Text style={styles.filterLabel}>Language</Text>
-            <View style={styles.chipRow}>
-              {['english', 'spanish', 'mandarin', 'cantonese', 'tagalog', 'vietnamese', 'korean', 'hindi', 'arabic', 'french', 'portuguese', 'russian', 'japanese', 'haitian_creole', 'other'].map((lang) => {
-                const active = languageFilter === lang;
-                return (
-                  <Pressable
-                    key={lang}
-                    style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => setLanguageFilter(active ? '' : lang)}
-                  >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                      {LANGUAGE_LABELS[lang]}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Gender */}
-            <Text style={styles.filterLabel}>Gender</Text>
-            <View style={styles.chipRow}>
-              {[{ key: 'male', label: 'Male' }, { key: 'female', label: 'Female' }, { key: 'other', label: 'Other' }].map((g) => {
-                const active = genderFilter === g.key;
-                return (
-                  <Pressable
-                    key={g.key}
-                    style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => setGenderFilter(active ? '' : g.key)}
-                  >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                      {g.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Transportation */}
-            <Pressable
-              style={[styles.chip, transportFilter && styles.chipActive, { marginTop: spacing[2] }]}
-              onPress={() => setTransportFilter(!transportFilter)}
-            >
-              <Text style={[styles.chipText, transportFilter && styles.chipTextActive]}>
-                {'\uD83D\uDE97'} Has transportation
-              </Text>
-            </Pressable>
-          </ScrollView>
-        )}
-
-        {/* Results count */}
-        <View style={styles.countRow}>
-          <Text style={styles.countText}>
-            {hasActiveFilters || searchText
-              ? `Showing ${resultCount} of ${totalCount} companions`
-              : `${totalCount} companions`}
-          </Text>
-        </View>
-
-        {/* List */}
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          renderItem={renderCompanionCard}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <CompanionIcon size={48} color={colors.neutral[300]} />
-              <Text style={styles.emptyTitle}>
-                {loading ? 'Loading companions...' : 'No companions found'}
-              </Text>
-              {hasActiveFilters && !loading && (
-                <Pressable onPress={clearFilters}>
-                  <Text style={styles.clearFiltersLink}>Clear filters</Text>
-                </Pressable>
-              )}
-            </View>
-          }
-        />
-      </SafeAreaView>
-    </>
+        </Pressable>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
@@ -598,6 +547,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+  },
+  backButton: {
+    padding: spacing[1],
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  signupBanner: {
+    backgroundColor: colors.primary[50],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primary[100],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+  },
+  signupBannerText: {
+    ...typography.styles.bodySmall,
+    color: colors.primary[700],
+    fontWeight: '600',
+    textAlign: 'center',
   },
   searchRow: {
     paddingHorizontal: spacing[4],
@@ -661,8 +638,6 @@ const styles = StyleSheet.create({
     color: colors.error[500],
     fontWeight: '600',
   },
-
-  // Filter panel
   filterPanel: {
     maxHeight: 340,
     borderBottomWidth: 1,
@@ -705,8 +680,6 @@ const styles = StyleSheet.create({
     color: roleColors.careseeker,
     fontWeight: '700',
   },
-
-  // Count
   countRow: {
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
@@ -715,15 +688,11 @@ const styles = StyleSheet.create({
     ...typography.styles.bodySmall,
     color: colors.text.tertiary,
   },
-
-  // List
   listContent: {
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[8],
     gap: spacing[3],
   },
-
-  // Companion card
   companionCard: {
     padding: 0,
   },
@@ -751,18 +720,10 @@ const styles = StyleSheet.create({
   cardInfo: {
     flex: 1,
   },
-  cardNameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   cardName: {
     ...typography.styles.body,
     color: colors.text.primary,
     fontWeight: '700',
-  },
-  favButton: {
-    padding: spacing[1],
   },
   badgeRow: {
     flexDirection: 'row',
@@ -812,14 +773,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 2,
   },
-  ratingText: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-
-  // Empty
   emptyState: {
     alignItems: 'center',
     paddingTop: spacing[10],
@@ -833,5 +786,68 @@ const styles = StyleSheet.create({
     ...typography.styles.bodySmall,
     color: roleColors.careseeker,
     fontWeight: '600',
+  },
+
+  // Signup modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing[6],
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.xl,
+    padding: spacing[6],
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: spacing[2],
+  },
+  modalBody: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing[5],
+  },
+  modalButton: {
+    width: '100%',
+    paddingVertical: spacing[3],
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    marginBottom: spacing[2],
+  },
+  modalButtonPrimary: {
+    backgroundColor: colors.primary[600],
+  },
+  modalButtonPrimaryText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  modalButtonSecondary: {
+    backgroundColor: colors.primary[50],
+    borderWidth: 1,
+    borderColor: colors.primary[200],
+  },
+  modalButtonSecondaryText: {
+    color: colors.primary[700],
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  modalCancel: {
+    marginTop: spacing[2],
+    paddingVertical: spacing[2],
+  },
+  modalCancelText: {
+    ...typography.styles.bodySmall,
+    color: colors.text.tertiary,
+    fontWeight: '500',
   },
 });

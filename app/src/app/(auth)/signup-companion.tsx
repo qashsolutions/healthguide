@@ -227,8 +227,7 @@ export default function SignupCompanionScreen() {
               </View>
               <Text style={styles.headerTitle}>Join as a 55+ Companion</Text>
               <Text style={styles.headerSubtitle}>
-                Share your time and life experience with elders
-                in your community
+                Chat, share a few laughs, reduce loneliness for yourself and others
               </Text>
             </View>
 

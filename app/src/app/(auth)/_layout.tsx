@@ -21,6 +21,8 @@ export default function AuthLayout() {
       <Stack.Screen name="caregiver-signup" />
       <Stack.Screen name="join-group" />
       <Stack.Screen name="family-signup" />
+      <Stack.Screen name="caregiver-roles" />
+      <Stack.Screen name="browse-companions" />
       <Stack.Screen name="privacy-policy" />
       <Stack.Screen name="terms" />
     </Stack>

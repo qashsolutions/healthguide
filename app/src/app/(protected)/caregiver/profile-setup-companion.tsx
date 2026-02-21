@@ -282,7 +282,12 @@ export default function ProfileSetupCompanionScreen() {
         {/* Header */}
         <View style={styles.headerBar}>
           <View style={{ width: 24 }} />
-          <Text style={styles.headerTitle}>Complete Your Profile</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Complete Your Profile</Text>
+            <Text style={styles.headerSubtitle}>
+              Chat, share a few laughs, reduce loneliness for yourself and others
+            </Text>
+          </View>
           <View style={{ width: 24 }} />
         </View>
 
@@ -555,10 +560,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
   },
+  headerCenter: {
+    alignItems: 'center',
+    flex: 1,
+  },
   headerTitle: {
     ...typography.styles.body,
     color: colors.text.primary,
     fontWeight: '600',
+  },
+  headerSubtitle: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginTop: 2,
   },
   scrollContent: {
     padding: spacing[4],

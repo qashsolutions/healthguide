@@ -1,5 +1,5 @@
-// HealthGuide Welcome Screen
-// Two-step landing: "I'm looking for Caregiver Services" vs "I'm a caregiver"
+// HealthGuide Caregiver Role Picker
+// Screen 2b: Student, 55+ Companion, or Agency Owner
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
@@ -9,12 +9,13 @@ import { colors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, createShadow, borderRadius } from '@/theme/spacing';
 import {
-  HeartIcon,
+  AgencyOwnerIcon,
+  StudentIcon,
   CompanionIcon,
-  HealthGuideLogo,
+  ArrowLeftIcon,
 } from '@/components/icons';
 
-function BigCard({
+function RoleCard({
   title,
   subtitle,
   icon,
@@ -38,13 +39,15 @@ function BigCard({
       <View style={[styles.cardIcon, { backgroundColor: color }]}>
         {icon}
       </View>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardSubtitle}>{subtitle}</Text>
+      <View style={styles.cardText}>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardSubtitle}>{subtitle}</Text>
+      </View>
     </Pressable>
   );
 }
 
-export default function WelcomeScreen() {
+export default function CaregiverRolesScreen() {
   const router = useRouter();
 
   return (
@@ -53,31 +56,46 @@ export default function WelcomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo/Header */}
+        {/* Back button */}
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+          hitSlop={8}
+        >
+          <ArrowLeftIcon size={24} color={colors.neutral[700]} />
+          <Text style={styles.backText}>Back</Text>
+        </Pressable>
+
+        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <HealthGuideLogo size={48} color={colors.white} />
-          </View>
-          <Text style={styles.title}>HealthGuide</Text>
-          <Text style={styles.tagline}>Companionship that matters</Text>
+          <Text style={styles.title}>Join as a Caregiver</Text>
+          <Text style={styles.subtitle}>Choose your role to get started</Text>
         </View>
 
-        {/* Two Primary Cards */}
+        {/* Role Cards */}
         <View style={styles.cardsSection}>
-          <BigCard
-            title="I'm looking for Caregiver Services"
-            subtitle="Browse companions and request visits"
-            icon={<HeartIcon size={32} color={colors.white} />}
-            color="#E11D48"
-            onPress={() => router.push('/(auth)/browse-companions' as any)}
+          <RoleCard
+            title="I'm a Student"
+            subtitle="Nursing/health student earning clinical experience"
+            icon={<StudentIcon size={28} color={colors.white} />}
+            color="#7C3AED"
+            onPress={() => router.push('/(auth)/signup-student' as any)}
           />
 
-          <BigCard
-            title="I'm a caregiver"
-            subtitle="Student, 55+ companion, or agency owner"
-            icon={<CompanionIcon size={32} color={colors.white} />}
+          <RoleCard
+            title="I'm a 55+ Companion"
+            subtitle="Chat, share a few laughs, reduce loneliness for yourself and others"
+            icon={<CompanionIcon size={28} color={colors.white} />}
+            color={colors.success[600]}
+            onPress={() => router.push('/(auth)/signup-companion' as any)}
+          />
+
+          <RoleCard
+            title="I'm an Agency Owner"
+            subtitle="Manage your caregiver agency"
+            icon={<AgencyOwnerIcon size={28} color={colors.white} />}
             color={colors.primary[600]}
-            onPress={() => router.push('/(auth)/caregiver-roles' as any)}
+            onPress={() => router.push('/(auth)/login')}
           />
         </View>
 
@@ -90,23 +108,6 @@ export default function WelcomeScreen() {
             Already have an account? <Text style={styles.signInLink}>Sign In</Text>
           </Text>
         </Pressable>
-
-        {/* Footer - Privacy & Terms */}
-        <View style={styles.legalFooter}>
-          <Text
-            style={styles.legalLink}
-            onPress={() => router.push('/(auth)/privacy-policy' as any)}
-          >
-            Privacy Policy
-          </Text>
-          <Text style={styles.legalDivider}>{'\u2022'}</Text>
-          <Text
-            style={styles.legalLink}
-            onPress={() => router.push('/(auth)/terms' as any)}
-          >
-            Terms & Conditions
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,45 +122,49 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[4],
-    justifyContent: 'center',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    marginBottom: spacing[4],
+    alignSelf: 'flex-start',
+    paddingVertical: spacing[1],
+  },
+  backText: {
+    ...typography.styles.body,
+    color: colors.neutral[700],
+    fontWeight: '600',
   },
   header: {
     alignItems: 'center',
-    marginBottom: spacing[8],
-  },
-  logoContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 24,
-    backgroundColor: colors.primary[500],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing[4],
-    ...createShadow(6, 0.25, 12, 10, colors.primary[700]),
+    marginBottom: spacing[6],
   },
   title: {
     fontFamily: typography.fontFamily.display,
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: '700',
     color: colors.primary[700],
     marginBottom: spacing[1],
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
-  tagline: {
+  subtitle: {
     ...typography.styles.body,
     color: colors.text.secondary,
     textAlign: 'center',
   },
   cardsSection: {
-    gap: spacing[4],
+    gap: spacing[3],
     marginBottom: spacing[6],
   },
   card: {
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
     borderRadius: borderRadius.lg,
-    padding: spacing[6],
-    gap: spacing[2],
+    padding: spacing[4],
+    gap: spacing[3],
+    minHeight: 80,
     ...createShadow(2, 0.1, 8, 4, colors.neutral[900]),
   },
   cardPressed: {
@@ -167,24 +172,25 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   cardIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing[1],
+  },
+  cardText: {
+    flex: 1,
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.neutral[900],
-    textAlign: 'center',
+    marginBottom: 2,
   },
   cardSubtitle: {
     fontSize: 14,
     fontWeight: '400',
     color: colors.neutral[500],
-    textAlign: 'center',
   },
   signInContainer: {
     alignItems: 'center',
@@ -198,20 +204,5 @@ const styles = StyleSheet.create({
   signInLink: {
     color: colors.primary[600],
     fontWeight: '600',
-  },
-  legalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: spacing[4],
-  },
-  legalLink: {
-    ...typography.styles.caption,
-    color: colors.text.tertiary,
-  },
-  legalDivider: {
-    ...typography.styles.caption,
-    color: colors.text.tertiary,
-    marginHorizontal: spacing[2],
   },
 });
