@@ -628,8 +628,8 @@ export default function CaregiverDirectoryScreen() {
         </ScrollView>
       )}
 
-      {/* Results */}
-      {loading ? (
+      {/* Results — hidden when filters panel is expanded */}
+      {showFilters ? null : loading ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={roleColors.agency_owner} />
           <Text style={styles.loadingText}>Searching caregivers...</Text>
@@ -1014,8 +1014,8 @@ const styles = StyleSheet.create({
   },
   filtersSection: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[2],
-    paddingBottom: spacing[4],
+    paddingTop: spacing[1],
+    paddingBottom: spacing[3],
   },
   filterRow: {
     flexDirection: 'row',
