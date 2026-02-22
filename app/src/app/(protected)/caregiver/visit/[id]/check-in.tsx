@@ -28,6 +28,7 @@ import {
   QRCodeIcon,
   PersonIcon,
   ArrowLeftIcon,
+  AlertIcon,
 } from '@/components/icons';
 import {
   requestLocationPermission,
@@ -40,6 +41,7 @@ import {
 } from '@/services/location';
 import { hapticFeedback, vibrate } from '@/utils/haptics';
 import { supabase } from '@/lib/supabase';
+import { evvCheckIn } from '@/lib/evvOperations';
 import { useAuth } from '@/contexts/AuthContext';
 import { markElderUnavailable } from '@/lib/cancelVisit';
 import { format } from 'date-fns';
@@ -80,6 +82,7 @@ export default function CheckInScreen() {
   const [showUnavailableForm, setShowUnavailableForm] = useState(false);
   const [unavailableNote, setUnavailableNote] = useState('');
   const [markingUnavailable, setMarkingUnavailable] = useState(false);
+  const [offlineBanner, setOfflineBanner] = useState(false);
   const watcherRef = useRef<Location.LocationSubscription | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -255,22 +258,18 @@ export default function CheckInScreen() {
       return;
     }
 
-    // Record check-in to Supabase
-    const { error: updateError } = await supabase
-      .from('visits')
-      .update({
-        status: 'in_progress',
-        actual_start: new Date().toISOString(),
-        check_in_latitude: location.latitude,
-        check_in_longitude: location.longitude,
-      })
-      .eq('id', id);
+    // Record check-in via network-aware wrapper (online → Supabase, offline → queue)
+    const result = await evvCheckIn(id!, location.latitude, location.longitude);
 
-    if (updateError) {
-      console.error('Error recording check-in:', updateError);
+    if (result.error && !result.offline) {
+      console.error('Error recording check-in:', result.error);
       setStatus('error');
       setErrorMessage('Could not record check-in. Please try again.');
       return;
+    }
+
+    if (result.offline) {
+      setOfflineBanner(true);
     }
 
     // Stop watching
@@ -564,6 +563,14 @@ export default function CheckInScreen() {
 
         {status === 'success' && (
           <View style={styles.statusContainer}>
+            {offlineBanner && (
+              <View style={styles.offlineBanner}>
+                <AlertIcon size={16} color={colors.warning[700]} />
+                <Text style={styles.offlineBannerText}>
+                  Offline — will sync when connected
+                </Text>
+              </View>
+            )}
             <View style={styles.successCircle}>
               <CheckIcon size={80} color={colors.white} />
             </View>
@@ -850,5 +857,22 @@ const styles = StyleSheet.create({
   unavailableCancelText: {
     ...typography.styles.body,
     color: colors.text.secondary,
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.warning[100],
+    borderWidth: 1,
+    borderColor: colors.warning[300],
+    borderRadius: 8,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[4],
+    marginBottom: spacing[4],
+  },
+  offlineBannerText: {
+    ...typography.styles.bodySmall,
+    color: colors.warning[700],
+    fontWeight: '600',
   },
 });

@@ -14,6 +14,7 @@ export default function AgencyLayout() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="browse-directory" />
+      <Stack.Screen name="evv-report" />
     </Stack>
   );
 }

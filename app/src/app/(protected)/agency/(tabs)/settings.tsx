@@ -103,6 +103,11 @@ export default function SettingsScreen() {
               onPress={() => router.push('/(protected)/agency/settings/task-library')}
             />
             <SettingsRow
+              title="EVV Reports"
+              value="View & export"
+              onPress={() => router.push('/(protected)/agency/evv-report' as any)}
+            />
+            <SettingsRow
               title="Billing"
               value="Manage subscription"
               onPress={() => router.push('/(protected)/agency/settings/billing')}

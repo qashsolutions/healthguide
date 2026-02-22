@@ -161,10 +161,8 @@ describe('Batch 30: Default Tasks', () => {
       'companionship',
       'household',
       'nutrition',
-      'mobility',
-      'personal_care',
       'errands',
-      'childcare',
+      'education',
       'other',
     ];
     DEFAULT_TASKS.forEach((task) => {

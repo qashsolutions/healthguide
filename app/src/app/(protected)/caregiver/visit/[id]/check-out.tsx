@@ -8,10 +8,17 @@ import { TapButton } from '@/components/ui';
 import { colors, roleColors } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { spacing, borderRadius, createShadow } from '@/theme/spacing';
-import { CheckIcon, LocationIcon, ClockIcon } from '@/components/icons';
+import { CheckIcon, LocationIcon, ClockIcon, AlertIcon } from '@/components/icons';
 import { hapticFeedback, vibrate } from '@/utils/haptics';
-import { getCurrentLocation } from '@/services/location';
+import {
+  getCurrentLocation,
+  calculateDistance,
+  isWithinRadius,
+  EVV_RADIUS_METERS,
+  formatDistance,
+} from '@/services/location';
 import { supabase } from '@/lib/supabase';
+import { evvCheckOut } from '@/lib/evvOperations';
 import { useAuth } from '@/contexts/AuthContext';
 import { differenceInMinutes, parseISO, format } from 'date-fns';
 import { EmergencySOS } from '@/components/caregiver/EmergencySOS';
@@ -26,6 +33,8 @@ interface AssignmentData {
     id: string;
     first_name: string;
     last_name: string;
+    latitude: number | null;
+    longitude: number | null;
   };
 }
 
@@ -44,6 +53,7 @@ export default function CheckOutScreen() {
   const [taskCounts, setTaskCounts] = useState<TaskCounts>({ completed: 0, total: 0 });
   const [visitDuration, setVisitDuration] = useState('--');
   const [emergencyContacts, setEmergencyContacts] = useState<{ name: string; phone: string; relationship: string }[]>([]);
+  const [offlineBanner, setOfflineBanner] = useState(false);
 
   // Fetch assignment and task data
   const fetchData = useCallback(async () => {
@@ -61,6 +71,8 @@ export default function CheckOutScreen() {
             id,
             first_name,
             last_name,
+            latitude,
+            longitude,
             emergency_contact_name,
             emergency_contact_phone,
             emergency_contact_relationship
@@ -151,38 +163,40 @@ export default function CheckOutScreen() {
     ? `${assignment.elder.first_name} ${assignment.elder.last_name}`
     : 'Loading...';
 
-  async function handleCheckOut() {
+  async function performCheckOut() {
     setStatus('processing');
 
     try {
       // Get current location for check-out
       const location = await getCurrentLocation();
 
-      // Update assignment in Supabase
-      const { error: updateError } = await supabase
-        .from('visits')
-        .update({
-          status: 'completed',
-          actual_end: new Date().toISOString(),
-          check_out_latitude: location?.latitude || null,
-          check_out_longitude: location?.longitude || null,
-        })
-        .eq('id', id);
+      // Use network-aware wrapper (online → Supabase, offline → queue)
+      const result = await evvCheckOut(
+        id!,
+        location?.latitude ?? null,
+        location?.longitude ?? null
+      );
 
-      if (updateError) throw updateError;
+      if (result.error && !result.offline) throw new Error(result.error);
+
+      if (result.offline) {
+        setOfflineBanner(true);
+      }
 
       // Try to trigger notifications via Edge Function (non-blocking)
-      try {
-        await supabase.functions.invoke('notify-check-out', {
-          body: {
-            visit_id: id,
-            elder_id: assignment?.elder.id,
-            caregiver_id: user?.id,
-          },
-        });
-      } catch (notifyError) {
-        // Don't fail check-out if notification fails
-        console.warn('Notification error (non-fatal):', notifyError);
+      if (!result.offline) {
+        try {
+          await supabase.functions.invoke('notify-check-out', {
+            body: {
+              visit_id: id,
+              elder_id: assignment?.elder.id,
+              caregiver_id: user?.id,
+            },
+          });
+        } catch (notifyError) {
+          // Don't fail check-out if notification fails
+          console.warn('Notification error (non-fatal):', notifyError);
+        }
       }
 
       // Success feedback
@@ -205,6 +219,47 @@ export default function CheckOutScreen() {
         [{ text: 'OK', onPress: () => setStatus('idle') }]
       );
     }
+  }
+
+  async function handleCheckOut() {
+    // Get GPS fix to check proximity before completing
+    const location = await getCurrentLocation();
+
+    const elderLat = assignment?.elder.latitude;
+    const elderLng = assignment?.elder.longitude;
+
+    // If we have both user and elder coordinates, verify radius
+    if (location && elderLat && elderLng) {
+      const within = isWithinRadius(
+        location.latitude,
+        location.longitude,
+        elderLat,
+        elderLng,
+        EVV_RADIUS_METERS
+      );
+
+      if (!within) {
+        const dist = calculateDistance(
+          location.latitude,
+          location.longitude,
+          elderLat,
+          elderLng
+        );
+        // Soft warning — allow override since there are legitimate reasons
+        Alert.alert(
+          'Distance Warning',
+          `You appear to be ${formatDistance(dist)} from the client's location. Are you sure you want to check out?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Check Out Anyway', onPress: performCheckOut },
+          ]
+        );
+        return;
+      }
+    }
+
+    // Within range, GPS unavailable, or no elder coords — proceed directly
+    performCheckOut();
   }
 
   function handleBack() {
@@ -293,6 +348,14 @@ export default function CheckOutScreen() {
 
         {status === 'success' && (
           <View style={styles.statusContainer}>
+            {offlineBanner && (
+              <View style={styles.offlineBanner}>
+                <AlertIcon size={16} color={colors.warning[700]} />
+                <Text style={styles.offlineBannerText}>
+                  Offline — will sync when connected
+                </Text>
+              </View>
+            )}
             <View style={styles.successCircle}>
               <CheckIcon size={64} color={colors.white} />
             </View>
@@ -431,5 +494,22 @@ const styles = StyleSheet.create({
     ...typography.caregiver.body,
     color: colors.text.secondary,
     marginTop: spacing[4],
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.warning[100],
+    borderWidth: 1,
+    borderColor: colors.warning[300],
+    borderRadius: 8,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[4],
+    marginBottom: spacing[4],
+  },
+  offlineBannerText: {
+    ...typography.styles.bodySmall,
+    color: colors.warning[700],
+    fontWeight: '600',
   },
 });
