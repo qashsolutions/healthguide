@@ -19,5 +19,8 @@ supabase/.env*
 .~lock.*
 *.~lock*
 
+# Internal documentation
+features_complete.md
+
 # Node
 node_modules/
