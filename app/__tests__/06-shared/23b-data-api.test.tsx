@@ -141,8 +141,8 @@ describe('Batch 30: Spacing', () => {
 
 describe('Batch 30: Default Tasks', () => {
   // Feature #316
-  it('#316 - Default tasks list has 19 entries', () => {
-    expect(DEFAULT_TASKS.length).toBe(19);
+  it('#316 - Default tasks list has 12 entries', () => {
+    expect(DEFAULT_TASKS.length).toBe(12);
   });
 
   // Feature #317

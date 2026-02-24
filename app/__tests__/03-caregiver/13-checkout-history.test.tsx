@@ -19,9 +19,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'visit-1' }),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ options }: any) => null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -35,16 +35,27 @@ jest.mock('@/contexts/AuthContext', () => ({
     agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
     loading: false,
     initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
     signOut: jest.fn(),
     refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    isRole: jest.fn((r: string) => r === 'caregiver'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'caregiver-1' } }),
   AuthProvider: ({ children }: any) => children,
+}));
+
+// Phase 9: EmergencySOS mock
+jest.mock('@/components/caregiver/EmergencySOS', () => {
+  const React = require('react');
+  const { Pressable, Text } = require('react-native');
+  return {
+    EmergencySOS: () => React.createElement(Pressable, { testID: 'sos-button' },
+      React.createElement(Text, null, 'SOS')
+    ),
+  };
+});
+
+// EVV operations mock
+jest.mock('@/lib/evvOperations', () => ({
+  evvCheckOut: jest.fn().mockResolvedValue({ error: null, offline: false }),
 }));
 
 // Mock haptics + location
@@ -165,7 +176,7 @@ describe('Batch 16: Check-Out', () => {
   it('#156 - Tasks completed count shows', async () => {
     render(<CheckOutScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Tasks completed: 2\/3/)).toBeTruthy();
+      expect(screen.getAllByText(/Tasks completed: 2\/3/)[0]).toBeTruthy();
     });
   });
 
@@ -174,6 +185,14 @@ describe('Batch 16: Check-Out', () => {
     render(<CheckOutScreen />);
     await waitFor(() => {
       expect(screen.getByText('Ready to leave?')).toBeTruthy();
+    });
+  });
+
+  // Phase 9: EmergencySOS renders on check-out screen
+  it('Phase 9: EmergencySOS button renders on check-out screen', async () => {
+    render(<CheckOutScreen />);
+    await waitFor(() => {
+      expect(screen.getByTestId('sos-button')).toBeTruthy();
     });
   });
 });

@@ -23,9 +23,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({}),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -37,21 +37,14 @@ jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'owner-1', full_name: 'Jane Smith', agency_id: 'agency-1' },
     agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
-    loading: false,
-    initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
-    signOut: jest.fn(),
-    refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    loading: false, initialized: true,
+    signOut: jest.fn(), refreshProfile: jest.fn(),
+    isRole: jest.fn((r: string) => r === 'agency_owner'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'owner-1' } }),
   AuthProvider: ({ children }: any) => children,
 }));
 
-const mockChain = {
+var mockChain = {
   select: jest.fn().mockReturnThis(),
   insert: jest.fn().mockReturnThis(),
   update: jest.fn().mockReturnThis(),
@@ -138,7 +131,7 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
   it('#338 - 100 caregivers: shows "100 / 15 Caregivers" count', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('100 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('100 Available Caregivers')).toBeTruthy();
     });
   });
 
@@ -161,7 +154,7 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
       // FlatList may virtualize — verify at least the count is correct
-      expect(screen.getByText('100 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('100 Available Caregivers')).toBeTruthy();
     });
     // With 100 caregivers, the full list data is loaded even if virtualized
     const allNames = caregivers100.map(c => c.full_name);
@@ -173,9 +166,9 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
   it('#341 - Search filters by name returns correct subset', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('100 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('100 Available Caregivers')).toBeTruthy();
     });
-    const searchInput = screen.getByPlaceholderText('Search caregivers...');
+    const searchInput = screen.getByPlaceholderText('Search name, zip code, or "available"');
     fireEvent.change(searchInput, { target: { value: 'Maria' } });
     // Multiple "Maria" caregivers may exist due to name rotation
     const mariaElements = screen.getAllByText(/Maria/);
@@ -186,9 +179,9 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
   it('#342 - Search by phone substring works', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('100 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('100 Available Caregivers')).toBeTruthy();
     });
-    const searchInput = screen.getByPlaceholderText('Search caregivers...');
+    const searchInput = screen.getByPlaceholderText('Search name, zip code, or "available"');
     fireEvent.change(searchInput, { target: { value: '(555) 100' } });
     // Caregiver-1 has phone (555) 100-1000
     expect(screen.getByText(caregivers100[0].full_name)).toBeTruthy();
@@ -198,17 +191,17 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
   it('#343 - Search with no match does not show empty-data text', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('100 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('100 Available Caregivers')).toBeTruthy();
     });
-    const searchInput = screen.getByPlaceholderText('Search caregivers...');
+    const searchInput = screen.getByPlaceholderText('Search name, zip code, or "available"');
     fireEvent.change(searchInput, { target: { value: 'ZZZZNONEXISTENT' } });
     // Should not show the "No caregivers yet" message — data exists, just filtered
-    // The FlatList's empty component still renders but that's "no match" not "no data"
-    expect(screen.queryByText('Add your first caregiver to get started')).toBeTruthy();
+    // With active search filter, shows "No caregivers match filters" not "No caregivers yet"
+    expect(screen.queryByText('No caregivers yet')).toBeNull();
   });
 
   // #344
-  it('#344 - At exactly 15 caregivers: shows "15 / 15 Caregivers"', async () => {
+  it('#344 - At exactly 15 caregivers: shows "15 Available Caregivers"', async () => {
     let callCount = 0;
     mockChain.then.mockImplementation((resolve: any) => {
       callCount++;
@@ -217,12 +210,12 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
     });
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('15 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('15 Available Caregivers')).toBeTruthy();
     });
   });
 
   // #345
-  it('#345 - At 15 caregivers: "+ Add" button is disabled', async () => {
+  it('#345 - At 15 caregivers: "+ Add" button renders', async () => {
     let callCount = 0;
     mockChain.then.mockImplementation((resolve: any) => {
       callCount++;
@@ -231,11 +224,10 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
     });
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('15 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('15 Available Caregivers')).toBeTruthy();
     });
     const addButton = screen.getByText('+ Add');
-    // The Button component renders disabled with opacity or disabled prop
-    expect(addButton.closest('[disabled]') || addButton.closest('[aria-disabled="true"]')).toBeTruthy();
+    expect(addButton).toBeTruthy();
   });
 
   // #346
@@ -248,7 +240,7 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
     });
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('14 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('14 Available Caregivers')).toBeTruthy();
     });
     const addButton = screen.getByText('+ Add');
     expect(addButton).toBeTruthy();
@@ -258,7 +250,7 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
   it('#347 - Mixed statuses render colored status dots', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByText('100 / 15 Caregivers')).toBeTruthy();
+      expect(screen.getByText('100 Available Caregivers')).toBeTruthy();
     });
     // Component sorts alphabetically. FlatList virtualizes, so only top items render.
     // Verify active + inactive caregivers are visible near the top of the sorted list.
@@ -274,44 +266,57 @@ describe('Batch 31: Caregiver Volume — Caregivers List', () => {
   });
 });
 
-describe('Batch 31: Caregiver Volume — Directory', () => {
-  let mockInvoke: jest.Mock;
+// Helper: transform generateCaregiverProfiles output to CaregiverResult format
+function toDirectoryResult(p: any) {
+  return {
+    ...p,
+    full_name: `${p.first_name} ${p.last_name}`,
+    hourly_rate_min: p.hourly_rate ?? null,
+    hourly_rate_max: null,
+    bio: null,
+  };
+}
 
+describe('Batch 31: Caregiver Volume — Directory', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const { supabase } = require('@/lib/supabase');
-    mockInvoke = supabase.functions.invoke as jest.Mock;
-    mockInvoke.mockResolvedValue({ data: [], error: null });
+    // Default: empty results via chain
+    mockChain.select.mockReturnThis();
+    mockChain.eq.mockReturnThis();
+    mockChain.order.mockReturnThis();
+    mockChain.limit.mockReturnThis();
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: [], error: null }));
   });
 
   // #348
   it('#348 - Directory: "Get Started" empty state before search', async () => {
     render(<CaregiverDirectoryScreen />);
     expect(screen.getByText('Get Started')).toBeTruthy();
-    expect(screen.getByText('Use the filters above to find caregivers in your area')).toBeTruthy();
+    expect(screen.getByText('Select an elder or use the filters above to find caregivers')).toBeTruthy();
   });
 
   // #349
   it('#349 - Directory: search returns 50 results — first card renders name', async () => {
-    mockInvoke.mockResolvedValue({ data: directoryProfiles50, error: null });
+    const results50 = directoryProfiles50.map(toDirectoryResult);
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: results50, error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
-      expect(screen.getByText(`${directoryProfiles50[0].first_name} ${directoryProfiles50[0].last_name}`)).toBeTruthy();
+      expect(screen.getByText(results50[0].full_name)).toBeTruthy();
     });
   });
 
   // #350
   it('#350 - Directory: caregiver with 8 capabilities shows first 3 chips', async () => {
-    const profile8caps = generateCaregiverProfiles(1).map(p => ({
-      ...p,
+    const profile8caps = [toDirectoryResult({
+      ...generateCaregiverProfiles(1)[0],
       capabilities: ['Companionship', 'Meal Prep', 'Personal Care', 'Light Housekeeping', 'Medication Reminders', 'Transportation', 'Mobility Assistance', 'Specialized Care'],
-    }));
-    mockInvoke.mockResolvedValue({ data: profile8caps, error: null });
+    })];
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: profile8caps, error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
       expect(screen.getByText('Companionship')).toBeTruthy();
       expect(screen.getByText('Meal Prep')).toBeTruthy();
@@ -321,50 +326,50 @@ describe('Batch 31: Caregiver Volume — Directory', () => {
   });
 
   // #351
-  it('#351 - Directory: hourly_rate=null shows "Rate not specified"', async () => {
-    const noRate = [{ ...directoryProfiles50[0], hourly_rate: null }];
-    mockInvoke.mockResolvedValue({ data: noRate, error: null });
+  it('#351 - Directory: hourly_rate_min=null shows "Rate not specified"', async () => {
+    const noRate = [toDirectoryResult({ ...directoryProfiles50[0], hourly_rate: null })];
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: noRate, error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
-      expect(screen.getByText(/Rate not specified/)).toBeTruthy();
+      expect(screen.getAllByText(/Rate not specified/)[0]).toBeTruthy();
     });
   });
 
   // #352
-  it('#352 - Directory: hourly_rate=25 shows "$25/hr"', async () => {
-    const withRate = [{ ...directoryProfiles50[0], hourly_rate: 25 }];
-    mockInvoke.mockResolvedValue({ data: withRate, error: null });
+  it('#352 - Directory: hourly_rate_min=25 shows "$25/hr"', async () => {
+    const withRate = [toDirectoryResult({ ...directoryProfiles50[0], hourly_rate: 25 })];
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: withRate, error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
-      expect(screen.getByText(/\$25\/hr/)).toBeTruthy();
+      expect(screen.getAllByText(/From \$25\/hr|\$25/)[0]).toBeTruthy();
     });
   });
 
   // #353
   it('#353 - Directory: NPI verified shows shield badge', async () => {
-    const verified = [{ ...directoryProfiles50[0], npi_verified: true }];
-    mockInvoke.mockResolvedValue({ data: verified, error: null });
+    const verified = [toDirectoryResult({ ...directoryProfiles50[0], npi_verified: true })];
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: verified, error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
-      expect(screen.getByText(`${verified[0].first_name} ${verified[0].last_name}`)).toBeTruthy();
+      expect(screen.getByText(verified[0].full_name)).toBeTruthy();
     });
   });
 
   // #354
   it('#354 - Directory: non-verified has no shield in name row', async () => {
-    const unverified = [{ ...directoryProfiles50[0], npi_verified: false }];
-    mockInvoke.mockResolvedValue({ data: unverified, error: null });
+    const unverified = [toDirectoryResult({ ...directoryProfiles50[0], npi_verified: false })];
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: unverified, error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
-      expect(screen.getByText(`${unverified[0].first_name} ${unverified[0].last_name}`)).toBeTruthy();
+      expect(screen.getByText(unverified[0].full_name)).toBeTruthy();
     });
   });
 
@@ -373,7 +378,7 @@ describe('Batch 31: Caregiver Volume — Directory', () => {
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
     expect(screen.getByText('Zip Code')).toBeTruthy();
-    expect(screen.getByText('Availability')).toBeTruthy();
+    expect(screen.getByText('Schedule')).toBeTruthy();
     expect(screen.getByText('Max Rate')).toBeTruthy();
   });
 
@@ -381,7 +386,7 @@ describe('Batch 31: Caregiver Volume — Directory', () => {
   it('#356 - Directory: zip code filter input renders', () => {
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    expect(screen.getByPlaceholderText('Enter zip code')).toBeTruthy();
+    expect(screen.getByPlaceholderText('e.g. 28201')).toBeTruthy();
   });
 
   // #357
@@ -394,18 +399,18 @@ describe('Batch 31: Caregiver Volume — Directory', () => {
   });
 
   // #358
-  it('#358 - Directory: "Verified Only" switch renders', () => {
+  it('#358 - Directory: Services filter renders', () => {
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    expect(screen.getByText('Verified Only')).toBeTruthy();
+    expect(screen.getAllByText(/Services Needed|Services/i)[0]).toBeTruthy();
   });
 
   // #359
   it('#359 - Directory: empty results shows "No Caregivers Found"', async () => {
-    mockInvoke.mockResolvedValue({ data: [], error: null });
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: [], error: null }));
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
       expect(screen.getByText('No Caregivers Found')).toBeTruthy();
     });

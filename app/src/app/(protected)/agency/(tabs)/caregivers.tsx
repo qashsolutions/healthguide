@@ -311,12 +311,12 @@ export default function CaregiversScreen() {
             <CompanionIcon size={14} color={colors.white} />
             <Text style={styles.browseButtonText}>Browse</Text>
           </Pressable>
-          <Button
-            title="+ Add"
-            variant="primary"
-            size="sm"
+          <Pressable
+            style={styles.browseButton}
             onPress={handleAddCaregiver}
-          />
+          >
+            <Text style={styles.browseButtonText}>+ Add</Text>
+          </Pressable>
         </View>
       </View>
 

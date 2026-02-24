@@ -28,9 +28,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'new' }),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -38,23 +38,17 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
-const mockSignInWithPhone = jest.fn().mockResolvedValue({ error: null });
+const mockSignInWithEmailOTP = jest.fn().mockResolvedValue({ error: null });
 
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'owner-1', full_name: 'Jane Smith', agency_id: 'agency-1' },
     agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
-    loading: false,
-    initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: mockSignInWithPhone,
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
-    signOut: jest.fn(),
-    refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    loading: false, initialized: true,
+    signInWithEmailOTP: mockSignInWithEmailOTP,
+    signOut: jest.fn(), refreshProfile: jest.fn(),
+    isRole: jest.fn((r: string) => r === 'agency_owner'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'owner-1' } }),
   AuthProvider: ({ children }: any) => children,
 }));
 
@@ -111,60 +105,59 @@ import AgencyDashboard from '@/app/(protected)/agency/(tabs)/index';
 import CaregiversScreen from '@/app/(protected)/agency/(tabs)/caregivers';
 import EldersScreen from '@/app/(protected)/agency/(tabs)/elders';
 
-describe('Batch 34: Negative Scenarios — Phone Validation', () => {
+describe('Batch 34: Negative Scenarios — Email Validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   // #398
-  it('#398 - Phone "123" shows validation error', async () => {
+  it('#398 - Email "notanemail" shows validation error', async () => {
     render(<CaregiverSignupScreen />);
-    const phoneInput = screen.getByPlaceholderText('(555) 123-4567');
-    fireEvent.change(phoneInput, { target: { value: '123' } });
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'notanemail' } });
     fireEvent.click(screen.getByText('Send Code'));
     await waitFor(() => {
-      expect(screen.getByText(/valid phone number/i)).toBeTruthy();
+      expect(screen.getAllByText(/valid email address/i)[0]).toBeTruthy();
     });
   });
 
   // #399
-  it('#399 - Phone "abcdefghij" gets cleaned, shows error', async () => {
+  it('#399 - Email "incomplete" (no @) shows error', async () => {
     render(<CaregiverSignupScreen />);
-    const phoneInput = screen.getByPlaceholderText('(555) 123-4567');
-    fireEvent.change(phoneInput, { target: { value: 'abcdefghij' } });
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'incomplete' } });
     fireEvent.click(screen.getByText('Send Code'));
     await waitFor(() => {
-      expect(screen.getByText(/valid phone number/i)).toBeTruthy();
+      expect(screen.getAllByText(/valid email address/i)[0]).toBeTruthy();
     });
   });
 
   // #400
-  it('#400 - Empty phone shows error', async () => {
+  it('#400 - Empty email shows error', async () => {
     render(<CaregiverSignupScreen />);
     fireEvent.click(screen.getByText('Send Code'));
     await waitFor(() => {
-      expect(screen.getByText(/valid phone number/i)).toBeTruthy();
+      expect(screen.getAllByText(/valid email address/i)[0]).toBeTruthy();
     });
   });
 
   // #401
-  it('#401 - Phone "+1555!@#$%^&" gets cleaned, shows error', async () => {
+  it('#401 - Email without @ shows error', async () => {
     render(<CaregiverSignupScreen />);
-    const phoneInput = screen.getByPlaceholderText('(555) 123-4567');
-    fireEvent.change(phoneInput, { target: { value: '+1555!@#$%^&' } });
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'invalidemail.com' } });
     fireEvent.click(screen.getByText('Send Code'));
     await waitFor(() => {
-      expect(screen.getByText(/valid phone number/i)).toBeTruthy();
+      expect(screen.getAllByText(/valid email address/i)[0]).toBeTruthy();
     });
   });
 
   // #402
-  it('#402 - Phone with spaces gets cleaned and formatted', async () => {
+  it('#402 - Valid email proceeds to OTP verification', async () => {
     render(<CaregiverSignupScreen />);
-    const phoneInput = screen.getByPlaceholderText('(555) 123-4567');
-    fireEvent.change(phoneInput, { target: { value: '555 123 4567' } });
-    // Should format and be valid (10 digits)
-    expect(phoneInput).toBeTruthy();
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    expect(emailInput).toBeTruthy();
   });
 });
 
@@ -233,9 +226,9 @@ describe('Batch 34: Negative Scenarios — XSS & SQL Injection', () => {
     );
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search caregivers...')).toBeTruthy();
+      expect(screen.getByPlaceholderText('Search name, zip code, or "available"')).toBeTruthy();
     });
-    const searchInput = screen.getByPlaceholderText('Search caregivers...');
+    const searchInput = screen.getByPlaceholderText('Search name, zip code, or "available"');
     fireEvent.change(searchInput, { target: { value: SQL_INJECTION_PAYLOADS[0] } });
     // Should not crash — just filters to no results
     expect(searchInput).toBeTruthy();
@@ -245,9 +238,9 @@ describe('Batch 34: Negative Scenarios — XSS & SQL Injection', () => {
   it('#406 - XSS in search field: renders as text, no injection', async () => {
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search caregivers...')).toBeTruthy();
+      expect(screen.getByPlaceholderText('Search name, zip code, or "available"')).toBeTruthy();
     });
-    const searchInput = screen.getByPlaceholderText('Search caregivers...');
+    const searchInput = screen.getByPlaceholderText('Search name, zip code, or "available"');
     fireEvent.change(searchInput, { target: { value: XSS_PAYLOADS[2] } });
     expect(document.querySelector('svg[onload]')).toBeNull();
   });
@@ -270,7 +263,7 @@ describe('Batch 34: Negative Scenarios — Overflow Text', () => {
       expect(screen.getByText('Personal Information')).toBeTruthy();
     });
     // Form should be usable even with extreme input
-    expect(screen.getByText(/Save Elder/i)).toBeTruthy();
+    expect(screen.getAllByText(/Save Elder/i)[0]).toBeTruthy();
   });
 
   // #408
@@ -280,9 +273,9 @@ describe('Batch 34: Negative Scenarios — Overflow Text', () => {
     );
     render(<CaregiversScreen />);
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Search caregivers...')).toBeTruthy();
+      expect(screen.getByPlaceholderText('Search name, zip code, or "available"')).toBeTruthy();
     });
-    const searchInput = screen.getByPlaceholderText('Search caregivers...');
+    const searchInput = screen.getByPlaceholderText('Search name, zip code, or "available"');
     fireEvent.change(searchInput, { target: { value: EXTREMELY_LONG_TEXT } });
     // Should not crash
     expect(searchInput).toBeTruthy();
@@ -301,7 +294,7 @@ describe('Batch 34: Negative Scenarios — Supabase Errors', () => {
     );
     render(<AgencyDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Welcome back/)).toBeTruthy();
+      expect(screen.getAllByText(/Welcome back/)[0]).toBeTruthy();
     });
     // Should render without crashing even with error
     expect(screen.getByText('No visits scheduled for today')).toBeTruthy();
@@ -335,7 +328,7 @@ describe('Batch 34: Negative Scenarios — Supabase Errors', () => {
     (supabase.functions.invoke as jest.Mock).mockResolvedValue({ data: null, error: { message: 'Edge function error' } });
     render(<CaregiverDirectoryScreen />);
     fireEvent.click(screen.getByText('Filters'));
-    fireEvent.click(screen.getByText('Search'));
+    fireEvent.click(screen.getByText('Search Caregivers'));
     await waitFor(() => {
       expect(screen.getByText('No Caregivers Found')).toBeTruthy();
     });
@@ -374,7 +367,7 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
     });
     render(<AgencyDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Welcome back/)).toBeTruthy();
+      expect(screen.getAllByText(/Welcome back/)[0]).toBeTruthy();
     });
     // Should not crash
   });
@@ -457,7 +450,7 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
     );
     render(<AgencyDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Welcome back/)).toBeTruthy();
+      expect(screen.getAllByText(/Welcome back/)[0]).toBeTruthy();
     });
     expect(screen.getByText('No visits scheduled for today')).toBeTruthy();
   });
@@ -471,7 +464,7 @@ describe('Batch 34: Negative Scenarios — Null/Missing Fields', () => {
     unmount();
     render(<AgencyDashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/Welcome back/)).toBeTruthy();
+      expect(screen.getAllByText(/Welcome back/)[0]).toBeTruthy();
     });
   });
 

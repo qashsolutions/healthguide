@@ -26,9 +26,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ elder_id: 'elder-1', elder_name: 'Margaret Smith' }),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -40,17 +40,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'family-1', full_name: 'Test Family', agency_id: null },
     agency: null,
-    loading: false,
-    initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
-    signOut: jest.fn(),
-    refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    loading: false, initialized: true,
+    signOut: jest.fn(), refreshProfile: jest.fn(),
+    isRole: jest.fn((r: string) => r === 'family_member'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'family-1' } }),
   AuthProvider: ({ children }: any) => children,
 }));
 
@@ -190,7 +183,7 @@ describe('Batch 36: Notification Limits — Video Contacts', () => {
     );
     render(<VideoContactsScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Margaret Smith|this elder/i)).toBeTruthy();
+      expect(screen.getAllByText(/Margaret Smith|this elder/i)[0]).toBeTruthy();
     });
   });
 
@@ -202,7 +195,7 @@ describe('Batch 36: Notification Limits — Video Contacts', () => {
     );
     render(<VideoContactsScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Maximum of 10 contacts reached/i)).toBeTruthy();
+      expect(screen.getAllByText(/Maximum of 10 contacts reached/i)[0]).toBeTruthy();
     });
   });
 
@@ -214,7 +207,7 @@ describe('Batch 36: Notification Limits — Video Contacts', () => {
     );
     render(<VideoContactsScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Maximum of 10 contacts reached/i)).toBeTruthy();
+      expect(screen.getAllByText(/Maximum of 10 contacts reached/i)[0]).toBeTruthy();
     });
     expect(screen.queryByText('Add Video Contact')).toBeNull();
   });
@@ -239,7 +232,7 @@ describe('Batch 36: Notification Limits — Video Contacts', () => {
     );
     render(<VideoContactsScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/No video contacts added yet/i)).toBeTruthy();
+      expect(screen.getAllByText(/No video contacts added yet/i)[0]).toBeTruthy();
     });
   });
 

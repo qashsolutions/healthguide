@@ -1,6 +1,7 @@
 /**
  * Batch 20: Careseeker/Elder Home + Daily Check-In Tests (Features #186-196)
  * Screens: careseeker/(tabs)/index.tsx, daily-check-in.tsx
+ * Phase 14: Real data (no hardcoded "Maria at 10:30 AM"), NotificationBell added
  */
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -19,9 +20,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({}),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ options }: any) => null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -31,20 +32,49 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
-    user: { id: 'elder-1', full_name: 'Dorothy Smith', agency_id: 'agency-1' },
-    agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
+    user: { id: 'elder-1', full_name: 'Dorothy Smith', agency_id: null },
+    agency: null,
     loading: false,
     initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
     signOut: jest.fn(),
     refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    isRole: jest.fn((r: string) => r === 'careseeker'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'elder-1' } }),
   AuthProvider: ({ children }: any) => children,
+}));
+
+// Phase 14: GradientHeader mock (uses expo-linear-gradient)
+jest.mock('@/components/ui/GradientHeader', () => ({
+  GradientHeader: ({ children }: any) => {
+    const React = require('react');
+    const { View } = require('react-native');
+    return React.createElement(View, {}, children);
+  },
+}));
+
+// Phase 13/14: NotificationBell mock
+jest.mock('@/components/NotificationBell', () => ({
+  NotificationBell: () => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return React.createElement(Text, { testID: 'notification-bell' }, '🔔');
+  },
+}));
+
+// Phase 13: notifications lib mock (push token registration)
+jest.mock('@/lib/notifications', () => ({
+  registerForPushNotifications: jest.fn().mockResolvedValue('test-token'),
+}));
+
+// Mock date-fns (used in fetchData and formatTime)
+jest.mock('date-fns', () => ({
+  format: jest.fn((date: any, fmt: string) => {
+    if (fmt === 'yyyy-MM-dd') return '2026-02-21';
+    if (fmt === 'EEE, MMM d') return 'Sat, Feb 21';
+    if (fmt === 'h:mm a') return '10:30 AM';
+    if (fmt === 'MMM d') return 'Feb 21';
+    return 'formatted';
+  }),
 }));
 
 // Mock haptics (used in daily check-in)
@@ -56,7 +86,7 @@ jest.mock('expo-haptics', () => ({
 }));
 
 // Supabase mock
-const mockSingle = jest.fn().mockResolvedValue({ data: null, error: null });
+const mockMaybeSingle = jest.fn().mockResolvedValue({ data: null, error: null });
 const mockChain = {
   select: jest.fn().mockReturnThis(),
   insert: jest.fn().mockReturnThis(),
@@ -70,8 +100,8 @@ const mockChain = {
   lte: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
   limit: jest.fn().mockReturnThis(),
-  single: mockSingle,
-  maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+  single: jest.fn().mockResolvedValue({ data: null, error: null }),
+  maybeSingle: mockMaybeSingle,
   then: jest.fn((resolve: any) => resolve({ data: [], error: null })),
 };
 
@@ -102,45 +132,77 @@ import ElderHomeScreen from '@/app/(protected)/careseeker/(tabs)/index';
 import DailyCheckInScreen from '@/app/(protected)/careseeker/daily-check-in';
 
 describe('Batch 20: Elder Home Screen', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+    mockChain.then.mockImplementation((resolve: any) => resolve({ data: [], error: null }));
+  });
 
   // Feature #186: Home screen renders with greeting
-  it('#186 - Home screen renders with time-based greeting', () => {
+  it('#186 - Home screen renders with time-based greeting', async () => {
     render(<ElderHomeScreen />);
-    // One of Good Morning / Good Afternoon / Good Evening will appear
-    const greetings = screen.queryByText(/Good (Morning|Afternoon|Evening)/);
-    expect(greetings).toBeTruthy();
+    await waitFor(() => {
+      const greetings = screen.queryByText(/Good (Morning|Afternoon|Evening)/);
+      expect(greetings).toBeTruthy();
+    });
   });
 
   // Feature #187: User name displayed
-  it('#187 - User first name is displayed', () => {
+  it('#187 - User first name is displayed', async () => {
     render(<ElderHomeScreen />);
-    expect(screen.getByText('Dorothy!')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('Dorothy!')).toBeTruthy();
+    });
   });
 
   // Feature #188: Call Family button renders
-  it('#188 - \"Call Family\" big button renders', () => {
+  it('#188 - "Call Family" big button renders', async () => {
     render(<ElderHomeScreen />);
-    expect(screen.getByText('Call Family')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('Call Family')).toBeTruthy();
+    });
   });
 
   // Feature #189: Activities button renders
-  it('#189 - \"Activities\" big button renders', () => {
+  it('#189 - "Activities" big button renders', async () => {
     render(<ElderHomeScreen />);
-    expect(screen.getByText('Activities')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('Activities')).toBeTruthy();
+    });
   });
 
   // Feature #190: How are you? check-in button renders
-  it('#190 - \"How are you?\" check-in button renders', () => {
+  it('#190 - "How are you?" check-in button renders', async () => {
     render(<ElderHomeScreen />);
-    expect(screen.getByText('How are you?')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('How are you?')).toBeTruthy();
+    });
   });
 
-  // Feature #196: Next Visit section renders
-  it('#196 - Next Visit section renders with caregiver info', () => {
+  // Phase 14: Find a Companion button renders (new primary action)
+  it('Phase 14: "Find a Companion" button renders', async () => {
     render(<ElderHomeScreen />);
-    expect(screen.getByText('Next Visit')).toBeTruthy();
-    expect(screen.getByText('Maria at 10:30 AM')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('Find a Companion')).toBeTruthy();
+    });
+  });
+
+  // Phase 14: NotificationBell renders in header
+  it('Phase 14: NotificationBell renders in header', async () => {
+    render(<ElderHomeScreen />);
+    await waitFor(() => {
+      expect(screen.getByTestId('notification-bell')).toBeTruthy();
+    });
+  });
+
+  // Feature #196 (Phase 14 updated): Empty state shows "No upcoming visits"
+  // Previously hardcoded "Maria at 10:30 AM"; Phase 14 uses real data from DB
+  it('#196 - "No upcoming visits" shows when elder has no scheduled visits', async () => {
+    render(<ElderHomeScreen />);
+    await waitFor(() => {
+      expect(screen.getByText('No upcoming visits')).toBeTruthy();
+    });
+    expect(screen.getByText('Find a companion below')).toBeTruthy();
   });
 });
 
@@ -175,7 +237,7 @@ describe('Batch 20: Daily Check-In', () => {
   });
 
   // Feature #194: Submit button renders
-  it('#194 - \"Done ✓\" submit button renders', () => {
+  it('#194 - "Done ✓" submit button renders', () => {
     render(<DailyCheckInScreen />);
     expect(screen.getByText('Done ✓')).toBeTruthy();
   });
@@ -183,6 +245,6 @@ describe('Batch 20: Daily Check-In', () => {
   // Feature #195: Morning greeting text
   it('#195 - Morning greeting text renders', () => {
     render(<DailyCheckInScreen />);
-    expect(screen.getByText(/Good Morning/)).toBeTruthy();
+    expect(screen.getAllByText(/Good Morning/)[0]).toBeTruthy();
   });
 });

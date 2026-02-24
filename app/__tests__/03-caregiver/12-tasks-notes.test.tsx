@@ -19,9 +19,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'visit-1' }),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -33,17 +33,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'caregiver-1', full_name: 'Maria Garcia', agency_id: 'agency-1' },
     agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
-    loading: false,
-    initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
-    signOut: jest.fn(),
-    refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    loading: false, initialized: true,
+    signOut: jest.fn(), refreshProfile: jest.fn(),
+    isRole: jest.fn((r: string) => r === 'caregiver'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'caregiver-1' } }),
   AuthProvider: ({ children }: any) => children,
 }));
 
@@ -52,6 +45,17 @@ jest.mock('@/utils/haptics', () => ({
   hapticFeedback: jest.fn(),
   vibrate: jest.fn(),
 }));
+
+// Phase 9: EmergencySOS mock
+jest.mock('@/components/caregiver/EmergencySOS', () => {
+  const React = require('react');
+  const { Pressable, Text } = require('react-native');
+  return {
+    EmergencySOS: () => React.createElement(Pressable, { testID: 'sos-button' },
+      React.createElement(Text, null, 'SOS')
+    ),
+  };
+});
 
 // Mock TaskCard component
 jest.mock('@/components/caregiver/TaskCard', () => ({
@@ -206,10 +210,10 @@ describe('Batch 15: Visit Tasks', () => {
   it('#140 - Task list renders with task names', async () => {
     render(<TasksScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Meal preparation/)).toBeTruthy();
+      expect(screen.getAllByText(/Meal preparation/)[0]).toBeTruthy();
     });
-    expect(screen.getByText(/Companionship/)).toBeTruthy();
-    expect(screen.getByText(/Medication reminder/)).toBeTruthy();
+    expect(screen.getAllByText(/Companionship/)[0]).toBeTruthy();
+    expect(screen.getAllByText(/Medication reminder/)[0]).toBeTruthy();
   });
 
   // Feature #141: Header shows elder's name in title
@@ -262,9 +266,9 @@ describe('Batch 15: Visit Tasks', () => {
   it('#146 - Task cards show status', async () => {
     render(<TasksScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Meal preparation.*pending/)).toBeTruthy();
+      expect(screen.getAllByText(/Meal preparation.*pending/)[0]).toBeTruthy();
     });
-    expect(screen.getByText(/Medication reminder.*completed/)).toBeTruthy();
+    expect(screen.getAllByText(/Medication reminder.*completed/)[0]).toBeTruthy();
   });
 
   // Feature #147: Progress bar renders
@@ -272,6 +276,14 @@ describe('Batch 15: Visit Tasks', () => {
     render(<TasksScreen />);
     await waitFor(() => {
       expect(screen.getByText('1 of 3 completed')).toBeTruthy();
+    });
+  });
+
+  // Phase 9: EmergencySOS renders
+  it('Phase 9: EmergencySOS button renders on tasks screen', async () => {
+    render(<TasksScreen />);
+    await waitFor(() => {
+      expect(screen.getByTestId('sos-button')).toBeTruthy();
     });
   });
 

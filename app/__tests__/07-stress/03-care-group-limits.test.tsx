@@ -19,9 +19,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ elderId: 'elder-1' }),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -33,17 +33,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'owner-1', full_name: 'Jane Smith', agency_id: 'agency-1' },
     agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
-    loading: false,
-    initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
-    signOut: jest.fn(),
-    refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    loading: false, initialized: true,
+    signOut: jest.fn(), refreshProfile: jest.fn(),
+    isRole: jest.fn((r: string) => r === 'agency_owner'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'owner-1' } }),
   AuthProvider: ({ children }: any) => children,
 }));
 
@@ -211,7 +204,7 @@ describe('Batch 33: Care Group Limits', () => {
   it('#387 - Only 1 caregiver section (no add button for caregivers)', async () => {
     render(<CareGroupScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Primary Caregiver/i)).toBeTruthy();
+      expect(screen.getAllByText(/Primary Caregiver/i)[0]).toBeTruthy();
     });
     // There should not be an "Add Caregiver" button
     expect(screen.queryByText('Add Caregiver')).toBeNull();
@@ -257,9 +250,9 @@ describe('Batch 33: Care Group Limits', () => {
   it('#392 - Elder section is optional', async () => {
     render(<CareGroupScreen />);
     await waitFor(() => {
-      expect(screen.getByText(/Elder Details/i)).toBeTruthy();
+      expect(screen.getAllByText(/Elder Details/i)[0]).toBeTruthy();
     });
-    expect(screen.getByText(/Optional/i)).toBeTruthy();
+    expect(screen.getAllByText(/Optional/i)[0]).toBeTruthy();
   });
 
   // #393
@@ -279,7 +272,7 @@ describe('Batch 33: Care Group Limits', () => {
     const createButtons = screen.getAllByText('Create Care Group');
     fireEvent.click(createButtons[createButtons.length - 1]);
     await waitFor(() => {
-      expect(screen.getByText(/Care Group Created/i)).toBeTruthy();
+      expect(screen.getAllByText(/Care Group Created/i)[0]).toBeTruthy();
     });
   });
 
@@ -316,7 +309,7 @@ describe('Batch 33: Care Group Limits', () => {
     const createButtons = screen.getAllByText('Create Care Group');
     fireEvent.click(createButtons[createButtons.length - 1]);
     await waitFor(() => {
-      expect(screen.getByText(/Back to Dashboard/i)).toBeTruthy();
+      expect(screen.getAllByText(/Back to Dashboard/i)[0]).toBeTruthy();
     });
   });
 

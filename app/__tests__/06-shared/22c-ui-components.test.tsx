@@ -218,8 +218,8 @@ describe('Batch 28: RatingModal', () => {
     render(
       <RatingSummary ratingCount={10} positiveCount={8} mode="compact" />
     );
-    expect(screen.getByText(/80%/)).toBeTruthy();
-    expect(screen.getByText(/10 reviews/)).toBeTruthy();
+    expect(screen.getAllByText(/80%/)[0]).toBeTruthy();
+    expect(screen.getAllByText(/10 reviews/)[0]).toBeTruthy();
   });
 
   // Feature #282 - RatingModal callback (test RatingSummary "No reviews" state)
@@ -235,8 +235,8 @@ describe('Batch 28: RatingSummary & ReviewsList', () => {
     render(
       <RatingSummary ratingCount={23} positiveCount={20} mode="compact" />
     );
-    expect(screen.getByText(/87%/)).toBeTruthy();
-    expect(screen.getByText(/23 reviews/)).toBeTruthy();
+    expect(screen.getAllByText(/87%/)[0]).toBeTruthy();
+    expect(screen.getAllByText(/23 reviews/)[0]).toBeTruthy();
   });
 
   // Feature #284

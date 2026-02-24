@@ -19,9 +19,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: 'visit-1' }),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn(),
 }));
@@ -100,7 +100,7 @@ describe('Batch 14: QR Check-In', () => {
     mockPermission = { granted: false };
     render(<QRCheckInScreen />);
     expect(screen.getByText('Camera Access Needed')).toBeTruthy();
-    expect(screen.getByText(/camera access to scan the QR code/)).toBeTruthy();
+    expect(screen.getAllByText(/camera access to scan the QR code/)[0]).toBeTruthy();
   });
 
   // Feature #136: Allow Camera Access button renders
@@ -121,13 +121,13 @@ describe('Batch 14: QR Check-In', () => {
   it('#138 - Camera granted shows scan instruction', () => {
     mockPermission = { granted: true };
     render(<QRCheckInScreen />);
-    expect(screen.getByText(/Point your camera at the QR code/)).toBeTruthy();
+    expect(screen.getAllByText(/Point your camera at the QR code/)[0]).toBeTruthy();
   });
 
   // Feature #139: Help text renders when camera granted
   it('#139 - "QR code not working?" help text renders', () => {
     mockPermission = { granted: true };
     render(<QRCheckInScreen />);
-    expect(screen.getByText(/QR code not working/)).toBeTruthy();
+    expect(screen.getAllByText(/QR code not working/)[0]).toBeTruthy();
   });
 });

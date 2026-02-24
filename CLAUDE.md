@@ -207,3 +207,37 @@ Data-driven, role-specific home screens for all 4 actor types.
 ---
 
 ## All 14 Phases Complete
+
+---
+
+## Test Execution Protocol
+
+**Rule: run tests in small chunks, mark completion before moving on.**
+
+### Chunk sequence
+| Chunk | Command | Files | Tests |
+|-------|---------|-------|-------|
+| A | `npx jest __tests__/06-shared/` | 5 | **90/90 ✅** |
+| B | `npx jest __tests__/07-stress/` | 6 | **122/122 ✅** |
+| C | `npx jest __tests__/01-auth/` | 6 | **77/77 ✅** |
+| D | `npx jest __tests__/02-agency/` | 5 | **44/44 ✅** (fixed: icon mocks, shadows, ALLOWED_CATEGORY_LABELS shape) |
+| E | `npx jest __tests__/03-caregiver/` | 9 | **74/74 ✅** (fixed: empty-state text, pending banner mock, XIcon/QRCodeIcon/TapButton, evvOperations mock, SOS assertion) |
+| F | `npx jest __tests__/04-careseeker/` | 3 | **22/22 ✅** |
+| G | `npx jest __tests__/05-family/` | 3 | **29/29 ✅** |
+| H | `npx jest __tests__/08-companionship/01..05` | 5 | **78/78 ✅** |
+| I | `npx jest __tests__/08-companionship/06-student-signup.test.tsx __tests__/08-companionship/07-companion-signup.test.tsx __tests__/08-companionship/08-caregiver-home-phases.test.tsx __tests__/08-companionship/09-visit-request-inbox.test.tsx __tests__/08-companionship/10-find-companion-auth.test.tsx` | 5 | ~67 |
+| J | `npx jest __tests__/08-companionship/11-companion-detail.test.tsx __tests__/08-companionship/12-request-visit.test.tsx __tests__/08-companionship/13-my-requests.test.tsx __tests__/08-companionship/14-careseeker-rate-visit.test.tsx __tests__/08-companionship/15-recurring-setup.test.tsx` | 5 | ~67 |
+| K | `npx jest __tests__/08-companionship/16-family-dashboard-evv.test.tsx __tests__/08-companionship/17-agencies-near-me.test.tsx __tests__/08-companionship/18-caregiver-rate-visit.test.tsx __tests__/08-companionship/22-scope-alert.test.tsx __tests__/08-companionship/23-emergency-sos.test.tsx` | 5 | ~63 |
+| L | `npx jest __tests__/08-companionship/24-star-rating.test.tsx __tests__/08-companionship/25-notification-bell.test.tsx __tests__/08-companionship/26-notifications-center.test.tsx __tests__/08-companionship/27-profile-setup.test.tsx` | 4 | ~65 |
+| M | `npx jest __tests__/08-companionship/28-agency-dashboard-phase14.test.tsx __tests__/08-companionship/29-careseeker-home-phase14.test.tsx __tests__/08-companionship/30-cancel-visit-ui.test.tsx` | 3 | ~65 |
+
+### After each chunk
+1. Record pass/fail counts in TEST-REPORT.md
+2. Fix any failures (update mock patterns if needed) before proceeding
+3. Do NOT move to next chunk while any test is failing
+
+### Run command (from `/app` directory)
+```bash
+cd /Users/cvr/Documents/GitHub/HealthGuide/app
+npx jest <files> --no-coverage 2>&1 | tail -30
+```

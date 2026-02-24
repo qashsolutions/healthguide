@@ -34,6 +34,7 @@ import {
 import { RatingSummary } from '@/components/caregiver/RatingSummary';
 
 const DISCLAIMER_ACCEPTED_KEY = 'healthguide_directory_disclaimer_accepted';
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 interface CaregiverResult {
   id: string;
@@ -64,9 +65,20 @@ interface ElderTask {
 
 const ALL_SERVICES = [
   'Companionship', 'Grocery Shopping & Errands', 'House Cleaning', 'Laundry',
-  'Lawn & Yard Care', 'Meal Preparation',
+  'Lawn & Yard Care',
   'Pet Care', 'Transportation & Driving', 'Tutoring',
 ];
+
+const SERVICE_HINTS: Record<string, string> = {
+  'Companionship': 'Conversation and social engagement',
+  'Grocery Shopping & Errands': 'Picking up groceries and supplies',
+  'House Cleaning': 'Light housecleaning activities only',
+  'Laundry': 'Washing, drying, and folding clothes',
+  'Lawn & Yard Care': 'Basic mowing, raking, and garden upkeep',
+  'Pet Care': 'Feeding, walking, and basic pet needs',
+  'Transportation & Driving': 'Rides to errands and outings',
+  'Tutoring': 'Academic support and learning assistance',
+};
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_MAP: Record<string, string> = {
@@ -129,23 +141,109 @@ export default function CaregiverDirectoryScreen() {
   // Services dropdown state
   const [showServicesPicker, setShowServicesPicker] = useState(false);
 
+  // A-Z bar state
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+  const [availableLetters, setAvailableLetters] = useState<Set<string>>(new Set());
+
   // Disclaimer modal state
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
 
-  // Check disclaimer acceptance on mount
+  // Check disclaimer acceptance on mount, then load defaults
   useEffect(() => {
     (async () => {
       const accepted = await AsyncStorage.getItem(DISCLAIMER_ACCEPTED_KEY);
       if (accepted !== 'true') {
         setShowDisclaimer(true);
+      } else {
+        loadDefaults();
       }
     })();
   }, []);
 
+  // Fetch available letters on mount
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('caregiver_profiles')
+        .select('full_name')
+        .eq('is_active', true);
+      if (data) {
+        const letters = new Set<string>();
+        data.forEach((cg: any) => {
+          const first = (cg.full_name || '').charAt(0).toUpperCase();
+          if (first >= 'A' && first <= 'Z') letters.add(first);
+        });
+        setAvailableLetters(letters);
+      }
+    })();
+  }, []);
+
+  /** Load first 5 caregivers alphabetically as default results */
+  const loadDefaults = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('caregiver_profiles')
+        .select(
+          'id, full_name, photo_url, zip_code, hourly_rate_min, hourly_rate_max, npi_verified, capabilities, availability, bio, rating_count, positive_count'
+        )
+        .eq('is_active', true)
+        .order('full_name', { ascending: true })
+        .limit(5);
+      if (error) throw error;
+      const results: CaregiverResult[] = (data || []).map((cg: any) => ({
+        ...cg,
+        bio: cg.bio ? cg.bio.substring(0, 200) : null,
+        capabilities: Array.isArray(cg.capabilities) ? cg.capabilities : [],
+      }));
+      setCaregivers(results);
+      setHasSearched(true);
+    } catch (err) {
+      console.error('Error loading default caregivers:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Fetch caregivers by letter */
+  const handleLetterSelect = async (letter: string | null) => {
+    setSelectedLetter(letter);
+    if (!letter) {
+      loadDefaults();
+      return;
+    }
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const { data, error } = await supabase
+        .from('caregiver_profiles')
+        .select(
+          'id, full_name, photo_url, zip_code, hourly_rate_min, hourly_rate_max, npi_verified, capabilities, availability, bio, rating_count, positive_count'
+        )
+        .eq('is_active', true)
+        .ilike('full_name', `${letter}%`)
+        .order('full_name', { ascending: true })
+        .limit(5);
+      if (error) throw error;
+      const results: CaregiverResult[] = (data || []).map((cg: any) => ({
+        ...cg,
+        bio: cg.bio ? cg.bio.substring(0, 200) : null,
+        capabilities: Array.isArray(cg.capabilities) ? cg.capabilities : [],
+      }));
+      setCaregivers(results);
+    } catch (err) {
+      console.error('Error fetching by letter:', err);
+      setCaregivers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAcceptDisclaimer = async () => {
     await AsyncStorage.setItem(DISCLAIMER_ACCEPTED_KEY, 'true');
     setShowDisclaimer(false);
+    loadDefaults();
   };
 
   // Fetch elders on mount
@@ -241,6 +339,7 @@ export default function CaregiverDirectoryScreen() {
     setLoading(true);
     setHasSearched(true);
     setShowFilters(false);
+    setSelectedLetter(null);
 
     try {
       const zipPrefix = filters.zipCode.trim() ? filters.zipCode.trim().substring(0, 3) : null;
@@ -263,9 +362,7 @@ export default function CaregiverDirectoryScreen() {
       }
 
       const { data, error } = await query
-        .order('npi_verified', { ascending: false })
-        .order('positive_count', { ascending: false })
-        .order('rating_count', { ascending: false })
+        .order('full_name', { ascending: true })
         .limit(50);
 
       if (error) throw error;
@@ -277,7 +374,7 @@ export default function CaregiverDirectoryScreen() {
       }));
 
       const filtered = filterByServices(filterByAvailability(results));
-      setCaregivers(selectedElderId ? filtered.slice(0, 3) : filtered);
+      setCaregivers(selectedElderId ? filtered.slice(0, 3) : filtered.slice(0, 5));
     } catch (error) {
       console.error('Error searching caregivers:', error);
       setCaregivers([]);
@@ -493,6 +590,53 @@ export default function CaregiverDirectoryScreen() {
         </View>
       </View>
 
+      {/* A-Z Alphabet Bar */}
+      <View style={styles.alphabetContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.alphabetBar}
+        >
+          <Pressable
+            onPress={() => handleLetterSelect(null)}
+            style={[styles.letterButton, selectedLetter === null && styles.letterButtonActive]}
+          >
+            <Text style={[styles.letterText, selectedLetter === null && styles.letterTextActive]}>
+              All
+            </Text>
+          </Pressable>
+          {ALPHABET.map((letter) => {
+            const hasMatches = availableLetters.has(letter);
+            const isSelected = selectedLetter === letter;
+            return (
+              <Pressable
+                key={letter}
+                onPress={() => {
+                  if (!hasMatches && !isSelected) return;
+                  handleLetterSelect(isSelected ? null : letter);
+                }}
+                disabled={!hasMatches && !isSelected}
+                style={[
+                  styles.letterButton,
+                  isSelected && styles.letterButtonActive,
+                  !hasMatches && !isSelected && styles.letterButtonDimmed,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.letterText,
+                    isSelected && styles.letterTextActive,
+                    !hasMatches && !isSelected && styles.letterTextDimmed,
+                  ]}
+                >
+                  {letter}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       {/* Filters Section — scrollable */}
       {showFilters && (
         <ScrollView
@@ -663,7 +807,15 @@ export default function CaregiverDirectoryScreen() {
               <Text style={styles.resultsHeader}>
                 Top {caregivers.length} match{caregivers.length !== 1 ? 'es' : ''} for {selectedElder.first_name} {selectedElder.last_name}
               </Text>
-            ) : null
+            ) : selectedLetter ? (
+              <Text style={styles.resultsHeader}>
+                {caregivers.length} caregiver{caregivers.length !== 1 ? 's' : ''} starting with "{selectedLetter}"
+              </Text>
+            ) : (
+              <Text style={styles.resultsHeader}>
+                Showing first {caregivers.length} caregiver{caregivers.length !== 1 ? 's' : ''} (A-Z)
+              </Text>
+            )
           }
         />
       )}
@@ -793,13 +945,18 @@ export default function CaregiverDirectoryScreen() {
                     <View style={[styles.servicesCheckbox, selected && styles.servicesCheckboxChecked]}>
                       {selected && <Text style={styles.servicesCheckmark}>{'\u2713'}</Text>}
                     </View>
-                    <Text style={[
-                      styles.servicesPickerText,
-                      selected && styles.servicesPickerTextSelected,
-                      atMax && styles.servicesPickerTextDisabled,
-                    ]}>
-                      {item}
-                    </Text>
+                    <View style={styles.servicesPickerTextWrap}>
+                      <Text style={[
+                        styles.servicesPickerText,
+                        selected && styles.servicesPickerTextSelected,
+                        atMax && styles.servicesPickerTextDisabled,
+                      ]}>
+                        {item}
+                      </Text>
+                      {SERVICE_HINTS[item] && (
+                        <Text style={styles.serviceHint}>{SERVICE_HINTS[item]}</Text>
+                      )}
+                    </View>
                   </Pressable>
                 );
               }}
@@ -1009,6 +1166,44 @@ const styles = StyleSheet.create({
     color: colors.success[600],
     fontWeight: '600',
   },
+
+  // A-Z Alphabet Bar
+  alphabetContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+    paddingVertical: spacing[2],
+  },
+  alphabetBar: {
+    paddingHorizontal: spacing[3],
+    gap: 6,
+    alignItems: 'center',
+  },
+  letterButton: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.neutral[100],
+  },
+  letterButtonActive: {
+    backgroundColor: colors.primary[500],
+  },
+  letterButtonDimmed: {
+    opacity: 0.25,
+  },
+  letterText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  letterTextActive: {
+    color: colors.white,
+  },
+  letterTextDimmed: {
+    color: colors.text.secondary,
+  },
+
   filtersScroll: {
     flex: 1,
   },
@@ -1144,7 +1339,6 @@ const styles = StyleSheet.create({
   servicesPickerText: {
     ...typography.styles.body,
     color: colors.text.primary,
-    flex: 1,
   },
   servicesPickerTextSelected: {
     color: colors.success[700],
@@ -1152,6 +1346,16 @@ const styles = StyleSheet.create({
   },
   servicesPickerTextDisabled: {
     color: colors.text.tertiary,
+  },
+  servicesPickerTextWrap: {
+    flex: 1,
+  },
+  serviceHint: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    fontStyle: 'italic',
+    fontSize: 11,
+    marginTop: 2,
   },
   servicesPickerDone: {
     backgroundColor: colors.success[600],

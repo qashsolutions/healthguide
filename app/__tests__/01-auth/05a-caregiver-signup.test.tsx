@@ -1,176 +1,221 @@
 /**
- * Batch 5: Caregiver Signup Tests (Features #36-49)
+ * 01-Auth: Caregiver Signup Screen Tests
  * Screen: (auth)/caregiver-signup.tsx
+ * Now uses email OTP (signInWithEmailOTP) not phone - updated for companionship pivot
  */
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
-const mockSignInWithPhone = jest.fn();
-
-let mockLoading = false;
+const mockSignInWithEmailOTP = jest.fn();
 
 jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: mockPush,
-    replace: jest.fn(),
-    back: mockBack,
-    canGoBack: jest.fn(() => true),
-    navigate: jest.fn(),
-  }),
+  useRouter: () => ({ push: mockPush, replace: jest.fn(), back: mockBack }),
   useLocalSearchParams: () => ({}),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ children }: any) => children ?? null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
-    signInWithPhone: mockSignInWithPhone,
-    loading: mockLoading,
+    signInWithEmailOTP: mockSignInWithEmailOTP,
+    loading: false,
     user: null,
     agency: null,
     initialized: true,
     signInWithEmail: jest.fn(),
     signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
     signOut: jest.fn(),
     refreshProfile: jest.fn(),
     isRole: jest.fn(() => false),
   }),
-  useRequireRole: () => ({ hasAccess: false, loading: false, user: null }),
   AuthProvider: ({ children }: any) => children,
+}));
+
+jest.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+      signOut: jest.fn().mockResolvedValue({}),
+      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+    },
+  },
+  isSupabaseConfigured: jest.fn(() => true),
+}));
+
+jest.mock('@/components/ui', () => {
+  const React = require('react');
+  return {
+    Button: ({ title, onPress, loading, disabled, icon }: any) =>
+      React.createElement('button', { onClick: onPress, 'data-testid': `btn-${title?.replace(/\s+/g, '-') || 'back'}`, disabled },
+        icon || null,
+        loading ? 'Loading...' : (title || '')
+      ),
+    Input: ({ label, value, onChangeText, placeholder, keyboardType, error, size }: any) =>
+      React.createElement('div', null,
+        React.createElement('label', null, label),
+        React.createElement('input', {
+          value: value || '',
+          onChange: (e: any) => onChangeText && onChangeText(e.target.value),
+          placeholder,
+          'data-testid': placeholder || label,
+        }),
+        error ? React.createElement('span', null, error) : null,
+      ),
+  };
+});
+
+jest.mock('@/components/icons', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    ArrowLeftIcon: () => React.createElement(Text, null, '←'),
+    CaregiverIcon: () => React.createElement(Text, null, '🩺'),
+  };
+});
+
+jest.mock('@/theme/colors', () => ({
+  colors: {
+    text: { primary: '#111827', secondary: '#6B7280' },
+    background: '#FFFFFF', surface: '#FFFFFF', white: '#FFFFFF',
+    neutral: { 100: '#F3F4F6', 200: '#E5E7EB' },
+    error: { 500: '#EF4444' },
+  },
+  roleColors: { caregiver: '#059669' },
+}));
+jest.mock('@/theme/typography', () => ({
+  typography: {
+    styles: {
+      h1: { fontSize: 36 }, h2: { fontSize: 30 }, h3: { fontSize: 24 }, h4: { fontSize: 20 },
+      body: { fontSize: 16 }, bodyLarge: { fontSize: 18 }, bodySmall: { fontSize: 14 },
+      label: { fontSize: 14 }, caption: { fontSize: 12 },
+      button: { fontSize: 16 }, buttonLarge: { fontSize: 18 },
+      stat: { fontSize: 28 }, statSmall: { fontSize: 20 },
+    },
+    caregiver: { heading: { fontSize: 28 }, body: { fontSize: 20 }, label: { fontSize: 16 } },
+    fontFamily: { display: 'System', body: 'System', regular: 'System', medium: 'System', semibold: 'System', bold: 'System' },
+  },
+}));
+jest.mock('@/theme/spacing', () => ({
+  spacing: { 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32 },
+  borderRadius: { sm: 4, md: 8, lg: 12, xl: 16 },
+  createShadow: () => ({}),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: ({ children }: any) => children,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
 import CaregiverSignupScreen from '@/app/(auth)/caregiver-signup';
 
-describe('Batch 5: Caregiver Signup', () => {
+describe('01-Auth: Caregiver Signup Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLoading = false;
-    mockSignInWithPhone.mockResolvedValue(undefined);
+    mockSignInWithEmailOTP.mockResolvedValue(undefined);
   });
 
-  // Feature #36: Phone number input renders
-  it('#36 - Phone number input renders', () => {
+  // ── Renders ───────────────────────────────────────────────────────────────
+
+  it('renders without crashing', () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByPlaceholderText('(555) 123-4567')).toBeTruthy();
+    expect(screen.getAllByText(/Create Your Caregiver Profile/i)[0]).toBeTruthy();
   });
 
-  // Feature #37: Title renders
-  it('#37 - Title "Create Your Caregiver Profile" renders', () => {
+  it('renders subtitle about showcasing skills', () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByText('Create Your Caregiver Profile')).toBeTruthy();
+    expect(screen.getAllByText(/showcase your skills to agencies/i)[0]).toBeTruthy();
   });
 
-  // Feature #38: Subtitle renders
-  it('#38 - Subtitle "Free — showcase your skills to agencies" renders', () => {
+  it('renders Email Address input (not phone)', () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByText(/showcase your skills to agencies/)).toBeTruthy();
+    expect(screen.getAllByText(/Email Address/i)[0]).toBeTruthy();
   });
 
-  // Feature #39: Country code prefix
-  it('#39 - Country code prefix +1 renders', () => {
+  it('renders email placeholder you@example.com', () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByText('+1')).toBeTruthy();
+    expect(screen.getByPlaceholderText('you@example.com')).toBeTruthy();
   });
 
-  // Feature #40: Send Code button renders
-  it('#40 - "Send Code" button renders', () => {
+  it('renders Send Code button', () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByText('Send Code')).toBeTruthy();
+    expect(screen.getByTestId('btn-Send-Code')).toBeTruthy();
   });
 
-  // Feature #41: Help text renders
-  it('#41 - Help text about 6-digit code renders', () => {
+  it('shows "Already have an account?" text', () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByText(/6-digit code/)).toBeTruthy();
+    expect(screen.getAllByText(/Already have an account/i)[0]).toBeTruthy();
   });
 
-  // Feature #42: Back button renders
-  it('#42 - Back button renders and navigates back', () => {
-    render(<CaregiverSignupScreen />);
-    const buttons = screen.getAllByRole('button');
-    // First button is the back button (ghost variant with arrow icon)
-    fireEvent.click(buttons[0]);
-    expect(mockBack).toHaveBeenCalled();
-  });
+  // ── Validation ────────────────────────────────────────────────────────────
 
-  // Feature #43: Phone validation rejects short numbers
-  it('#43 - Phone validation rejects short numbers', async () => {
+  it('shows error when submitting with empty email', async () => {
     render(<CaregiverSignupScreen />);
-    fireEvent.click(screen.getByText('Send Code'));
+    fireEvent.click(screen.getByTestId('btn-Send-Code'));
     await waitFor(() => {
-      expect(screen.getByText('Please enter a valid phone number')).toBeTruthy();
+      expect(screen.getAllByText(/valid email/i)[0]).toBeTruthy();
+    });
+    expect(mockSignInWithEmailOTP).not.toHaveBeenCalled();
+  });
+
+  it('shows error when submitting with invalid email', async () => {
+    render(<CaregiverSignupScreen />);
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'notanemail' } });
+    fireEvent.click(screen.getByTestId('btn-Send-Code'));
+    await waitFor(() => {
+      expect(screen.getAllByText(/valid email/i)[0]).toBeTruthy();
+    });
+    expect(mockSignInWithEmailOTP).not.toHaveBeenCalled();
+  });
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+
+  it('calls signInWithEmailOTP with trimmed lowercase email', async () => {
+    render(<CaregiverSignupScreen />);
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: '  Maria@Example.COM  ' } });
+    fireEvent.click(screen.getByTestId('btn-Send-Code'));
+
+    await waitFor(() => {
+      expect(mockSignInWithEmailOTP).toHaveBeenCalledWith('maria@example.com', 'caregiver');
     });
   });
 
-  // Feature #44: Phone number formatting
-  it('#44 - Phone label "Phone Number" renders', () => {
+  it('navigates to verify-otp with email and caregiver role after success', async () => {
     render(<CaregiverSignupScreen />);
-    expect(screen.getByText('Phone Number')).toBeTruthy();
-  });
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.click(screen.getByTestId('btn-Send-Code'));
 
-  // Feature #45: Loading state on submission
-  it('#45 - Loading state on submission (button has loading prop)', () => {
-    mockLoading = true;
-    render(<CaregiverSignupScreen />);
-    // When loading, the Send Code button should be disabled
-    const buttons = screen.getAllByRole('button');
-    // The send code button (second button) should reflect loading
-    expect(buttons.length).toBeGreaterThanOrEqual(2);
-  });
-
-  // Feature #46: Success navigates to verify-otp with caregiver role
-  it('#46 - Success navigates to verify-otp with caregiver role', async () => {
-    render(<CaregiverSignupScreen />);
-    const phoneInput = screen.getByPlaceholderText('(555) 123-4567');
-    fireEvent.change(phoneInput, { target: { value: '5551234567' } });
-    fireEvent.click(screen.getByText('Send Code'));
-
-    await waitFor(() => {
-      expect(mockSignInWithPhone).toHaveBeenCalledWith('+15551234567');
-    });
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith({
         pathname: '/(auth)/verify-otp',
-        params: {
-          phone: '+15551234567',
+        params: expect.objectContaining({
+          email: 'test@example.com',
           role: 'caregiver',
-          signup: 'true',
-        },
+        }),
       });
     });
   });
 
-  // Feature #47: "Already have an account? Sign In" link renders
-  it('#47 - "Already have an account?" and "Sign In" link renders', () => {
-    render(<CaregiverSignupScreen />);
-    expect(screen.getByText(/Already have an account/)).toBeTruthy();
-    expect(screen.getByText('Sign In')).toBeTruthy();
-  });
+  // ── NEGATIVE ──────────────────────────────────────────────────────────────
 
-  // Feature #48: Error message on API failure
-  it('#48 - Error message on API failure', async () => {
-    mockSignInWithPhone.mockRejectedValue(new Error('Rate limit exceeded'));
+  it('NEGATIVE: shows error message on API failure', async () => {
+    mockSignInWithEmailOTP.mockRejectedValue(new Error('Failed to send verification code'));
     render(<CaregiverSignupScreen />);
-    const phoneInput = screen.getByPlaceholderText('(555) 123-4567');
-    fireEvent.change(phoneInput, { target: { value: '5551234567' } });
-    fireEvent.click(screen.getByText('Send Code'));
+    const emailInput = screen.getByPlaceholderText('you@example.com');
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.click(screen.getByTestId('btn-Send-Code'));
 
     await waitFor(() => {
-      expect(screen.getByText('Rate limit exceeded')).toBeTruthy();
+      expect(screen.getAllByText(/Failed to send|failed/i)[0]).toBeTruthy();
     });
-  });
-
-  // Feature #49: "Sign In" link navigates to phone-login
-  it('#49 - "Sign In" link navigates to phone-login', () => {
-    render(<CaregiverSignupScreen />);
-    fireEvent.click(screen.getByText('Sign In'));
-    expect(mockPush).toHaveBeenCalledWith('/(auth)/phone-login?role=caregiver');
   });
 });

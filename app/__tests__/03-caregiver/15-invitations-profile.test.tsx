@@ -20,9 +20,9 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({}),
   useSegments: () => [],
   usePathname: () => '/',
-  Link: ({ children, ...props }: any) => <span {...props}>{children}</span>,
-  Stack: { Screen: ({ options }: any) => null },
-  Tabs: { Screen: ({ children }: any) => children ?? null },
+  Link: ({ children }: any) => children,
+  Stack: { Screen: () => null },
+  Tabs: { Screen: () => null },
   Redirect: () => null,
   useFocusEffect: jest.fn((callback: any) => {
     const ReactInner = require('react');
@@ -34,17 +34,10 @@ jest.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     user: { id: 'caregiver-1', full_name: 'Maria Garcia', agency_id: 'agency-1' },
     agency: { id: 'agency-1', name: 'Sunny Day Home Care' },
-    loading: false,
-    initialized: true,
-    signInWithEmail: jest.fn(),
-    signInWithPhone: jest.fn(),
-    signUpWithEmail: jest.fn(),
-    verifyOTP: jest.fn(),
-    signOut: jest.fn(),
-    refreshProfile: jest.fn(),
-    isRole: jest.fn(() => true),
+    loading: false, initialized: true,
+    signOut: jest.fn(), refreshProfile: jest.fn(),
+    isRole: jest.fn((r: string) => r === 'caregiver'),
   }),
-  useRequireRole: () => ({ hasAccess: true, loading: false, user: { id: 'caregiver-1' } }),
   AuthProvider: ({ children }: any) => children,
 }));
 
@@ -165,7 +158,7 @@ describe('Batch 19: Pending Invitations', () => {
     await waitFor(() => {
       expect(screen.getByText('Sunny Day Home Care')).toBeTruthy();
     });
-    expect(screen.getByText(/Care for Dorothy Smith/)).toBeTruthy();
+    expect(screen.getAllByText(/Care for Dorothy Smith/)[0]).toBeTruthy();
     expect(screen.getByText('Smith Family Care')).toBeTruthy();
   });
 
@@ -282,7 +275,7 @@ describe('Batch 19: My Profile', () => {
       expect(screen.getByText('Basic Information')).toBeTruthy();
     });
     expect(screen.getByText('Professional Information')).toBeTruthy();
-    expect(screen.getByText('Capabilities')).toBeTruthy();
+    expect(screen.getByText('Tasks You Can Perform')).toBeTruthy();
     expect(screen.getByText('Availability')).toBeTruthy();
   });
 
@@ -294,7 +287,7 @@ describe('Batch 19: My Profile', () => {
     });
     expect(screen.getByText('Zip Code *')).toBeTruthy();
     expect(screen.getByText('Certifications')).toBeTruthy();
-    expect(screen.getByText('Hourly Rate')).toBeTruthy();
+    expect(screen.getAllByText(/Hourly Rate/i)[0]).toBeTruthy();
   });
 
   // Feature #183: Save Changes button renders
