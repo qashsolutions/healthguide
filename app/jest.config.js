@@ -10,6 +10,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: ['<rootDir>/__tests__/**/*.test.tsx', '<rootDir>/__tests__/**/*.test.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/__tests__/integration/'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
