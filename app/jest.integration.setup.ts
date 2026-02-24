@@ -3,6 +3,9 @@
  * Mocks only native modules that can't run in Node/JSDOM.
  */
 
+// Polyfill fetch for Node/JSDOM environments that don't expose it globally
+import 'cross-fetch/polyfill';
+
 // --- expo-router ---
 jest.mock('expo-router', () => ({
   useRouter: () => ({
