@@ -76,13 +76,13 @@ export default async function CaregiversPage({ searchParams }: PageProps) {
 
       {/* Results */}
       {!hasSearch ? (
-        <div className="text-center py-16">
+        <div data-testid="empty-state" className="text-center py-16">
           <p className="text-gray-400 text-lg">
             Enter a zip code to find caregivers in your area
           </p>
         </div>
       ) : caregivers.length === 0 ? (
-        <div className="text-center py-16">
+        <div data-testid="no-results" className="text-center py-16">
           <h2 className="text-xl font-semibold text-gray-700 mb-2">No Caregivers Found</h2>
           <p className="text-gray-400">
             Try a different zip code or remove some skill filters to see more results.
@@ -91,13 +91,13 @@ export default async function CaregiversPage({ searchParams }: PageProps) {
       ) : (
         <>
           {/* Result count */}
-          <p className="text-sm text-gray-500 mb-4">
+          <p data-testid="result-count" className="text-sm text-gray-500 mb-4">
             {totalCount} caregiver{totalCount !== 1 ? 's' : ''} found
             {zip ? ` near ${zip.slice(0, 3)}xx` : ''}
           </p>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div data-testid="caregivers-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {caregivers.map((caregiver) => (
               <CaregiverCard key={caregiver.id} caregiver={caregiver} />
             ))}
@@ -107,6 +107,7 @@ export default async function CaregiversPage({ searchParams }: PageProps) {
           {hasMore && (
             <div className="text-center">
               <a
+                data-testid="load-more"
                 href={`/caregivers?zip=${zip}&capabilities=${capabilitiesStr}&page=${page + 1}`}
                 className="inline-block bg-hg-teal-700 text-white px-8 py-3 rounded-xl font-semibold hover:bg-hg-teal-800 transition-colors"
               >

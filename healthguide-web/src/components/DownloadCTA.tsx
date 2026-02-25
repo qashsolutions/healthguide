@@ -8,7 +8,7 @@ export function DownloadCTA({ caregiverName }: Props) {
     : 'Download HealthGuide to connect with caregivers';
 
   return (
-    <section id="download" className="bg-gradient-to-r from-hg-teal-700 to-hg-emerald-600 rounded-2xl p-8 md:p-12 text-center">
+    <section id="download" data-testid="download-cta" className="bg-gradient-to-r from-hg-teal-700 to-hg-emerald-600 rounded-2xl p-8 md:p-12 text-center">
       <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
         {message}
       </h2>

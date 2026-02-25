@@ -38,6 +38,7 @@ export function SearchFilters({ initialZip = '', initialCapabilities = [] }: Pro
         <div className="flex gap-3">
           <input
             id="zip"
+            data-testid="zip-input"
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
@@ -49,6 +50,7 @@ export function SearchFilters({ initialZip = '', initialCapabilities = [] }: Pro
           />
           <button
             type="submit"
+            data-testid="search-btn"
             className="bg-hg-teal-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-hg-teal-800 transition-colors whitespace-nowrap"
           >
             Search
@@ -64,6 +66,7 @@ export function SearchFilters({ initialZip = '', initialCapabilities = [] }: Pro
             <button
               key={cap}
               type="button"
+              data-testid={`skill-btn-${cap}`}
               onClick={() => toggleCapability(cap)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 selectedCaps.includes(cap)

@@ -119,6 +119,7 @@ export default async function CaregiverProfilePage({ params }: PageProps) {
       {/* Back link */}
       <a
         href="/caregivers"
+        data-testid="back-link"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-hg-teal-700 mb-6 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -138,18 +139,21 @@ export default async function CaregiverProfilePage({ params }: PageProps) {
               className="w-24 h-24 rounded-full object-cover flex-shrink-0"
             />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-hg-emerald-600 flex items-center justify-center flex-shrink-0">
+            <div
+              data-testid="avatar-initials"
+              className="w-24 h-24 rounded-full bg-hg-emerald-600 flex items-center justify-center flex-shrink-0"
+            >
               <span className="text-white font-bold text-2xl">{initials}</span>
             </div>
           )}
 
           <div className="text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h1 data-testid="profile-name" className="text-2xl md:text-3xl font-bold text-gray-900">
                 {caregiver.full_name}
               </h1>
               {caregiver.npi_verified && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold">
+                <span data-testid="profile-npi" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.403 12.652a3 3 0 010-5.304 3 3 0 00-2.108-2.108 3 3 0 01-5.304 0 3 3 0 00-2.108 2.108 3 3 0 010 5.304 3 3 0 002.108 2.108 3 3 0 015.304 0 3 3 0 002.108-2.108zM13.768 8.232a.75.75 0 10-1.036-1.036L9.5 10.428 8.268 9.196a.75.75 0 00-1.036 1.036l1.75 1.75a.75.75 0 001.036 0l3.75-3.75z" clipRule="evenodd" />
                   </svg>
@@ -173,7 +177,7 @@ export default async function CaregiverProfilePage({ params }: PageProps) {
 
       {/* Skills */}
       {caregiver.capabilities.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <div data-testid="profile-skills" className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <h2 className="font-sans font-bold text-gray-900 mb-3">Skills & Capabilities</h2>
           <div className="flex flex-wrap gap-2">
             {caregiver.capabilities.map((cap) => (
@@ -190,7 +194,7 @@ export default async function CaregiverProfilePage({ params }: PageProps) {
 
       {/* Bio */}
       {caregiver.bio && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <div data-testid="profile-bio" className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <h2 className="font-sans font-bold text-gray-900 mb-3">About</h2>
           <p className="text-gray-600 leading-relaxed whitespace-pre-line">{caregiver.bio}</p>
         </div>
@@ -198,11 +202,11 @@ export default async function CaregiverProfilePage({ params }: PageProps) {
 
       {/* Ratings summary + recent reviews */}
       {caregiver.rating_count > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <div data-testid="profile-reviews" className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <h2 className="font-sans font-bold text-gray-900 mb-4">Reviews</h2>
 
           {/* Summary bar */}
-          <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+          <div data-testid="reviews-summary" className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
             <span className="text-3xl">{percentage >= 50 ? '\uD83D\uDC4D' : '\uD83D\uDC4E'}</span>
             <div>
               <p className="text-2xl font-bold text-hg-emerald-600">{percentage}% positive</p>

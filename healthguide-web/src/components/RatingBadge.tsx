@@ -7,7 +7,7 @@ interface Props {
 export function RatingBadge({ ratingCount, positiveCount, size = 'md' }: Props) {
   if (ratingCount === 0) {
     return (
-      <span className="text-gray-400 text-xs">No reviews yet</span>
+      <span data-testid="no-reviews" className="text-gray-400 text-xs">No reviews yet</span>
     );
   }
 
@@ -27,7 +27,7 @@ export function RatingBadge({ ratingCount, positiveCount, size = 'md' }: Props) 
   };
 
   return (
-    <div className={`flex items-center ${sizeClasses[size]}`}>
+    <div data-testid="rating-badge" className={`flex items-center ${sizeClasses[size]}`}>
       <span className={thumbSize[size]}>{isPositive ? '\uD83D\uDC4D' : '\uD83D\uDC4E'}</span>
       <span className="font-semibold text-gray-700">{percentage}%</span>
       <span className="text-gray-400">({ratingCount})</span>

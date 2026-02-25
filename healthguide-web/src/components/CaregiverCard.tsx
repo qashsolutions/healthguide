@@ -17,6 +17,7 @@ export function CaregiverCard({ caregiver }: Props) {
   return (
     <Link
       href={`/caregivers/${caregiver.id}`}
+      data-testid="caregiver-card"
       className="block bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-hg-teal-200 transition-all group"
     >
       {/* Top row: Avatar + Name + Badge */}
