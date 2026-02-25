@@ -10,7 +10,9 @@
     "lint": "next lint",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:integration": "playwright test --config playwright.integration.config.ts",
+    "test:e2e:integration:report": "playwright show-report playwright-report-integration"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
